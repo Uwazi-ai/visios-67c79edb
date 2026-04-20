@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     });
     const data = await r.json();
     if (!r.ok) return jsonResponse({ error: `Gmail send failed [${r.status}]: ${JSON.stringify(data)}` }, r.status);
-    return jsonResponse({ ok: true, ...data });
+    return jsonResponse({ ok: true, id: data.id, threadId: data.threadId });
   } catch (e) {
     return jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
