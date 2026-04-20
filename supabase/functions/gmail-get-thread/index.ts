@@ -66,6 +66,8 @@ Deno.serve(async (req) => {
         date: h("Date"),
         snippet: m.snippet ?? "",
         body: text || html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
+        bodyText: text,
+        bodyHtml: html,
         labelIds: m.labelIds ?? [],
       };
     });
