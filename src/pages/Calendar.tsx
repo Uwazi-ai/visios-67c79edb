@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ORG_COLORS } from "@/lib/orgs";
+import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 
 type View = "day" | "week" | "month";
