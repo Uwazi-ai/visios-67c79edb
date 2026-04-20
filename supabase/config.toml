@@ -1,1 +1,13 @@
 project_id = "qzurwsqecdsgziyvnuul"
+
+[functions.booking-lookup]
+verify_jwt = false
+
+[functions.booking-confirm]
+verify_jwt = false
+
+[functions.calendar-freebusy]
+verify_jwt = false
+
+[functions.ai-prep-brief]
+verify_jwt = false
