@@ -13,8 +13,9 @@ import BookingsPage from "./pages/Bookings";
 import BookingPublic from "./pages/BookingPublic";
 import SettingsPage from "./pages/Settings";
 import CalendarPage from "./pages/Calendar";
+import TasksPage from "./pages/Tasks";
 import {
-  TasksPage, ChatPage,
+  ChatPage,
   NotificationsPage, ContactsPage, MeetingsPage, FinancePage,
 } from "./pages/EmptyPages";
 import NotFound from "./pages/NotFound";

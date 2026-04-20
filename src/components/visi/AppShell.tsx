@@ -3,6 +3,7 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { MobileTabbar } from "./MobileTabbar";
 import { useAuth } from "@/contexts/AuthContext";
+import { QuickCaptureModal } from "@/components/tasks/QuickCaptureModal";
 
 export const AppShell = () => {
   const { session, loading } = useAuth();
@@ -27,6 +28,7 @@ export const AppShell = () => {
         </main>
       </div>
       <MobileTabbar />
+      <QuickCaptureModal />
     </div>
   );
 };
