@@ -756,6 +756,15 @@ const InboxPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered, selectedId, thread, draftOpen, draft, sending, draftLoading, mobileView, creatingTask, taskCreatedFor]);
 
+  // Claim ownership of the "T" shortcut while an inbox thread is open so the
+  // global Quick Capture modal doesn't also fire.
+  useEffect(() => {
+    if (thread) {
+      document.body.dataset.tShortcutOwner = "inbox";
+      return () => { delete document.body.dataset.tShortcutOwner; };
+    }
+  }, [thread]);
+
   return (
     <div
       className="flex h-[calc(100vh-7rem)] md:h-[calc(100vh-6rem)] gap-0 md:gap-4"
