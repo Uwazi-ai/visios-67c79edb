@@ -44,7 +44,7 @@ const Login = () => {
         style={{ borderRadius: 24 }}
       >
         <div className="flex flex-col items-center text-center">
-          <VisiLogo size={36} />
+          <VisiLogo size={64} showWordmark />
           <h1
             className="t-hero mt-8"
             style={{ fontSize: "clamp(28px, 4vw, 40px)" }}
