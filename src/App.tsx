@@ -43,8 +43,7 @@ const App = () => (
             </Routes>
           </OrgProvider>
         </AuthProvider>
-      </Toaster>
-    </BrowserRouter>
+      </BrowserRouter>
   </QueryClientProvider>
 );
 
