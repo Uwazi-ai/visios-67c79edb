@@ -1029,8 +1029,30 @@ const InboxPage = () => {
                       <Sparkles size={11} />
                       {summaryLoading ? "…" : "Summarize"}
                     </button>
-                    <button className="btn-ghost" style={{ fontSize: 10, padding: "6px 10px" }}>
-                      <Plus size={11} /> Task
+                    <button
+                      onClick={createTaskFromThread}
+                      disabled={creatingTask || taskCreatedFor === thread!.id}
+                      className="btn-ghost"
+                      style={{
+                        fontSize: 10,
+                        padding: "6px 10px",
+                        ...(taskCreatedFor === thread!.id
+                          ? { color: "#86efac", borderColor: "rgba(34,197,94,0.35)" }
+                          : {}),
+                      }}
+                      title="Create task from this email (T)"
+                    >
+                      {taskCreatedFor === thread!.id ? (
+                        <>
+                          <Check size={11} /> Task added
+                        </>
+                      ) : creatingTask ? (
+                        <>… Adding</>
+                      ) : (
+                        <>
+                          <Plus size={11} /> Task
+                        </>
+                      )}
                     </button>
                     <button className="btn-ghost" style={{ padding: "6px 8px" }}>
                       <MoreHorizontal size={12} />
