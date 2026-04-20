@@ -627,16 +627,30 @@ const InboxPage = () => {
                       >
                         {thread!.subject || "(no subject)"}
                       </h2>
-                      <p
-                        className="truncate mt-0.5"
-                        style={{
-                          fontFamily: "var(--font-body)",
-                          fontSize: 11,
-                          color: "var(--text-secondary)",
-                        }}
-                      >
-                        {thread!.messages[0]?.from} · {thread!.messages.length} message{thread!.messages.length === 1 ? "" : "s"}
-                      </p>
+                      {(() => {
+                        const last = thread!.messages[thread!.messages.length - 1];
+                        const name = last?.fromName || last?.from || "";
+                        const email = last?.fromEmail && last.fromEmail !== name ? last.fromEmail : "";
+                        const dateStr = last?.date ? (() => {
+                          const d = new Date(last.date);
+                          return isNaN(d.getTime()) ? last.date : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+                        })() : "";
+                        return (
+                          <p
+                            className="truncate mt-0.5"
+                            style={{
+                              fontFamily: "var(--font-body)",
+                              fontSize: 11,
+                              color: "var(--text-secondary)",
+                            }}
+                          >
+                            <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>{name}</span>
+                            {email && <span> &lt;{email}&gt;</span>}
+                            {dateStr && <span> · {dateStr}</span>}
+                            <span> · {thread!.messages.length} message{thread!.messages.length === 1 ? "" : "s"}</span>
+                          </p>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
