@@ -93,6 +93,8 @@ export default function Calendar() {
     return m;
   }, [orgs]);
 
+  const [needsReconnect, setNeedsReconnect] = useState(false);
+
   const loadEvents = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -100,8 +102,15 @@ export default function Calendar() {
       const { data, error } = await supabase.functions.invoke("calendar-list-events", {
         body: { timeMin: range.from.toISOString(), timeMax: range.to.toISOString() },
       });
+      const errMsg = (error as { message?: string } | null)?.message ?? data?.error;
+      if (errMsg && /refresh token/i.test(errMsg)) {
+        setNeedsReconnect(true);
+        setEvents([]);
+        return;
+      }
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      setNeedsReconnect(false);
       const mapped: CalEvent[] = (data.events ?? []).map((e: { id: string; summary: string; description: string; start: string; end: string; allDay: boolean; attendees: string[]; hangoutLink: string | null; htmlLink: string | null }) => {
         const slug = detectOrgSlug(e.summary, e.description);
         const orgInfo = slug ? orgBySlug.get(slug) : null;
