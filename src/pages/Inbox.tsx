@@ -1168,6 +1168,27 @@ const InboxPage = () => {
                   </div>
                 )}
               </div>
+
+              {/* Keyboard shortcut hint bar — desktop only */}
+              <div
+                className="hidden md:flex items-center justify-center gap-3 px-4 py-2 border-t flex-wrap"
+                style={{
+                  borderColor: "var(--border-glass)",
+                  fontFamily: "var(--font-body)",
+                  fontSize: 8,
+                  color: "var(--text-muted)",
+                  opacity: 0.6,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                <span className="flex items-center gap-1"><span className="kbd">J</span><span className="kbd">K</span> navigate</span>
+                <span className="flex items-center gap-1"><span className="kbd">R</span> reply</span>
+                <span className="flex items-center gap-1"><span className="kbd">E</span> archive</span>
+                <span className="flex items-center gap-1"><span className="kbd">U</span> unread</span>
+                <span className="flex items-center gap-1"><span className="kbd">T</span> task</span>
+                <span className="flex items-center gap-1"><span className="kbd">⌘</span><span className="kbd">↵</span> send</span>
+                <span className="flex items-center gap-1"><span className="kbd">Esc</span> close</span>
+              </div>
             </>
           )}
         </div>
