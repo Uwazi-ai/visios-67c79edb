@@ -1,5 +1,5 @@
 // Shared Gmail helpers for Visi OS edge functions
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
