@@ -330,7 +330,8 @@ const InboxPage = () => {
       const { data, error } = await supabase.functions.invoke(`gmail-get-thread?id=${id}`, { headers });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      setThread(data as any);
+      const d = data as any;
+      setThread({ id: d.id, subject: d.subject, messages: d.parsed ?? [], raw: d.messages, historyId: d.historyId });
       // mark read locally
       setThreads((prev) => prev.map((t) => (t.id === id ? { ...t, isUnread: false } : t)));
     } catch (e: any) {
