@@ -647,6 +647,53 @@ const InboxPage = () => {
     }
   }
 
+  async function createTaskFromThread() {
+    if (!thread || !user) return;
+    const orgId = threadOrgs[thread.id] ?? (activeOrgId && activeOrgId !== "all" ? activeOrgId : orgs[0]?.id);
+    if (!orgId) {
+      toast({ title: "No org available", description: "Join an organization first.", variant: "destructive" });
+      return;
+    }
+    const last = thread.messages[thread.messages.length - 1];
+    const fromLabel = last?.fromName || last?.fromEmail || "Unknown sender";
+    const aiSummary = classifications[thread.id]?.ai_summary;
+    const description = [
+      `📧 From: ${fromLabel}${last?.fromEmail && last.fromEmail !== fromLabel ? ` <${last.fromEmail}>` : ""}`,
+      `🔗 Gmail thread: ${thread.id}`,
+      "",
+      aiSummary || (last?.snippet ?? ""),
+    ].join("\n");
+    setCreatingTask(true);
+    try {
+      const { data, error } = await supabase
+        .from("tasks")
+        .insert({
+          title: thread.subject || "(no subject)",
+          description,
+          org_id: orgId,
+          status: "todo",
+          priority: (classifications[thread.id]?.urgency === "urgent" ? "urgent"
+            : classifications[thread.id]?.urgency === "action" ? "high"
+            : "normal"),
+          assignee_id: user.id,
+          created_by: user.id,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      setTaskCreatedFor(thread.id);
+      toast({
+        title: "Task created",
+        description: `"${(data as any).title}" added to your tasks.`,
+      });
+      setTimeout(() => setTaskCreatedFor((cur) => (cur === thread.id ? null : cur)), 4000);
+    } catch (e: any) {
+      toast({ title: "Couldn't create task", description: e?.message ?? String(e), variant: "destructive" });
+    } finally {
+      setCreatingTask(false);
+    }
+  }
+
   const filtered = useMemo(() => {
     return threads.filter((t) => {
       if (filter !== "all" && t.urgency !== filter) return false;
