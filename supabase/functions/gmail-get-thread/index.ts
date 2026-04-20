@@ -64,6 +64,8 @@ Deno.serve(async (req) => {
         to: h("To"),
         subject: h("Subject"),
         date: h("Date"),
+        messageId: h("Message-ID") || h("Message-Id"),
+        references: h("References"),
         snippet: m.snippet ?? "",
         body: text || html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim(),
         bodyText: text,
