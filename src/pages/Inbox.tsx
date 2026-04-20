@@ -152,64 +152,100 @@ function Avatar({ name, size = 32 }: { name: string; size?: number }) {
   );
 }
 
-function EmailListItem({
-  t,
-  selected,
-  onClick,
-}: {
-  t: ThreadSummary;
-  selected: boolean;
+interface EmailListItemProps {
+  id: string;
+  fromName: string;
+  fromInitials: string;
+  fromColor: string;
+  subject: string;
+  aiSummary: string;
+  time: string;
+  urgency: Urgency;
+  isUnread: boolean;
+  isSelected: boolean;
+  orgSlug: string;
   onClick: () => void;
-}) {
+}
+
+function EmailListItem({
+  fromName,
+  fromInitials,
+  fromColor,
+  subject,
+  aiSummary,
+  time,
+  urgency,
+  isUnread,
+  isSelected,
+  orgSlug,
+  onClick,
+}: EmailListItemProps) {
   return (
     <button
       onClick={onClick}
       className="w-full text-left px-3 py-3 transition-all"
       style={{
         borderRadius: 10,
-        background: selected ? "var(--bg-glass-active)" : "transparent",
-        borderLeft: selected ? "2px solid hsl(var(--primary))" : "2px solid transparent",
-        boxShadow: selected ? `0 0 24px ${"var(--glow-blue)"}` : "none",
+        background: isSelected ? "var(--bg-glass-active)" : "transparent",
+        borderLeft: isSelected ? "2px solid hsl(var(--primary))" : "2px solid transparent",
+        boxShadow: isSelected ? `0 0 24px ${"var(--glow-blue)"}` : "none",
       }}
       onMouseEnter={(e) => {
-        if (!selected) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
+        if (!isSelected) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.03)";
       }}
       onMouseLeave={(e) => {
-        if (!selected) (e.currentTarget as HTMLElement).style.background = "transparent";
+        if (!isSelected) (e.currentTarget as HTMLElement).style.background = "transparent";
       }}
     >
       <div className="flex gap-3">
-        <Avatar name={t.fromName} />
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            background: fromColor,
+            color: "white",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontFamily: "var(--font-display)",
+            fontWeight: 700,
+            fontSize: 12,
+            flexShrink: 0,
+          }}
+        >
+          {fromInitials}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <span
               className="truncate"
               style={{
                 fontFamily: "var(--font-body)",
-                fontWeight: t.isUnread ? 600 : 400,
+                fontWeight: isUnread ? 600 : 400,
                 fontSize: 12.5,
                 color: "var(--text-primary)",
               }}
             >
-              {t.fromName}
+              {fromName}
             </span>
             <span
               className="t-mono"
               style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}
             >
-              {formatTime(t.date)}
+              {time}
             </span>
           </div>
           <div
             className="truncate mt-0.5"
             style={{
               fontFamily: "var(--font-body)",
-              fontWeight: t.isUnread ? 600 : 400,
+              fontWeight: isUnread ? 600 : 400,
               fontSize: 12,
-              color: t.isUnread ? "var(--text-primary)" : "var(--text-secondary)",
+              color: isUnread ? "var(--text-primary)" : "var(--text-secondary)",
             }}
           >
-            {t.subject}
+            {subject}
           </div>
           <div
             className="truncate mt-0.5"
@@ -220,11 +256,30 @@ function EmailListItem({
               color: "var(--text-muted)",
             }}
           >
-            {t.snippet}
+            {aiSummary}
           </div>
-          <div className="flex items-center justify-between mt-1.5">
-            <UrgencyBadge urgency={t.urgency} />
-            {t.isUnread && (
+          <div className="flex items-center justify-between mt-1.5 gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <UrgencyBadge urgency={urgency} />
+              {orgSlug && (
+                <span
+                  className="t-mono truncate"
+                  style={{
+                    fontSize: 9,
+                    padding: "2px 6px",
+                    borderRadius: 4,
+                    background: "rgba(255,255,255,0.05)",
+                    color: "var(--text-secondary)",
+                    border: "1px solid var(--border-glass)",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {orgSlug}
+                </span>
+              )}
+            </div>
+            {isUnread && (
               <span
                 style={{
                   width: 6,
@@ -232,6 +287,7 @@ function EmailListItem({
                   borderRadius: "50%",
                   background: "hsl(var(--primary))",
                   boxShadow: "0 0 8px var(--glow-blue-strong)",
+                  flexShrink: 0,
                 }}
               />
             )}
@@ -320,6 +376,8 @@ const InboxPage = () => {
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "thread">("list");
+  const [classifications, setClassifications] = useState<Record<string, { urgency: Urgency; ai_summary: string; org_tag: string }>>({});
+  const [threadOrgs, setThreadOrgs] = useState<Record<string, string | null>>({});
 
   const googleToken = (session as any)?.provider_token as string | undefined;
 
@@ -378,10 +436,21 @@ const InboxPage = () => {
         Array.isArray(classData) ? classData : [];
       const byId = new Map(classifications.map((c) => [c.id, c]));
 
+      // Surface classifications + detected org per thread for the list UI
+      const classMap: Record<string, { urgency: Urgency; ai_summary: string; org_tag: string }> = {};
+      const orgMap: Record<string, string | null> = {};
       const fallbackOrg = activeOrgId && activeOrgId !== "all" ? activeOrgId : (orgs[0]?.id ?? null);
+      for (const t of list) {
+        const c = byId.get(t.id);
+        if (c) classMap[t.id] = { urgency: (c.urgency as Urgency) ?? "fyi", ai_summary: c.ai_summary ?? "", org_tag: c.org_tag ?? "" };
+        orgMap[t.id] = detectOrgFromEmail(t.fromEmail, c?.org_tag, orgs) ?? fallbackOrg;
+      }
+      setClassifications((prev) => ({ ...prev, ...classMap }));
+      setThreadOrgs((prev) => ({ ...prev, ...orgMap }));
+
       const rows = list.map((t) => {
         const c = byId.get(t.id);
-        const detectedOrgId = detectOrgFromEmail(t.fromEmail, c?.org_tag, orgs) ?? fallbackOrg;
+        const detectedOrgId = orgMap[t.id];
         return {
           org_id: detectedOrgId,
           user_id: user.id,
@@ -641,14 +710,28 @@ const InboxPage = () => {
                 </p>
               </div>
             ) : (
-              filtered.map((t) => (
-                <EmailListItem
-                  key={t.id}
-                  t={t}
-                  selected={selectedId === t.id}
-                  onClick={() => openThread(t.id)}
-                />
-              ))
+              filtered.map((t) => {
+                const c = classifications[t.id];
+                const orgId = threadOrgs[t.id];
+                const orgSlug = orgs.find((o) => o.id === orgId)?.slug ?? "";
+                return (
+                  <EmailListItem
+                    key={t.id}
+                    id={t.id}
+                    fromName={t.fromName}
+                    fromInitials={initials(t.fromName)}
+                    fromColor={colorFromName(t.fromName)}
+                    subject={t.subject}
+                    aiSummary={c?.ai_summary || t.snippet}
+                    time={formatTime(t.date)}
+                    urgency={(c?.urgency as Urgency) ?? t.urgency}
+                    isUnread={t.isUnread}
+                    isSelected={selectedId === t.id}
+                    orgSlug={orgSlug}
+                    onClick={() => openThread(t.id)}
+                  />
+                );
+              })
             )}
           </div>
         </div>
