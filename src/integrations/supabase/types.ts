@@ -576,6 +576,7 @@ export type Database = {
           google_refresh_token: string | null
           id: string
           updated_at: string
+          username: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -586,6 +587,7 @@ export type Database = {
           google_refresh_token?: string | null
           id: string
           updated_at?: string
+          username?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -596,6 +598,7 @@ export type Database = {
           google_refresh_token?: string | null
           id?: string
           updated_at?: string
+          username?: string | null
         }
         Relationships: []
       }
