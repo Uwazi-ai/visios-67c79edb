@@ -747,27 +747,77 @@ const InboxPage = () => {
           <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
             {loading ? (
               Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="animate-pulse mx-1 my-1 p-3"
-                  style={{ background: "var(--bg-glass-1)", borderRadius: 10, height: 76 }}
-                />
+                <div key={i} className="mx-1 my-1 p-3 shimmer-block" style={{ borderRadius: 10, height: 76 }}>
+                  <div className="flex gap-3">
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.06)", flexShrink: 0 }} />
+                    <div className="flex-1 space-y-2">
+                      <div style={{ height: 10, width: "40%", borderRadius: 4, background: "rgba(255,255,255,0.06)" }} />
+                      <div style={{ height: 10, width: "75%", borderRadius: 4, background: "rgba(255,255,255,0.05)" }} />
+                      <div style={{ height: 9, width: "55%", borderRadius: 4, background: "rgba(255,255,255,0.04)" }} />
+                    </div>
+                  </div>
+                </div>
               ))
             ) : error ? (
-              <div className="p-6 text-center">
-                <AlertTriangle size={24} className="mx-auto mb-2" style={{ color: "var(--sev-critical)" }} />
-                <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--text-secondary)" }}>
-                  {error}
+              <div className="p-8 text-center">
+                <div
+                  className="mx-auto mb-3 flex items-center justify-center"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: "50%",
+                    background: "rgba(239,68,68,0.10)",
+                    border: "1px solid rgba(239,68,68,0.25)",
+                  }}
+                >
+                  <AlertTriangle size={20} style={{ color: "var(--sev-critical)" }} />
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: "var(--text-primary)",
+                    marginBottom: 4,
+                  }}
+                >
+                  Couldn't load inbox
+                </h3>
+                <p style={{ fontFamily: "var(--font-body)", fontSize: 11.5, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                  Check your Google connection in Settings
                 </p>
                 <button onClick={loadThreads} className="btn-ghost mt-3" style={{ fontSize: 11 }}>
-                  RETRY
+                  <RefreshCw size={11} /> RETRY
                 </button>
               </div>
             ) : filtered.length === 0 ? (
-              <div className="p-8 text-center">
-                <InboxIcon size={28} className="mx-auto mb-2" style={{ color: "var(--text-muted)" }} />
-                <p style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--text-secondary)" }}>
+              <div className="p-10 text-center">
+                <div
+                  className="mx-auto mb-3 flex items-center justify-center"
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    background: "var(--bg-glass-1)",
+                    border: "1px solid var(--border-glass)",
+                    boxShadow: "0 0 24px rgba(99,102,241,0.10), inset 0 1px 0 var(--border-glass-top)",
+                  }}
+                >
+                  <InboxIcon size={20} style={{ color: "var(--text-secondary)" }} />
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: "var(--text-primary)",
+                    marginBottom: 4,
+                  }}
+                >
                   No {filter === "all" ? "" : FILTERS.find((f) => f.key === filter)?.label.toLowerCase()} emails
+                </h3>
+                <p style={{ fontFamily: "var(--font-body)", fontSize: 11.5, color: "var(--text-muted)" }}>
+                  Your {filter === "all" ? "" : FILTERS.find((f) => f.key === filter)?.label.toLowerCase()} inbox is clear
                 </p>
               </div>
             ) : (
