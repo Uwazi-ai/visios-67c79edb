@@ -43,6 +43,8 @@ interface ThreadMessage {
   to: string;
   subject: string;
   date: string;
+  messageId?: string;
+  references?: string;
   snippet: string;
   body: string;
   bodyText?: string;
@@ -410,6 +412,8 @@ const InboxPage = () => {
     setSending(true);
     try {
       const subject = thread.subject?.startsWith("Re:") ? thread.subject : `Re: ${thread.subject ?? ""}`;
+      const lastMsgId = last.messageId || `<${last.id}@mail.gmail.com>`;
+      const refs = [last.references, lastMsgId].filter(Boolean).join(" ").trim();
       const { data, error } = await supabase.functions.invoke("gmail-send", {
         headers,
         body: {
@@ -417,7 +421,8 @@ const InboxPage = () => {
           subject,
           body: draft,
           threadId: thread.id,
-          inReplyTo: `<${last.id}>`,
+          inReplyTo: lastMsgId,
+          references: refs,
           fromName: user?.user_metadata?.full_name ?? undefined,
         },
       });
