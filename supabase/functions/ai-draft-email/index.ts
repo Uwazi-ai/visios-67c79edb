@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const { user } = await getAuthedUser(req);
     if (!user) return jsonResponse({ error: "Unauthorized" }, 401);
 
-    const { thread, user_name, user_org } = await req.json();
+    const { thread, user_name, user_org, voice_samples } = await req.json();
     if (!Array.isArray(thread) || thread.length === 0) {
       return jsonResponse({ error: "thread (array) required" }, 400);
     }
@@ -26,11 +26,18 @@ Deno.serve(async (req) => {
       .map((m: any) => `From: ${m.from}\nDate: ${m.timestamp ?? ""}\n\n${m.body}`)
       .join("\n\n---\n\n");
 
+    const voiceBlock = Array.isArray(voice_samples) && voice_samples.length > 0
+      ? `\n\nVoice samples (prior emails I've sent — match this exact tone, cadence, and phrasing):\n\n${voice_samples
+          .slice(0, 5)
+          .map((s: string, i: number) => `Sample ${i + 1}:\n${s}`)
+          .join("\n\n---\n\n")}`
+      : "";
+
     const messages = [
       { role: "system", content: SYSTEM_PROMPT },
       {
         role: "user",
-        content: `Drafting as: ${user_name ?? "Myke Shaw"} (${user_org ?? "UWAZI.AI"})\n\nThread:\n\n${threadText}\n\nDraft my reply now.`,
+        content: `Drafting as: ${user_name ?? "Myke Shaw"} (${user_org ?? "UWAZI.AI"})${voiceBlock}\n\nThread:\n\n${threadText}\n\nDraft my reply now.`,
       },
     ];
 
