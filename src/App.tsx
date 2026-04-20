@@ -9,9 +9,12 @@ import { AppShell } from "@/components/visi/AppShell";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import InboxPage from "./pages/Inbox";
+import BookingsPage from "./pages/Bookings";
+import BookingPublic from "./pages/BookingPublic";
+import SettingsPage from "./pages/Settings";
 import {
-  TasksPage, CalendarPage, BookingsPage, ChatPage,
-  NotificationsPage, ContactsPage, MeetingsPage, FinancePage, SettingsPage,
+  TasksPage, CalendarPage, ChatPage,
+  NotificationsPage, ContactsPage, MeetingsPage, FinancePage,
 } from "./pages/EmptyPages";
 import NotFound from "./pages/NotFound";
 
@@ -27,6 +30,7 @@ const App = () => (
           <OrgProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/book/:username/:slug" element={<BookingPublic />} />
               <Route element={<AppShell />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/inbox" element={<InboxPage />} />
