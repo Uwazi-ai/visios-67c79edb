@@ -90,6 +90,25 @@ function formatTime(date: string) {
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+// Match sender domain or AI org_tag to one of the user's orgs (by name or slug).
+function detectOrgFromEmail(
+  fromEmail: string | undefined,
+  orgTag: string | undefined,
+  orgs: Array<{ id: string; name: string; slug: string }>,
+): string | null {
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const domain = (fromEmail ?? "").split("@")[1]?.toLowerCase() ?? "";
+  const domainRoot = domain.split(".")[0] ?? "";
+  const tag = orgTag ? norm(orgTag) : "";
+  for (const o of orgs) {
+    const n = norm(o.name);
+    const s = norm(o.slug);
+    if (tag && (tag === n || tag === s || n.includes(tag) || tag.includes(n))) return o.id;
+    if (domainRoot && (domainRoot === s || domainRoot === n || n.includes(domainRoot))) return o.id;
+  }
+  return null;
+}
+
 function UrgencyBadge({ urgency }: { urgency: Urgency }) {
   const s = URGENCY_STYLES[urgency];
   return (
