@@ -214,6 +214,41 @@ export default function Calendar() {
   );
 }
 
+// =================== RECONNECT BANNER ===================
+function ReconnectBanner() {
+  const [busy, setBusy] = useState(false);
+  const reconnect = async () => {
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/calendar",
+      });
+      if (result.error) toast.error(result.error.message ?? "Reconnect failed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Reconnect failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="glass p-3 flex items-center gap-3" style={{ borderColor: "rgba(245,158,11,0.35)" }}>
+      <CalendarIcon size={16} style={{ color: "var(--sev-warn)" }} />
+      <div className="flex-1 min-w-0">
+        <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 12, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: 0.08 }}>
+          Reconnect Google
+        </div>
+        <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
+          Your Google session is missing a refresh token. Reconnect to load your calendar.
+        </div>
+      </div>
+      <button onClick={reconnect} disabled={busy} className="btn-primary" style={{ height: 32 }}>
+        {busy ? <Loader2 size={12} className="animate-spin" /> : null}
+        Reconnect
+      </button>
+    </div>
+  );
+}
+
 // =================== MINI SIDEBAR ===================
 function MiniSidebar({ cursor, setCursor, events, orgs }: { cursor: Date; setCursor: (d: Date) => void; events: CalEvent[]; orgs: { id: string; name: string; slug: string; color: string }[] }) {
   const [miniMonth, setMiniMonth] = useState(new Date(cursor.getFullYear(), cursor.getMonth(), 1));
