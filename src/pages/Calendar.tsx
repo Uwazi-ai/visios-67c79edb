@@ -119,6 +119,11 @@ export default function Calendar() {
         body: { timeMin: range.from.toISOString(), timeMax: range.to.toISOString() },
       });
       const errMsg = (await getFunctionErrorMessage(error)) ?? data?.error ?? null;
+      if (data?.fallback) {
+        setNeedsReconnect(data.error === "GOOGLE_AUTH_REQUIRED" || Boolean(errMsg && /refresh token/i.test(errMsg)));
+        setEvents([]);
+        return;
+      }
       if (errMsg && /refresh token/i.test(errMsg)) {
         setNeedsReconnect(true);
         setEvents([]);
@@ -251,7 +256,7 @@ function ReconnectBanner() {
     }
   };
   return (
-    <div className="glass p-3 flex items-center gap-3" style={{ borderColor: "rgba(245,158,11,0.35)" }}>
+      <div className="glass p-3 flex items-center gap-3" style={{ borderColor: "var(--border-active)" }}>
       <CalendarIcon size={16} style={{ color: "var(--sev-warn)" }} />
       <div className="flex-1 min-w-0">
         <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 12, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: 0.08 }}>
