@@ -184,6 +184,8 @@ export default function Calendar() {
           </button>
         </div>
 
+        {needsReconnect && <ReconnectBanner />}
+
         {/* View body */}
         <div className="glass flex-1 overflow-hidden flex flex-col">
           {view === "week" && <WeekView events={events} cursor={cursor} now={now} onSelect={setSelectedEvent} />}
