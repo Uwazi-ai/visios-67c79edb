@@ -22,6 +22,8 @@ export const QuickCaptureModal = () => {
       const target = e.target as HTMLElement;
       const typing = ["INPUT", "TEXTAREA"].includes(target.tagName) || target.isContentEditable;
       if (typing) return;
+      // Defer to page-level T handlers (e.g., Inbox "create task from email")
+      if (document.body.dataset.tShortcutOwner) return;
       if (e.key.toLowerCase() === "t" && !e.metaKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
         setOpen(true);
