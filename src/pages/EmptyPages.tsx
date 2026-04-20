@@ -1,7 +1,6 @@
-import { Inbox, CheckSquare, Calendar, Link2, MessageSquare, Bell, Users, Video, BarChart3, SlidersHorizontal } from "lucide-react";
+import { CheckSquare, Calendar, Link2, MessageSquare, Bell, Users, Video, BarChart3, SlidersHorizontal } from "lucide-react";
 import { PagePlaceholder } from "@/components/visi/PagePlaceholder";
 
-export const InboxPage = () => <PagePlaceholder title="Inbox" icon={Inbox} />;
 export const TasksPage = () => <PagePlaceholder title="Tasks" icon={CheckSquare} />;
 export const CalendarPage = () => <PagePlaceholder title="Calendar" icon={Calendar} />;
 export const BookingsPage = () => <PagePlaceholder title="Bookings" icon={Link2} />;
