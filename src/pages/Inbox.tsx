@@ -21,7 +21,6 @@ import {
   Check,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 
 type Urgency = "urgent" | "action" | "fyi" | "newsletter";
 
