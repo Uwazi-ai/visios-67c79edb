@@ -376,6 +376,8 @@ const InboxPage = () => {
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [mobileView, setMobileView] = useState<"list" | "thread">("list");
+  const [classifications, setClassifications] = useState<Record<string, { urgency: Urgency; ai_summary: string; org_tag: string }>>({});
+  const [threadOrgs, setThreadOrgs] = useState<Record<string, string | null>>({});
 
   const googleToken = (session as any)?.provider_token as string | undefined;
 
@@ -434,10 +436,21 @@ const InboxPage = () => {
         Array.isArray(classData) ? classData : [];
       const byId = new Map(classifications.map((c) => [c.id, c]));
 
+      // Surface classifications + detected org per thread for the list UI
+      const classMap: Record<string, { urgency: Urgency; ai_summary: string; org_tag: string }> = {};
+      const orgMap: Record<string, string | null> = {};
       const fallbackOrg = activeOrgId && activeOrgId !== "all" ? activeOrgId : (orgs[0]?.id ?? null);
+      for (const t of list) {
+        const c = byId.get(t.id);
+        if (c) classMap[t.id] = { urgency: (c.urgency as Urgency) ?? "fyi", ai_summary: c.ai_summary ?? "", org_tag: c.org_tag ?? "" };
+        orgMap[t.id] = detectOrgFromEmail(t.fromEmail, c?.org_tag, orgs) ?? fallbackOrg;
+      }
+      setClassifications((prev) => ({ ...prev, ...classMap }));
+      setThreadOrgs((prev) => ({ ...prev, ...orgMap }));
+
       const rows = list.map((t) => {
         const c = byId.get(t.id);
-        const detectedOrgId = detectOrgFromEmail(t.fromEmail, c?.org_tag, orgs) ?? fallbackOrg;
+        const detectedOrgId = orgMap[t.id];
         return {
           org_id: detectedOrgId,
           user_id: user.id,
@@ -697,14 +710,28 @@ const InboxPage = () => {
                 </p>
               </div>
             ) : (
-              filtered.map((t) => (
-                <EmailListItem
-                  key={t.id}
-                  t={t}
-                  selected={selectedId === t.id}
-                  onClick={() => openThread(t.id)}
-                />
-              ))
+              filtered.map((t) => {
+                const c = classifications[t.id];
+                const orgId = threadOrgs[t.id];
+                const orgSlug = orgs.find((o) => o.id === orgId)?.slug ?? "";
+                return (
+                  <EmailListItem
+                    key={t.id}
+                    id={t.id}
+                    fromName={t.fromName}
+                    fromInitials={initials(t.fromName)}
+                    fromColor={colorFromName(t.fromName)}
+                    subject={t.subject}
+                    aiSummary={c?.ai_summary || t.snippet}
+                    time={formatTime(t.date)}
+                    urgency={(c?.urgency as Urgency) ?? t.urgency}
+                    isUnread={t.isUnread}
+                    isSelected={selectedId === t.id}
+                    orgSlug={orgSlug}
+                    onClick={() => openThread(t.id)}
+                  />
+                );
+              })
             )}
           </div>
         </div>
