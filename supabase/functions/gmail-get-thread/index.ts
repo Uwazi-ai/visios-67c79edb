@@ -70,7 +70,13 @@ Deno.serve(async (req) => {
       };
     });
 
-    return jsonResponse({ id, messages, subject: messages[0]?.subject ?? "" });
+    return jsonResponse({
+      id: data.id,
+      historyId: data.historyId,
+      messages: data.messages ?? [],
+      parsed,
+      subject: parsed[0]?.subject ?? "",
+    });
   } catch (e) {
     return jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
