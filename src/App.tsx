@@ -8,8 +8,9 @@ import { OrgProvider } from "@/contexts/OrgContext";
 import { AppShell } from "@/components/visi/AppShell";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import InboxPage from "./pages/Inbox";
 import {
-  InboxPage, TasksPage, CalendarPage, BookingsPage, ChatPage,
+  TasksPage, CalendarPage, BookingsPage, ChatPage,
   NotificationsPage, ContactsPage, MeetingsPage, FinancePage, SettingsPage,
 } from "./pages/EmptyPages";
 import NotFound from "./pages/NotFound";

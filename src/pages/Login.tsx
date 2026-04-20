@@ -28,6 +28,12 @@ const Login = () => {
     setError(null);
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin + "/",
+      extraParams: {
+        scope:
+          "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify",
+        access_type: "offline",
+        prompt: "consent",
+      },
     });
     if (result.error) {
       setError(result.error.message ?? "Sign-in failed");
