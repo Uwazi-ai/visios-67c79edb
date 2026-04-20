@@ -442,6 +442,9 @@ const InboxPage = () => {
   const [mobileView, setMobileView] = useState<"list" | "thread">("list");
   const [classifications, setClassifications] = useState<Record<string, { urgency: Urgency; ai_summary: string; org_tag: string }>>({});
   const [threadOrgs, setThreadOrgs] = useState<Record<string, string | null>>({});
+  const [creatingTask, setCreatingTask] = useState(false);
+  const [taskCreatedFor, setTaskCreatedFor] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const googleToken = (session as any)?.provider_token as string | undefined;
 
