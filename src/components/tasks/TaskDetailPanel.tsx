@@ -234,6 +234,8 @@ export const TaskDetailPanel = ({
             <Button size="sm" variant="outline" onClick={addSubtask}><Plus size={14} /></Button>
           </div>
         </div>
+
+        <TaskActivityPanel taskId={task.id} orgId={task.org_id} />
       </SheetContent>
     </Sheet>
   );
