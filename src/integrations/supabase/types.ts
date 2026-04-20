@@ -568,6 +568,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_prefs: Json
           avatar_url: string | null
           created_at: string
           display_name: string | null
@@ -575,11 +576,16 @@ export type Database = {
           google_access_token: string | null
           google_refresh_token: string | null
           id: string
+          notification_prefs: Json
+          preferred_name: string | null
           scheduling_prefs: Json
+          timezone: string | null
           updated_at: string
           username: string | null
+          voice_profile: string | null
         }
         Insert: {
+          ai_prefs?: Json
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -587,11 +593,16 @@ export type Database = {
           google_access_token?: string | null
           google_refresh_token?: string | null
           id: string
+          notification_prefs?: Json
+          preferred_name?: string | null
           scheduling_prefs?: Json
+          timezone?: string | null
           updated_at?: string
           username?: string | null
+          voice_profile?: string | null
         }
         Update: {
+          ai_prefs?: Json
           avatar_url?: string | null
           created_at?: string
           display_name?: string | null
@@ -599,9 +610,13 @@ export type Database = {
           google_access_token?: string | null
           google_refresh_token?: string | null
           id?: string
+          notification_prefs?: Json
+          preferred_name?: string | null
           scheduling_prefs?: Json
+          timezone?: string | null
           updated_at?: string
           username?: string | null
+          voice_profile?: string | null
         }
         Relationships: []
       }
