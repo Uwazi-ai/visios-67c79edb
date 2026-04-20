@@ -443,7 +443,7 @@ const InboxPage = () => {
   const [threadOrgs, setThreadOrgs] = useState<Record<string, string | null>>({});
   const [creatingTask, setCreatingTask] = useState(false);
   const [taskCreatedFor, setTaskCreatedFor] = useState<string | null>(null);
-  const navigate = useNavigate();
+  
 
   const googleToken = (session as any)?.provider_token as string | undefined;
 
