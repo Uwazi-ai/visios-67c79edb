@@ -338,7 +338,7 @@ const PublicShell = ({ children }: { children: React.ReactNode }) => (
     <div className="bg-orb-1" />
     <div className="bg-orb-2" />
     <header className="relative z-10 px-5 py-4 flex items-center justify-between">
-      <Logo />
+      <VisiLogo />
       <div className="t-mono flex items-center gap-1" style={{ fontSize: 10 }}>
         <Sparkles size={11} /> POWERED BY VISI OS
       </div>
