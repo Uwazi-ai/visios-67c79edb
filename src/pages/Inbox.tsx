@@ -44,6 +44,8 @@ interface ThreadMessage {
   date: string;
   snippet: string;
   body: string;
+  bodyText?: string;
+  bodyHtml?: string;
   labelIds: string[];
 }
 
