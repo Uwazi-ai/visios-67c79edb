@@ -4,6 +4,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { supabase } from "@/integrations/supabase/client";
+import { FunctionsHttpError } from "@supabase/supabase-js";
 import { ORG_COLORS } from "@/lib/orgs";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -30,6 +31,20 @@ interface PlanBlock {
   title: string;
   type: "deep_work" | "meeting" | "admin" | "break" | "buffer";
   org_id?: string | null;
+}
+
+async function getFunctionErrorMessage(error: unknown): Promise<string | null> {
+  if (!error) return null;
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const context = await error.context.json();
+      return typeof context?.error === "string" ? context.error : error.message;
+    } catch {
+      return error.message;
+    }
+  }
+  if (error instanceof Error) return error.message;
+  return typeof error === "string" ? error : null;
 }
 
 const PERSONAL_COLOR = "#6366F1";
@@ -103,13 +118,13 @@ export default function Calendar() {
       const { data, error } = await supabase.functions.invoke("calendar-list-events", {
         body: { timeMin: range.from.toISOString(), timeMax: range.to.toISOString() },
       });
-      const errMsg = (error as { message?: string } | null)?.message ?? data?.error;
+      const errMsg = (await getFunctionErrorMessage(error)) ?? data?.error ?? null;
       if (errMsg && /refresh token/i.test(errMsg)) {
         setNeedsReconnect(true);
         setEvents([]);
         return;
       }
-      if (error) throw error;
+      if (error) throw new Error(errMsg ?? "Failed to load calendar");
       if (data?.error) throw new Error(data.error);
       setNeedsReconnect(false);
       const mapped: CalEvent[] = (data.events ?? []).map((e: { id: string; summary: string; description: string; start: string; end: string; allDay: boolean; attendees: string[]; hangoutLink: string | null; htmlLink: string | null }) => {
@@ -222,6 +237,11 @@ function ReconnectBanner() {
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin + "/calendar",
+        extraParams: {
+          scope: "openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify",
+          access_type: "offline",
+          prompt: "consent",
+        },
       });
       if (result.error) toast.error(result.error.message ?? "Reconnect failed");
     } catch (e) {
