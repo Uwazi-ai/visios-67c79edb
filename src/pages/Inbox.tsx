@@ -655,6 +655,48 @@ const InboxPage = () => {
   const unreadCount = useMemo(() => threads.filter((t) => t.isUnread).length, [threads]);
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
+  // Keyboard shortcuts: j/k navigate, r reply, Esc close, Cmd/Ctrl+Enter send
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const tgt = e.target as HTMLElement | null;
+      const tag = tgt?.tagName;
+      const isTyping = tag === "INPUT" || tag === "TEXTAREA" || tgt?.isContentEditable;
+
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && draftOpen) {
+        e.preventDefault();
+        if (!sending && !draftLoading && draft.trim()) sendDraft();
+        return;
+      }
+
+      if (e.key === "Escape") {
+        if (draftOpen) { e.preventDefault(); setDraftOpen(false); return; }
+        if (mobileView === "thread") { e.preventDefault(); setMobileView("list"); return; }
+      }
+
+      if (isTyping) return;
+
+      if (e.key === "j" || e.key === "k") {
+        if (filtered.length === 0) return;
+        e.preventDefault();
+        const idx = filtered.findIndex((t) => t.id === selectedId);
+        const next = e.key === "j"
+          ? Math.min(filtered.length - 1, idx < 0 ? 0 : idx + 1)
+          : Math.max(0, idx < 0 ? 0 : idx - 1);
+        const target = filtered[next];
+        if (target) openThread(target.id);
+        return;
+      }
+
+      if (e.key === "r" && thread && !draftOpen) {
+        e.preventDefault();
+        generateDraft();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtered, selectedId, thread, draftOpen, draft, sending, draftLoading, mobileView]);
+
   return (
     <div
       className="flex h-[calc(100vh-7rem)] md:h-[calc(100vh-6rem)] gap-0 md:gap-4"
