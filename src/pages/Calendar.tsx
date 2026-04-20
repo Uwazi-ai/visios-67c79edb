@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ORG_COLORS } from "@/lib/orgs";
+import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 
 type View = "day" | "week" | "month";
@@ -93,6 +94,8 @@ export default function Calendar() {
     return m;
   }, [orgs]);
 
+  const [needsReconnect, setNeedsReconnect] = useState(false);
+
   const loadEvents = useCallback(async () => {
     if (!user) return;
     setLoading(true);
@@ -100,8 +103,15 @@ export default function Calendar() {
       const { data, error } = await supabase.functions.invoke("calendar-list-events", {
         body: { timeMin: range.from.toISOString(), timeMax: range.to.toISOString() },
       });
+      const errMsg = (error as { message?: string } | null)?.message ?? data?.error;
+      if (errMsg && /refresh token/i.test(errMsg)) {
+        setNeedsReconnect(true);
+        setEvents([]);
+        return;
+      }
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+      setNeedsReconnect(false);
       const mapped: CalEvent[] = (data.events ?? []).map((e: { id: string; summary: string; description: string; start: string; end: string; allDay: boolean; attendees: string[]; hangoutLink: string | null; htmlLink: string | null }) => {
         const slug = detectOrgSlug(e.summary, e.description);
         const orgInfo = slug ? orgBySlug.get(slug) : null;
@@ -175,6 +185,8 @@ export default function Calendar() {
           </button>
         </div>
 
+        {needsReconnect && <ReconnectBanner />}
+
         {/* View body */}
         <div className="glass flex-1 overflow-hidden flex flex-col">
           {view === "week" && <WeekView events={events} cursor={cursor} now={now} onSelect={setSelectedEvent} />}
@@ -198,6 +210,41 @@ export default function Calendar() {
           onApplied={loadEvents}
         />
       )}
+    </div>
+  );
+}
+
+// =================== RECONNECT BANNER ===================
+function ReconnectBanner() {
+  const [busy, setBusy] = useState(false);
+  const reconnect = async () => {
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin + "/calendar",
+      });
+      if (result.error) toast.error(result.error.message ?? "Reconnect failed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Reconnect failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="glass p-3 flex items-center gap-3" style={{ borderColor: "rgba(245,158,11,0.35)" }}>
+      <CalendarIcon size={16} style={{ color: "var(--sev-warn)" }} />
+      <div className="flex-1 min-w-0">
+        <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 12, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: 0.08 }}>
+          Reconnect Google
+        </div>
+        <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
+          Your Google session is missing a refresh token. Reconnect to load your calendar.
+        </div>
+      </div>
+      <button onClick={reconnect} disabled={busy} className="btn-primary" style={{ height: 32 }}>
+        {busy ? <Loader2 size={12} className="animate-spin" /> : null}
+        Reconnect
+      </button>
     </div>
   );
 }
