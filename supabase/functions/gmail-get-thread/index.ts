@@ -34,7 +34,13 @@ Deno.serve(async (req) => {
     if (!googleToken) return jsonResponse({ error: "Missing Google token" }, 400);
 
     const url = new URL(req.url);
-    const id = url.searchParams.get("id");
+    let id = url.searchParams.get("id") ?? url.searchParams.get("threadId");
+    if (!id && (req.method === "POST" || req.method === "PUT")) {
+      try {
+        const body = await req.json();
+        id = body?.threadId ?? body?.id ?? null;
+      } catch { /* ignore */ }
+    }
     if (!id) return jsonResponse({ error: "Missing thread id" }, 400);
 
     const r = await gmailFetch(`/threads/${id}?format=full`, googleToken);
@@ -43,7 +49,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: `Gmail get failed [${r.status}]: ${t}` }, r.status);
     }
     const data = await r.json();
-    const messages = (data.messages ?? []).map((m: any) => {
+    const parsed = (data.messages ?? []).map((m: any) => {
       const headers: Array<{ name: string; value: string }> = m.payload?.headers ?? [];
       const h = (n: string) => headers.find((x) => x.name.toLowerCase() === n.toLowerCase())?.value ?? "";
       const { text, html } = extractBody(m.payload);
@@ -64,7 +70,13 @@ Deno.serve(async (req) => {
       };
     });
 
-    return jsonResponse({ id, messages, subject: messages[0]?.subject ?? "" });
+    return jsonResponse({
+      id: data.id,
+      historyId: data.historyId,
+      messages: data.messages ?? [],
+      parsed,
+      subject: parsed[0]?.subject ?? "",
+    });
   } catch (e) {
     return jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
