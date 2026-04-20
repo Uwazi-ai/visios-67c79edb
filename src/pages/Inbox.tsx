@@ -18,7 +18,9 @@ import {
   RotateCw,
   AlertTriangle,
   Paperclip,
+  Check,
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 type Urgency = "urgent" | "action" | "fyi" | "newsletter";
 
@@ -439,6 +441,9 @@ const InboxPage = () => {
   const [mobileView, setMobileView] = useState<"list" | "thread">("list");
   const [classifications, setClassifications] = useState<Record<string, { urgency: Urgency; ai_summary: string; org_tag: string }>>({});
   const [threadOrgs, setThreadOrgs] = useState<Record<string, string | null>>({});
+  const [creatingTask, setCreatingTask] = useState(false);
+  const [taskCreatedFor, setTaskCreatedFor] = useState<string | null>(null);
+  
 
   const googleToken = (session as any)?.provider_token as string | undefined;
 
@@ -641,6 +646,53 @@ const InboxPage = () => {
     }
   }
 
+  async function createTaskFromThread() {
+    if (!thread || !user) return;
+    const orgId = threadOrgs[thread.id] ?? (activeOrgId && activeOrgId !== "all" ? activeOrgId : orgs[0]?.id);
+    if (!orgId) {
+      toast({ title: "No org available", description: "Join an organization first.", variant: "destructive" });
+      return;
+    }
+    const last = thread.messages[thread.messages.length - 1];
+    const fromLabel = last?.fromName || last?.fromEmail || "Unknown sender";
+    const aiSummary = classifications[thread.id]?.ai_summary;
+    const description = [
+      `📧 From: ${fromLabel}${last?.fromEmail && last.fromEmail !== fromLabel ? ` <${last.fromEmail}>` : ""}`,
+      `🔗 Gmail thread: ${thread.id}`,
+      "",
+      aiSummary || (last?.snippet ?? ""),
+    ].join("\n");
+    setCreatingTask(true);
+    try {
+      const { data, error } = await supabase
+        .from("tasks")
+        .insert({
+          title: thread.subject || "(no subject)",
+          description,
+          org_id: orgId,
+          status: "todo",
+          priority: (classifications[thread.id]?.urgency === "urgent" ? "urgent"
+            : classifications[thread.id]?.urgency === "action" ? "high"
+            : "normal"),
+          assignee_id: user.id,
+          created_by: user.id,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      setTaskCreatedFor(thread.id);
+      toast({
+        title: "Task created",
+        description: `"${(data as any).title}" added to your tasks.`,
+      });
+      setTimeout(() => setTaskCreatedFor((cur) => (cur === thread.id ? null : cur)), 4000);
+    } catch (e: any) {
+      toast({ title: "Couldn't create task", description: e?.message ?? String(e), variant: "destructive" });
+    } finally {
+      setCreatingTask(false);
+    }
+  }
+
   const filtered = useMemo(() => {
     return threads.filter((t) => {
       if (filter !== "all" && t.urgency !== filter) return false;
@@ -690,12 +742,27 @@ const InboxPage = () => {
       if (e.key === "r" && thread && !draftOpen) {
         e.preventDefault();
         generateDraft();
+        return;
+      }
+
+      if (e.key === "t" && thread && !draftOpen) {
+        e.preventDefault();
+        if (!creatingTask && taskCreatedFor !== thread.id) createTaskFromThread();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, selectedId, thread, draftOpen, draft, sending, draftLoading, mobileView]);
+  }, [filtered, selectedId, thread, draftOpen, draft, sending, draftLoading, mobileView, creatingTask, taskCreatedFor]);
+
+  // Claim ownership of the "T" shortcut while an inbox thread is open so the
+  // global Quick Capture modal doesn't also fire.
+  useEffect(() => {
+    if (thread) {
+      document.body.dataset.tShortcutOwner = "inbox";
+      return () => { delete document.body.dataset.tShortcutOwner; };
+    }
+  }, [thread]);
 
   return (
     <div
@@ -976,8 +1043,30 @@ const InboxPage = () => {
                       <Sparkles size={11} />
                       {summaryLoading ? "…" : "Summarize"}
                     </button>
-                    <button className="btn-ghost" style={{ fontSize: 10, padding: "6px 10px" }}>
-                      <Plus size={11} /> Task
+                    <button
+                      onClick={createTaskFromThread}
+                      disabled={creatingTask || taskCreatedFor === thread!.id}
+                      className="btn-ghost"
+                      style={{
+                        fontSize: 10,
+                        padding: "6px 10px",
+                        ...(taskCreatedFor === thread!.id
+                          ? { color: "#86efac", borderColor: "rgba(34,197,94,0.35)" }
+                          : {}),
+                      }}
+                      title="Create task from this email (T)"
+                    >
+                      {taskCreatedFor === thread!.id ? (
+                        <>
+                          <Check size={11} /> Task added
+                        </>
+                      ) : creatingTask ? (
+                        <>… Adding</>
+                      ) : (
+                        <>
+                          <Plus size={11} /> Task
+                        </>
+                      )}
                     </button>
                     <button className="btn-ghost" style={{ padding: "6px 8px" }}>
                       <MoreHorizontal size={12} />
