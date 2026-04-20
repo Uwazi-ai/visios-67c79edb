@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar as CalIcon, Clock, ChevronLeft, ChevronRight, Check, Sparkles, Loader2 } from "lucide-react";
-import { Logo } from "@/components/visi/Logo";
+import { VisiLogo } from "@/components/visi/Logo";
 
 type IntakeField = {
   id: string;
