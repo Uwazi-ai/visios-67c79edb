@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import DOMPurify from "dompurify";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -244,18 +245,38 @@ function MessageBubble({ m, isMe }: { m: ThreadMessage; isMe: boolean }) {
           {formatTime(m.date)}
         </span>
       </div>
-      <div
-        style={{
-          fontFamily: "var(--font-body)",
-          fontWeight: 300,
-          fontSize: 13,
-          lineHeight: 1.6,
-          color: "var(--text-secondary)",
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {m.body || m.snippet}
-      </div>
+      {m.bodyHtml ? (
+        <div
+          className="email-html"
+          style={{
+            fontFamily: "var(--font-body)",
+            fontSize: 13,
+            lineHeight: 1.6,
+            color: "var(--text-secondary)",
+            wordBreak: "break-word",
+            overflowWrap: "anywhere",
+          }}
+          dangerouslySetInnerHTML={{
+            __html: DOMPurify.sanitize(m.bodyHtml, {
+              FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form"],
+              FORBID_ATTR: ["onerror", "onload", "onclick"],
+            }),
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            fontFamily: "var(--font-body)",
+            fontWeight: 300,
+            fontSize: 13,
+            lineHeight: 1.6,
+            color: "var(--text-secondary)",
+            whiteSpace: "pre-wrap",
+          }}
+        >
+          {m.bodyText || m.body || m.snippet}
+        </div>
+      )}
     </div>
   );
 }
