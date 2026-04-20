@@ -50,6 +50,7 @@ interface ThreadMessage {
   bodyText?: string;
   bodyHtml?: string;
   labelIds: string[];
+  attachments?: { name: string; size: string }[];
 }
 
 const FILTERS: { key: "all" | Urgency; label: string }[] = [
@@ -298,62 +299,122 @@ function EmailListItem({
   );
 }
 
-function MessageBubble({ m, isMe }: { m: ThreadMessage; isMe: boolean }) {
+interface ThreadMessageProps {
+  from: string;
+  fromInitials: string;
+  timestamp: string;
+  body: string;
+  isMe: boolean;
+  attachments?: { name: string; size: string }[];
+  bodyHtml?: string;
+}
+
+function ThreadMessage({ from, fromInitials, timestamp, body, isMe, attachments, bodyHtml }: ThreadMessageProps) {
   return (
-    <div
-      className="p-4"
-      style={{
-        background: isMe ? "rgba(37,99,235,0.08)" : "rgba(255,255,255,0.04)",
-        border: `1px solid ${isMe ? "rgba(37,99,235,0.25)" : "var(--border-glass)"}`,
-        borderRadius: 12,
-      }}
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <Avatar name={m.fromName || m.from} size={22} />
-        <span style={{ fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12, color: "var(--text-primary)" }}>
-          {m.fromName || m.from}
-        </span>
-        {isMe && (
-          <span className="t-mono" style={{ fontSize: 9, color: "var(--text-accent)" }}>
-            YOU
+    <div className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+      <div
+        className="p-4"
+        style={{
+          maxWidth: "85%",
+          background: isMe ? "rgba(37,99,235,0.14)" : "rgba(255,255,255,0.04)",
+          border: `1px solid ${isMe ? "rgba(37,99,235,0.35)" : "var(--border-glass)"}`,
+          borderRadius: 12,
+          boxShadow: isMe ? "0 0 16px var(--glow-blue)" : "none",
+        }}
+      >
+        <div className="flex items-center gap-2 mb-2">
+          {!isMe && (
+            <div
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: "50%",
+                background: colorFromName(from || "?"),
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: 9,
+                flexShrink: 0,
+              }}
+            >
+              {fromInitials}
+            </div>
+          )}
+          <span style={{ fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12, color: "var(--text-primary)" }}>
+            {from}
           </span>
-        )}
-        <span className="t-mono ml-auto" style={{ fontSize: 10, color: "var(--text-muted)" }}>
-          {formatTime(m.date)}
-        </span>
-      </div>
-      {m.bodyHtml ? (
-        <div
-          className="email-html"
-          style={{
-            fontFamily: "var(--font-body)",
-            fontSize: 13,
-            lineHeight: 1.6,
-            color: "var(--text-secondary)",
-            wordBreak: "break-word",
-            overflowWrap: "anywhere",
-          }}
-          dangerouslySetInnerHTML={{
-            __html: DOMPurify.sanitize(m.bodyHtml, {
-              FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form"],
-              FORBID_ATTR: ["onerror", "onload", "onclick"],
-            }),
-          }}
-        />
-      ) : (
-        <div
-          style={{
-            fontFamily: "var(--font-body)",
-            fontWeight: 300,
-            fontSize: 13,
-            lineHeight: 1.6,
-            color: "var(--text-secondary)",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {m.bodyText || m.body || m.snippet}
+          {isMe && (
+            <span className="t-mono" style={{ fontSize: 9, color: "var(--text-accent)" }}>
+              YOU
+            </span>
+          )}
+          <span className="t-mono ml-auto" style={{ fontSize: 10, color: "var(--text-muted)" }}>
+            {timestamp}
+          </span>
         </div>
-      )}
+        {bodyHtml ? (
+          <div
+            className="email-html"
+            style={{
+              fontFamily: "var(--font-body)",
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "var(--text-secondary)",
+              wordBreak: "break-word",
+              overflowWrap: "anywhere",
+            }}
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(bodyHtml, {
+                FORBID_TAGS: ["script", "style", "iframe", "object", "embed", "form"],
+                FORBID_ATTR: ["onerror", "onload", "onclick"],
+              }),
+            }}
+          />
+        ) : (
+          <div
+            style={{
+              fontFamily: "var(--font-body)",
+              fontWeight: 300,
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "var(--text-secondary)",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {body}
+          </div>
+        )}
+        {attachments && attachments.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {attachments.map((a, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-1.5 px-2 py-1"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid var(--border-glass)",
+                  borderRadius: 6,
+                  fontFamily: "var(--font-body)",
+                  fontSize: 11,
+                  color: "var(--text-secondary)",
+                  maxWidth: "100%",
+                }}
+              >
+                <Paperclip size={10} style={{ color: "var(--text-muted)", flexShrink: 0 }} />
+                <span className="truncate" style={{ color: "var(--text-primary)" }}>{a.name}</span>
+                {a.size && (
+                  <span className="t-mono" style={{ fontSize: 9, color: "var(--text-muted)", flexShrink: 0 }}>
+                    {a.size}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -868,13 +929,22 @@ const InboxPage = () => {
 
               {/* messages */}
               <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
-                {thread!.messages.map((m) => (
-                  <MessageBubble
-                    key={m.id}
-                    m={m}
-                    isMe={m.fromEmail?.toLowerCase() === user?.email?.toLowerCase()}
-                  />
-                ))}
+                {thread!.messages.map((m) => {
+                  const isMe = m.fromEmail?.toLowerCase() === user?.email?.toLowerCase();
+                  const displayName = m.fromName || m.from;
+                  return (
+                    <ThreadMessage
+                      key={m.id}
+                      from={displayName}
+                      fromInitials={initials(displayName)}
+                      timestamp={formatTime(m.date)}
+                      body={m.bodyText || m.body || m.snippet}
+                      bodyHtml={m.bodyHtml}
+                      isMe={isMe}
+                      attachments={m.attachments}
+                    />
+                  );
+                })}
               </div>
 
               {/* reply area */}

@@ -25,6 +25,31 @@ function extractBody(payload: any): { text: string; html: string } {
   return { text, html };
 }
 
+function formatBytes(n: number): string {
+  if (!n || n <= 0) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let i = 0;
+  let v = n;
+  while (v >= 1024 && i < units.length - 1) { v /= 1024; i++; }
+  return `${v < 10 && i > 0 ? v.toFixed(1) : Math.round(v)} ${units[i]}`;
+}
+
+function extractAttachments(payload: any): Array<{ name: string; size: string }> {
+  const out: Array<{ name: string; size: string }> = [];
+  const walk = (p: any) => {
+    if (!p) return;
+    const filename: string = p.filename ?? "";
+    const disposition = (p.headers ?? []).find((h: any) => h.name?.toLowerCase() === "content-disposition")?.value ?? "";
+    const isAttachment = !!filename && (p.body?.attachmentId || /attachment/i.test(disposition));
+    if (isAttachment) {
+      out.push({ name: filename, size: formatBytes(p.body?.size ?? 0) });
+    }
+    (p.parts ?? []).forEach(walk);
+  };
+  walk(payload);
+  return out;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -53,6 +78,7 @@ Deno.serve(async (req) => {
       const headers: Array<{ name: string; value: string }> = m.payload?.headers ?? [];
       const h = (n: string) => headers.find((x) => x.name.toLowerCase() === n.toLowerCase())?.value ?? "";
       const { text, html } = extractBody(m.payload);
+      const attachments = extractAttachments(m.payload);
       const from = h("From");
       const fm = from.match(/^\s*"?([^"<]+?)"?\s*<([^>]+)>\s*$/);
       return {
@@ -71,6 +97,7 @@ Deno.serve(async (req) => {
         bodyText: text,
         bodyHtml: html,
         labelIds: m.labelIds ?? [],
+        attachments,
       };
     });
 
