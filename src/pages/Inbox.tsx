@@ -743,12 +743,18 @@ const InboxPage = () => {
       if (e.key === "r" && thread && !draftOpen) {
         e.preventDefault();
         generateDraft();
+        return;
+      }
+
+      if (e.key === "t" && thread && !draftOpen) {
+        e.preventDefault();
+        if (!creatingTask && taskCreatedFor !== thread.id) createTaskFromThread();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, selectedId, thread, draftOpen, draft, sending, draftLoading, mobileView]);
+  }, [filtered, selectedId, thread, draftOpen, draft, sending, draftLoading, mobileView, creatingTask, taskCreatedFor]);
 
   return (
     <div
