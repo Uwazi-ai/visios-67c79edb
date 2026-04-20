@@ -10,7 +10,16 @@ Deno.serve(async (req) => {
     const { timeMin, timeMax } = await req.json();
     if (!timeMin || !timeMax) return jsonResponse({ error: "timeMin, timeMax required" }, 400);
 
-    const token = await getFreshGoogleAccessToken(user.id);
+    let token: string;
+    try {
+      token = await getFreshGoogleAccessToken(user.id);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (/refresh token/i.test(message)) {
+        return jsonResponse({ error: "GOOGLE_AUTH_REQUIRED", fallback: true, events: [] });
+      }
+      throw e;
+    }
     const url = new URL("https://www.googleapis.com/calendar/v3/calendars/primary/events");
     url.searchParams.set("timeMin", timeMin);
     url.searchParams.set("timeMax", timeMax);
@@ -20,7 +29,13 @@ Deno.serve(async (req) => {
 
     const r = await googleFetch(url.toString(), token);
     const data = await r.json();
-    if (!r.ok) return jsonResponse({ error: `list events failed [${r.status}]: ${JSON.stringify(data)}` }, r.status);
+    if (!r.ok) {
+      const message = `list events failed [${r.status}]: ${JSON.stringify(data)}`;
+      if (r.status === 401 || /invalid_grant|invalid credentials/i.test(message)) {
+        return jsonResponse({ error: "GOOGLE_AUTH_REQUIRED", fallback: true, events: [] });
+      }
+      return jsonResponse({ error: message, fallback: true, events: [] });
+    }
     const events = (data.items ?? []).map((e: Record<string, unknown> & { start?: Record<string, string>; end?: Record<string, string>; attendees?: Array<{ email?: string }> }) => ({
       id: e.id,
       summary: e.summary ?? "(no title)",
@@ -37,6 +52,7 @@ Deno.serve(async (req) => {
     }));
     return jsonResponse({ events });
   } catch (e) {
-    return jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500);
+    const message = e instanceof Error ? e.message : String(e);
+    return jsonResponse({ error: message, fallback: true, events: [] });
   }
 });
