@@ -575,6 +575,7 @@ export type Database = {
           google_access_token: string | null
           google_refresh_token: string | null
           id: string
+          scheduling_prefs: Json
           updated_at: string
           username: string | null
         }
@@ -586,6 +587,7 @@ export type Database = {
           google_access_token?: string | null
           google_refresh_token?: string | null
           id: string
+          scheduling_prefs?: Json
           updated_at?: string
           username?: string | null
         }
@@ -597,6 +599,7 @@ export type Database = {
           google_access_token?: string | null
           google_refresh_token?: string | null
           id?: string
+          scheduling_prefs?: Json
           updated_at?: string
           username?: string | null
         }
