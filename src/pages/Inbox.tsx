@@ -330,11 +330,64 @@ const InboxPage = () => {
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      setThreads((data as any).threads ?? []);
+      const fetched: ThreadSummary[] = (data as any).threads ?? [];
+      setThreads(fetched);
+      void syncThreadsToItems(fetched);
     } catch (e: any) {
       setError(e?.message ?? "Failed to load inbox");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function syncThreadsToItems(list: ThreadSummary[]) {
+    if (!user || list.length === 0) return;
+    try {
+      const { data: classData, error: classErr } = await supabase.functions.invoke("ai-classify-emails", {
+        body: {
+          emails: list.map((t) => ({
+            id: t.id,
+            from: `${t.fromName} <${t.fromEmail}>`,
+            subject: t.subject,
+            snippet: t.snippet,
+            org_context: orgs.map((o) => o.name).join(", "),
+          })),
+        },
+      });
+      if (classErr) throw classErr;
+      const classifications: Array<{ id: string; urgency: string; ai_summary: string; org_tag: string }> =
+        Array.isArray(classData) ? classData : [];
+      const byId = new Map(classifications.map((c) => [c.id, c]));
+
+      const fallbackOrg = activeOrgId && activeOrgId !== "all" ? activeOrgId : (orgs[0]?.id ?? null);
+      const rows = list.map((t) => {
+        const c = byId.get(t.id);
+        const detectedOrgId = detectOrgFromEmail(t.fromEmail, c?.org_tag, orgs) ?? fallbackOrg;
+        return {
+          org_id: detectedOrgId,
+          user_id: user.id,
+          type: "email",
+          title: t.subject || "(no subject)",
+          body: t.snippet,
+          status: t.isUnread ? "open" : "read",
+          priority: (c?.urgency ?? t.urgency ?? "fyi") as string,
+          source: "gmail",
+          metadata: {
+            gmail_thread_id: t.id,
+            from_email: t.fromEmail,
+            from_name: t.fromName,
+            ai_summary: c?.ai_summary ?? "",
+            urgency: c?.urgency ?? t.urgency,
+            org_tag: c?.org_tag ?? null,
+          },
+        };
+      }).filter((r) => r.org_id);
+
+      if (rows.length === 0) return;
+      const { error: insErr } = await supabase.from("items").insert(rows);
+      if (insErr) console.error("items insert failed:", insErr);
+    } catch (e) {
+      console.error("syncThreadsToItems failed:", e);
     }
   }
 
