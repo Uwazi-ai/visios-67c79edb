@@ -1,6 +1,6 @@
 // Server-side Google OAuth helper. Refreshes access tokens using the
 // refresh_token stored on profiles.google_refresh_token.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
