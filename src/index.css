@@ -354,3 +354,36 @@
 
 /* mobile bottom nav safe area helper */
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+/* gradient shimmer for skeleton loading blocks */
+@keyframes shimmer-slide {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer-block {
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-slide 1.6s ease-in-out infinite;
+  border: 1px solid var(--border-glass);
+}
+
+/* keyboard shortcut chip */
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-secondary);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  line-height: 1.4;
+}
