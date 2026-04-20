@@ -12,8 +12,9 @@ import InboxPage from "./pages/Inbox";
 import BookingsPage from "./pages/Bookings";
 import BookingPublic from "./pages/BookingPublic";
 import SettingsPage from "./pages/Settings";
+import CalendarPage from "./pages/Calendar";
 import {
-  TasksPage, CalendarPage, ChatPage,
+  TasksPage, ChatPage,
   NotificationsPage, ContactsPage, MeetingsPage, FinancePage,
 } from "./pages/EmptyPages";
 import NotFound from "./pages/NotFound";
