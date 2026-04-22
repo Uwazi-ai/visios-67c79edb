@@ -592,6 +592,7 @@ export default function ChatPage() {
             isSystemChannel={activeChannel.is_system}
             typingUsers={typingUsers}
             onEdit={editMessage}
+            resolveAttachmentUrl={resolveAttachmentUrl}
           />
         ) : (
           <div className="flex-1" />
@@ -604,6 +605,7 @@ export default function ChatPage() {
             disabled={activeChannel.is_system}
             members={members}
             onSend={handleSend}
+            onUpload={uploadAttachment}
             onTyping={handleTyping}
             onSummarize={handleSummarize}
             summarizing={summarizing}
