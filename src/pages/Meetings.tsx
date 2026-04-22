@@ -10,6 +10,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
 import StartHuddleModal from "@/components/meetings/StartHuddleModal";
+import MeetingDetailPanel from "@/components/meetings/MeetingDetailPanel";
 
 interface CalEvent {
   id: string;
@@ -132,10 +133,7 @@ export default function MeetingsPage() {
   const [loading, setLoading] = useState(false);
   const [needsReconnect, setNeedsReconnect] = useState(false);
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [briefs, setBriefs] = useState<Record<string, BriefState>>({});
-  const [creatingTask, setCreatingTask] = useState<string | null>(null);
-  const [createdTasks, setCreatedTasks] = useState<Set<string>>(new Set());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [huddleOpen, setHuddleOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
@@ -199,57 +197,15 @@ export default function MeetingsPage() {
   );
   const inProgressIds = useMemo(() => new Set(inProgress.map((e) => e.id)), [inProgress]);
 
-  const generateBrief = async (ev: CalEvent, mode: "upcoming" | "past") => {
-    setBriefs((s) => ({ ...s, [ev.id]: { brief: "", action_items: [], loading: true } }));
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-meeting-brief", {
-        body: {
-          title: ev.summary,
-          description: ev.description,
-          attendees: ev.attendees,
-          start: ev.start,
-          end: ev.end,
-          mode,
-        },
-      });
-      const errMsg = (await getFunctionErrorMessage(error)) ?? data?.error ?? null;
-      if (errMsg) throw new Error(errMsg);
-      setBriefs((s) => ({ ...s, [ev.id]: { brief: data.brief ?? "", action_items: data.action_items ?? [], loading: false } }));
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to generate brief";
-      setBriefs((s) => ({ ...s, [ev.id]: { brief: "", action_items: [], loading: false, error: msg } }));
-      toast.error(msg);
-    }
-  };
+  const selectedEvent = useMemo(
+    () => (selectedId ? filtered.find((e) => e.id === selectedId) ?? null : null),
+    [selectedId, filtered],
+  );
+  const selectedMode: "upcoming" | "past" = useMemo(() => {
+    if (!selectedEvent) return tab;
+    return new Date(selectedEvent.end).getTime() < Date.now() ? "past" : "upcoming";
+  }, [selectedEvent, tab]);
 
-  const convertToTask = async (ev: CalEvent, item: string, idx: number) => {
-    if (!user) return;
-    const orgIdForTask = ev.org_id ?? (activeOrgId && activeOrgId !== "all" ? activeOrgId : null);
-    if (!orgIdForTask) {
-      toast.error("Pick an organization to create tasks");
-      return;
-    }
-    const key = `${ev.id}:${idx}`;
-    setCreatingTask(key);
-    try {
-      const { error } = await supabase.from("tasks").insert({
-        title: item,
-        description: `From meeting: ${ev.summary}`,
-        org_id: orgIdForTask,
-        created_by: user.id,
-        assignee_id: user.id,
-        status: "todo",
-        priority: "normal",
-      });
-      if (error) throw error;
-      setCreatedTasks((s) => new Set(s).add(key));
-      toast.success("Task created");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create task");
-    } finally {
-      setCreatingTask(null);
-    }
-  };
 
   const reconnectGoogle = async () => {
     try {
@@ -286,7 +242,7 @@ export default function MeetingsPage() {
           {(["upcoming", "past"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => { setTab(t); setExpanded(null); }}
+              onClick={() => { setTab(t); setSelectedId(null); }}
               className="t-nav"
               style={{
                 padding: "6px 14px", borderRadius: 6, textTransform: "capitalize",
@@ -437,20 +393,26 @@ export default function MeetingsPage() {
             <div className="flex flex-col gap-2">
               {bucket.events.map((ev) => {
                 if (tab === "upcoming" && inProgressIds.has(ev.id)) return null;
-                const isOpen = expanded === ev.id;
                 const start = new Date(ev.start);
                 const end = new Date(ev.end);
                 const startMs = start.getTime();
                 const endMs = end.getTime();
                 const durationMins = Math.max(1, Math.round((endMs - startMs) / 60000));
-                const brief = briefs[ev.id];
                 const org = ev.org_id ? orgs.find((o) => o.id === ev.org_id) : null;
                 const transcript = fathomUrl(ev);
                 const showRelative = tab === "upcoming" && startMs > now && (startMs - now) <= 8 * 3600 * 1000;
+                const isSelected = selectedId === ev.id;
                 return (
-                  <div key={ev.id} className="glass overflow-hidden" style={{ borderLeft: `3px solid ${ev.org_color}` }}>
+                  <div
+                    key={ev.id}
+                    className="glass overflow-hidden"
+                    style={{
+                      borderLeft: `3px solid ${ev.org_color}`,
+                      outline: isSelected ? "1px solid var(--border-active)" : "none",
+                    }}
+                  >
                     <button
-                      onClick={() => setExpanded(isOpen ? null : ev.id)}
+                      onClick={() => setSelectedId(ev.id)}
                       className="w-full flex items-center gap-3 p-3 text-left hover:bg-[var(--bg-glass-2)] transition-colors"
                     >
                       <div className="t-mono shrink-0 flex flex-col" style={{ fontSize: 11, width: 110, color: "var(--text-secondary)" }}>
@@ -460,7 +422,7 @@ export default function MeetingsPage() {
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <div className="t-card-title truncate">{ev.summary}</div>
                           {transcript && (
                             <a
@@ -480,6 +442,21 @@ export default function MeetingsPage() {
                               📝 Transcript
                             </a>
                           )}
+                          {tab === "past" && transcript && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setSelectedId(ev.id); }}
+                              className="t-mono shrink-0"
+                              style={{
+                                padding: "2px 8px", borderRadius: 999, fontSize: 9,
+                                background: "rgba(99,102,241,0.14)",
+                                color: "#A5B4FC",
+                                border: "1px solid rgba(99,102,241,0.35)",
+                              }}
+                              title="Summarize transcript with AI"
+                            >
+                              ✦ Summary
+                            </button>
+                          )}
                         </div>
                         {ev.attendees.length > 0 && (
                           <div className="flex items-center gap-1 mt-0.5">
@@ -491,14 +468,9 @@ export default function MeetingsPage() {
                           </div>
                         )}
                       </div>
-                      {tab === "upcoming" && !brief?.brief && (
+                      {tab === "upcoming" && (
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setExpanded(ev.id);
-                            if (!brief?.loading) generateBrief(ev, "upcoming");
-                          }}
-                          disabled={brief?.loading}
+                          onClick={(e) => { e.stopPropagation(); setSelectedId(ev.id); }}
                           className="t-mono shrink-0 flex items-center gap-1"
                           style={{
                             height: 26, padding: "0 10px", borderRadius: 6,
@@ -507,10 +479,9 @@ export default function MeetingsPage() {
                             border: "1px solid var(--border-glass)",
                             fontSize: 10,
                           }}
-                          title="Generate AI prep brief"
+                          title="AI prep brief"
                         >
-                          {brief?.loading ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
-                          Prep
+                          <Sparkles size={11} /> Prep
                         </button>
                       )}
                       {ev.hangoutLink && (
@@ -525,100 +496,8 @@ export default function MeetingsPage() {
                           <Video size={14} />
                         </a>
                       )}
-                      {isOpen ? <ChevronDown size={14} style={{ color: "var(--text-muted)" }} /> : <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />}
+                      <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />
                     </button>
-
-                    {isOpen && (
-                      <div className="px-4 pb-4 pt-1 flex flex-col gap-3" style={{ borderTop: "1px solid var(--border-glass)" }}>
-                        {ev.attendees.length > 0 && (
-                          <div>
-                            <div className="t-mono mb-1.5" style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Attendees</div>
-                            <div className="flex flex-wrap gap-1.5">
-                              {ev.attendees.map((a) => (
-                                <span key={a} className="badge" style={{ fontSize: 10 }}>{a}</span>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {ev.description && (
-                          <div>
-                            <div className="t-mono mb-1.5" style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Description</div>
-                            <div className="whitespace-pre-wrap" style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.55 }}>
-                              {ev.description}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {ev.htmlLink && (
-                            <a href={ev.htmlLink} target="_blank" rel="noreferrer" className="btn-ghost flex items-center gap-1.5" style={{ height: 30, padding: "0 12px", fontSize: 11 }}>
-                              <ExternalLink size={12} /> Open in Google Calendar
-                            </a>
-                          )}
-                          {!brief?.brief && !brief?.loading && (
-                            <button
-                              onClick={() => generateBrief(ev, tab)}
-                              className="btn-primary flex items-center gap-1.5"
-                              style={{ height: 30, padding: "0 12px", fontSize: 11 }}
-                            >
-                              <Sparkles size={12} />
-                              {tab === "upcoming" ? "Generate prep brief" : "Extract action items"}
-                            </button>
-                          )}
-                          {brief?.loading && (
-                            <span className="flex items-center gap-1.5 t-mono" style={{ fontSize: 10, color: "var(--text-muted)" }}>
-                              <Loader2 size={12} className="animate-spin" /> Thinking…
-                            </span>
-                          )}
-                        </div>
-
-                        {brief?.brief && (
-                          <div className="rounded-lg p-3" style={{ background: "var(--bg-glass-1)", border: "1px solid var(--border-glass)" }}>
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                              <Sparkles size={11} style={{ color: "var(--accent)" }} />
-                              <span className="t-mono" style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                                {tab === "upcoming" ? "Prep brief" : "Recap"}
-                              </span>
-                            </div>
-                            <div style={{ fontFamily: "var(--font-body)", fontSize: 12.5, color: "var(--text-primary)", lineHeight: 1.6 }}>{brief.brief}</div>
-                          </div>
-                        )}
-
-                        {brief?.action_items && brief.action_items.length > 0 && (
-                          <div>
-                            <div className="t-mono mb-2" style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Action items</div>
-                            <div className="flex flex-col gap-1.5">
-                              {brief.action_items.map((item, i) => {
-                                const k = `${ev.id}:${i}`;
-                                const created = createdTasks.has(k);
-                                const busy = creatingTask === k;
-                                return (
-                                  <div key={i} className="flex items-center gap-2 p-2 rounded-lg" style={{ background: "var(--bg-glass-1)", border: "1px solid var(--border-glass)" }}>
-                                    <div className="flex-1" style={{ fontFamily: "var(--font-body)", fontSize: 12, color: "var(--text-primary)" }}>{item}</div>
-                                    {created ? (
-                                      <span className="flex items-center gap-1 t-mono" style={{ fontSize: 10, color: "#22C55E" }}>
-                                        <CheckCircle2 size={12} /> Task
-                                      </span>
-                                    ) : (
-                                      <button
-                                        onClick={() => convertToTask(ev, item, i)}
-                                        disabled={busy}
-                                        className="btn-ghost flex items-center gap-1"
-                                        style={{ height: 26, padding: "0 10px", fontSize: 10 }}
-                                      >
-                                        {busy ? <Loader2 size={11} className="animate-spin" /> : <Plus size={11} />}
-                                        Make task
-                                      </button>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
                   </div>
                 );
               })}
@@ -636,6 +515,24 @@ export default function MeetingsPage() {
         open={huddleOpen}
         onClose={() => setHuddleOpen(false)}
         onStarted={loadEvents}
+      />
+      <MeetingDetailPanel
+        event={selectedEvent ? {
+          id: selectedEvent.id,
+          summary: selectedEvent.summary,
+          description: selectedEvent.description,
+          start: selectedEvent.start,
+          end: selectedEvent.end,
+          attendees: selectedEvent.attendees,
+          hangoutLink: selectedEvent.hangoutLink,
+          htmlLink: selectedEvent.htmlLink,
+          org_id: selectedEvent.org_id,
+          org_color: selectedEvent.org_color,
+        } : null}
+        mode={selectedMode}
+        transcriptUrl={selectedEvent ? fathomUrl(selectedEvent) : null}
+        formatTime={formatTime}
+        onClose={() => setSelectedId(null)}
       />
     </div>
   );
