@@ -6,8 +6,13 @@ import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
 import { ChannelList, ChatChannel } from "@/components/chat/ChannelList";
 import { MessageList, ChatMessage, ProfileLite } from "@/components/chat/MessageList";
-import { MessageInput } from "@/components/chat/MessageInput";
+import { MessageInput, MentionUser } from "@/components/chat/MessageInput";
 import { toast } from "sonner";
+
+export function toHandle(name: string | null | undefined, email: string): string {
+  const base = (name ?? email.split("@")[0] ?? "").toLowerCase().trim();
+  return base.replace(/\s+/g, "").replace(/[^a-z0-9_.-]/g, "") || "user";
+}
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -17,6 +22,7 @@ export default function ChatPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
+  const [members, setMembers] = useState<MentionUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
