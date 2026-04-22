@@ -46,14 +46,14 @@ export function formatTime(d: Date | string | number, tz: string = DEFAULT_TZ, o
   return toDate(d).toLocaleTimeString("en-US", with12h({
     hour: "numeric",
     minute: "2-digit",
-    timeZone: tz,
+    timeZone: safeTz(tz),
     ...opts,
   }));
 }
 
 export function formatDate(d: Date | string | number, tz: string = DEFAULT_TZ, opts: TimeOpts = {}): string {
   return toDate(d).toLocaleDateString("en-US", {
-    timeZone: tz,
+    timeZone: safeTz(tz),
     ...opts,
   });
 }
@@ -64,7 +64,7 @@ export function formatDateTime(d: Date | string | number, tz: string = DEFAULT_T
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: tz,
+    timeZone: safeTz(tz),
     ...opts,
   }));
 }
@@ -73,6 +73,6 @@ export function formatDateTime(d: Date | string | number, tz: string = DEFAULT_T
  * Short, casual time like "2:30 PM" or "2 PM" when on the hour.
  */
 export function formatTimeShort(d: Date | string | number, tz: string = DEFAULT_TZ): string {
-  const s = formatTime(d, tz);
+  const s = formatTime(d, safeTz(tz));
   return s.replace(":00", "");
 }
