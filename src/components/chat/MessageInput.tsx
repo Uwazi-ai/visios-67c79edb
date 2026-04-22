@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Sparkles, Send } from "lucide-react";
+import { Paperclip, Sparkles, Send, X, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
 
 export interface MentionUser {
   id: string;
@@ -8,15 +8,26 @@ export interface MentionUser {
   handle: string; // lowercased name for @-matching
 }
 
+export interface ChatAttachment {
+  path: string; // storage object key
+  name: string; // original file name
+  size: number; // bytes
+  type: string; // mime type
+}
+
 interface Props {
   channelName: string;
   disabled?: boolean;
   members: MentionUser[];
-  onSend: (text: string, mentions: string[]) => Promise<void> | void;
+  onSend: (text: string, mentions: string[], attachments: ChatAttachment[]) => Promise<void> | void;
+  onUpload?: (file: File) => Promise<ChatAttachment>;
   onTyping?: () => void;
   onSummarize?: () => void;
   summarizing?: boolean;
 }
+
+const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20 MB
+const MAX_ATTACHMENTS = 5;
 
 interface MentionState {
   open: boolean;
