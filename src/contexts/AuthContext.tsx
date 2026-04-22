@@ -8,22 +8,38 @@ async function syncGoogleTokens(session: Session | null) {
   const sessionWithProvider = session as Session & {
     provider_token?: string;
     provider_refresh_token?: string;
+    provider_scopes?: string;
   };
   const userMeta = session.user.user_metadata as {
     provider_token?: string;
     provider_refresh_token?: string;
+    provider_scopes?: string;
   } | null;
 
   const google_access_token = sessionWithProvider.provider_token ?? userMeta?.provider_token ?? null;
   const google_refresh_token = sessionWithProvider.provider_refresh_token ?? userMeta?.provider_refresh_token ?? null;
+  // Supabase doesn't expose granted scopes directly — derive from access token via tokeninfo when present.
+  let google_granted_scopes: string | null = null;
+  if (google_access_token) {
+    try {
+      const r = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(google_access_token)}`);
+      if (r.ok) {
+        const j = await r.json();
+        if (typeof j?.scope === "string") google_granted_scopes = j.scope;
+      }
+    } catch {
+      // ignore
+    }
+  }
 
-  if (!google_access_token && !google_refresh_token) return;
+  if (!google_access_token && !google_refresh_token && !google_granted_scopes) return;
 
   await supabase
     .from("profiles")
     .update({
       ...(google_access_token ? { google_access_token } : {}),
       ...(google_refresh_token ? { google_refresh_token } : {}),
+      ...(google_granted_scopes ? { google_granted_scopes } : {}),
     })
     .eq("id", session.user.id);
 }
