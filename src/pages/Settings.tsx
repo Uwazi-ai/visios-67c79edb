@@ -591,6 +591,8 @@ function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: 
   const [username, setUsername] = useState(profile.username ?? "");
   const [savingId, setSavingId] = useState(false);
   const [savingBook, setSavingBook] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const initials = useMemo(() => {
     const n = (preferredName || displayName || profile.email || "U").trim();
@@ -620,13 +622,38 @@ function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: 
     }
   }
 
+  async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please pick an image file");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${profile.id}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "0" });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${pub.publicUrl}?v=${Date.now()}`;
+      const ok = await patchProfile(profile.id, { avatar_url: url });
+      if (ok) setProfile({ ...profile, avatar_url: url });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <>
       <SectionLabel>IDENTITY</SectionLabel>
       <section className="glass p-5">
         <div className="flex items-center gap-4 mb-5">
           <div
-            className="flex items-center justify-center font-bold"
+            className="flex items-center justify-center font-bold relative overflow-hidden"
             style={{
               width: 48, height: 48, borderRadius: 999,
               background: "rgba(37,99,235,0.18)",
@@ -635,10 +662,41 @@ function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: 
               color: "var(--text-accent)", fontFamily: "var(--font-display)", fontSize: 18,
             }}
           >
-            {initials}
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt="Avatar"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              initials
+            )}
+            {uploading && (
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ background: "rgba(0,0,0,0.55)" }}
+              >
+                <Loader2 size={18} className="animate-spin" style={{ color: "#fff" }} />
+              </div>
+            )}
           </div>
-          <button className="btn-ghost" onClick={() => toast.info("Photo upload coming soon")}>Change photo</button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onPickAvatar}
+          />
+          <button
+            className="btn-ghost"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+            {uploading ? "Uploading…" : "Change photo"}
+          </button>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <LabeledInput label="FULL NAME" value={displayName} onChange={setDisplayName} placeholder="Myke Sentongo" />
