@@ -392,6 +392,7 @@ export default function ChatPage() {
     toast.success("Message updated");
   }
 
+  async function handleSummarize() {
     if (!activeChannel) return;
     setSummarizing(true);
     setSummary(null);
