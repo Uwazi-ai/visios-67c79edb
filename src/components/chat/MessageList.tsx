@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Zap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Zap, Pencil, Check, X, History } from "lucide-react";
 import type { MentionUser } from "./MessageInput";
 
 export interface ChatMessage {
