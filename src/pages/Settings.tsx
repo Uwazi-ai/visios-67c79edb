@@ -169,7 +169,10 @@ async function patchProfile(userId: string, patch: any) {
 // ===================== INTEGRATIONS =====================
 function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProfile: (p: ProfileRow) => void }) {
   const [reconnecting, setReconnecting] = useState(false);
-  const [n8nUrl, setN8nUrl] = useState("");
+  const np = (profile.notification_prefs ?? {}) as any;
+  const [n8nUrl, setN8nUrl] = useState<string>(np.n8n_url ?? "");
+  const [n8nTesting, setN8nTesting] = useState(false);
+  const n8nConnected = !!np.n8n_url;
   const fathomWebhook = `${window.location.origin}/api/webhooks/fathom`;
   const connected = !!profile.google_refresh_token;
 
@@ -211,6 +214,48 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
   function copy(text: string) {
     navigator.clipboard.writeText(text);
     toast.success("Copied");
+  }
+
+  async function connectN8n() {
+    const raw = n8nUrl.trim();
+    if (!raw) return toast.error("Enter your n8n instance URL");
+    let normalized = raw;
+    try {
+      const u = new URL(raw.startsWith("http") ? raw : `https://${raw}`);
+      normalized = u.origin;
+    } catch {
+      return toast.error("Invalid URL");
+    }
+    setN8nTesting(true);
+    try {
+      // n8n instances typically don't allow CORS — use no-cors so a successful
+      // network round-trip doesn't throw. Network failures (DNS, offline) still throw.
+      try {
+        await fetch(`${normalized}/healthz`, { method: "GET", mode: "no-cors" });
+      } catch {
+        await fetch(normalized, { method: "GET", mode: "no-cors" });
+      }
+      const nextPrefs = { ...np, n8n_url: normalized };
+      const ok = await patchProfile(profile.id, { notification_prefs: nextPrefs });
+      if (ok) {
+        setProfile({ ...profile, notification_prefs: nextPrefs });
+        setN8nUrl(normalized);
+      }
+    } catch (err: any) {
+      toast.error(`Couldn't reach n8n: ${err?.message ?? "network error"}`);
+    } finally {
+      setN8nTesting(false);
+    }
+  }
+
+  async function disconnectN8n() {
+    const nextPrefs = { ...np };
+    delete nextPrefs.n8n_url;
+    const ok = await patchProfile(profile.id, { notification_prefs: nextPrefs });
+    if (ok) {
+      setProfile({ ...profile, notification_prefs: nextPrefs });
+      setN8nUrl("");
+    }
   }
 
   return (
@@ -312,7 +357,17 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
 
       <IntegrationCard
         name="n8n Automations"
-        right={<span className="badge badge-muted">Not connected</span>}
+        connected={n8nConnected}
+        right={
+          n8nConnected ? (
+            <span className="badge badge-success">
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--sev-success)" }} />
+              Connected
+            </span>
+          ) : (
+            <span className="badge badge-muted">Not connected</span>
+          )
+        }
       >
         <div>
           <div className="t-mono mb-1" style={{ fontSize: 10 }}>INSTANCE URL</div>
@@ -323,12 +378,24 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
             onChange={(e) => setN8nUrl(e.target.value)}
           />
         </div>
-        <button
-          className="btn-primary mt-2 inline-flex"
-          onClick={() => toast.info("n8n connection test coming soon")}
-        >
-          Connect
-        </button>
+        <div className="flex gap-2 mt-2">
+          <button
+            className="btn-primary inline-flex"
+            onClick={connectN8n}
+            disabled={n8nTesting}
+          >
+            {n8nTesting ? <><Loader2 size={14} className="animate-spin" /> Testing…</> : n8nConnected ? "Update" : "Connect"}
+          </button>
+          {n8nConnected && (
+            <button
+              className="btn-ghost"
+              onClick={disconnectN8n}
+              style={{ color: "var(--sev-critical)", borderColor: "rgba(239,68,68,0.25)" }}
+            >
+              Disconnect
+            </button>
+          )}
+        </div>
       </IntegrationCard>
 
       <IntegrationCard
@@ -587,7 +654,9 @@ function Field({ label, value }: { label: string; value: string }) {
 function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: (p: ProfileRow) => void }) {
   const [displayName, setDisplayName] = useState(profile.display_name ?? "");
   const [preferredName, setPreferredName] = useState(profile.preferred_name ?? "");
-  const [timezone, setTimezone] = useState(profile.timezone ?? "America/Los_Angeles");
+  const VALID_TZS = ["America/Chicago","America/New_York","America/Denver","America/Los_Angeles","America/Phoenix","Pacific/Honolulu"];
+  const initialTz = profile.timezone && VALID_TZS.includes(profile.timezone) ? profile.timezone : "America/Chicago";
+  const [timezone, setTimezone] = useState(initialTz);
   const [username, setUsername] = useState(profile.username ?? "");
   const [savingId, setSavingId] = useState(false);
   const [savingBook, setSavingBook] = useState(false);
@@ -702,7 +771,28 @@ function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: 
           <LabeledInput label="FULL NAME" value={displayName} onChange={setDisplayName} placeholder="Myke Sentongo" />
           <LabeledInput label="PREFERRED NAME" value={preferredName} onChange={setPreferredName} placeholder="Myke" />
           <LabeledInput label="EMAIL (read-only)" value={profile.email} onChange={() => {}} disabled />
-          <LabeledInput label="TIMEZONE" value={timezone} onChange={setTimezone} placeholder="America/Los_Angeles" />
+          <div>
+            <div className="t-mono mb-1" style={{ fontSize: 10 }}>TIMEZONE</div>
+            <select
+              className="input-glass"
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              style={{ appearance: "none", cursor: "pointer" }}
+            >
+              {[
+                { v: "America/Chicago", l: "America/Chicago (Central)" },
+                { v: "America/New_York", l: "America/New_York (Eastern)" },
+                { v: "America/Denver", l: "America/Denver (Mountain)" },
+                { v: "America/Los_Angeles", l: "America/Los_Angeles (Pacific)" },
+                { v: "America/Phoenix", l: "America/Phoenix (Arizona)" },
+                { v: "Pacific/Honolulu", l: "Pacific/Honolulu (Hawaii)" },
+              ].map((tz) => (
+                <option key={tz.v} value={tz.v} style={{ background: "#0b0b0f", color: "#fff" }}>
+                  {tz.l}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <button onClick={saveIdentity} disabled={savingId} className="btn-primary mt-4">
