@@ -82,6 +82,7 @@ export default function Calendar() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { orgs } = useOrg();
+  const { tz } = useTime();
   const [view, setView] = useState<View>(isMobile ? "day" : "week");
   const [cursor, setCursor] = useState<Date>(new Date());
   const [events, setEvents] = useState<CalEvent[]>([]);
@@ -160,7 +161,7 @@ export default function Calendar() {
   const goNext = () => setCursor(view === "day" ? addDays(cursor, 1) : view === "week" ? addDays(cursor, 7) : new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1));
 
   const headerLabel = useMemo(() => {
-    if (view === "day") return cursor.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    if (view === "day") return fmtDateLong(cursor, tz, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
     if (view === "month") return `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`;
     const ws = startOfWeek(cursor);
     const we = addDays(ws, 6);
