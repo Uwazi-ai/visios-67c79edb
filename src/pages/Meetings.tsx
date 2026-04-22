@@ -358,6 +358,71 @@ export default function MeetingsPage() {
         </div>
       )}
 
+      {/* In progress / Now */}
+      {tab === "upcoming" && inProgress.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 px-1">
+            <span
+              className="inline-block"
+              style={{
+                width: 8, height: 8, borderRadius: 999,
+                background: "#22C55E",
+                boxShadow: "0 0 0 0 rgba(34,197,94,0.7)",
+                animation: "visi-pulse 1.6s ease-out infinite",
+              }}
+            />
+            <div className="t-section" style={{ fontSize: 14 }}>Now</div>
+            <div style={{ flex: 1, height: 1, background: "var(--border-glass)" }} />
+            <div className="t-mono" style={{ fontSize: 10, color: "#22C55E" }}>
+              {inProgress.length} live
+            </div>
+          </div>
+          <style>{`@keyframes visi-pulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.6);} 70% { box-shadow: 0 0 0 10px rgba(34,197,94,0);} 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0);} }`}</style>
+          <div className="flex flex-col gap-2">
+            {inProgress.map((ev) => {
+              const start = new Date(ev.start).getTime();
+              const org = ev.org_id ? orgs.find((o) => o.id === ev.org_id) : null;
+              return (
+                <div key={`now-${ev.id}`} className="glass overflow-hidden flex items-center gap-3 p-3" style={{ borderLeft: `3px solid #22C55E`, boxShadow: "0 0 24px rgba(34,197,94,0.15)" }}>
+                  <span
+                    style={{
+                      width: 8, height: 8, borderRadius: 999, background: "#22C55E",
+                      animation: "visi-pulse 1.6s ease-out infinite",
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="t-card-title truncate">{ev.summary}</div>
+                    <div className="t-mono truncate" style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+                      {elapsedLabel(start, now)}
+                      {ev.attendees.length > 0 && <> · {ev.attendees.length} in call</>}
+                      {org && <> · <span style={{ color: ev.org_color }}>{org.name}</span></>}
+                    </div>
+                  </div>
+                  {ev.hangoutLink ? (
+                    <a
+                      href={ev.hangoutLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5"
+                      style={{
+                        height: 32, padding: "0 14px", borderRadius: 8,
+                        background: "#22C55E", color: "#0A0A0A",
+                        fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12,
+                        boxShadow: "0 0 16px rgba(34,197,94,0.5)",
+                      }}
+                    >
+                      <Video size={12} /> Join
+                    </a>
+                  ) : (
+                    <span className="t-mono" style={{ fontSize: 10, color: "var(--text-muted)" }}>No link</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Timeline */}
       <div className="flex flex-col gap-5">
         {buckets.map((bucket) => (
