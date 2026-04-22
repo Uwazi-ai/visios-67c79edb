@@ -102,6 +102,7 @@ export const MessageList = ({
   members,
   isSystemChannel,
   typingUsers,
+  onEdit,
 }: Props) => {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -113,6 +114,44 @@ export const MessageList = ({
     () => members.find((m) => m.id === currentUserId)?.handle ?? null,
     [members, currentUserId],
   );
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [historyOpenId, setHistoryOpenId] = useState<string | null>(null);
+
+  // Last own non-system message (only this one is editable)
+  const lastOwnId = useMemo(() => {
+    if (isSystemChannel) return null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].user_id === currentUserId) return messages[i].id;
+    }
+    return null;
+  }, [messages, currentUserId, isSystemChannel]);
+
+  function startEdit(m: ChatMessage) {
+    setEditingId(m.id);
+    setEditValue(m.content);
+  }
+
+  async function commitEdit(m: ChatMessage) {
+    const next = editValue.trim();
+    if (!next || next === m.content) {
+      setEditingId(null);
+      return;
+    }
+    if (!onEdit) {
+      setEditingId(null);
+      return;
+    }
+    setSaving(true);
+    try {
+      await onEdit(m.id, next);
+      setEditingId(null);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   let lastDay: string | null = null;
 
