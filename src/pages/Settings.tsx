@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -7,10 +7,19 @@ import { toast } from "sonner";
 import {
   Plug, User as UserIcon, Building2, Sparkles, Clock, Bell,
   Check, Loader2, RefreshCw, Copy, ExternalLink, Eye, EyeOff,
-  AlertTriangle, Lock,
+  AlertTriangle, Lock, Camera,
 } from "lucide-react";
 
 type TabKey = "integrations" | "profile" | "orgs" | "ai" | "scheduling" | "notifications";
+
+const GOOGLE_SCOPES = [
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/drive.readonly",
+].join(" ");
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "integrations", label: "Integrations", icon: Plug },
@@ -31,6 +40,7 @@ interface ProfileRow {
   avatar_url: string | null;
   google_access_token: string | null;
   google_refresh_token: string | null;
+  google_granted_scopes: string | null;
   voice_profile: string | null;
   ai_prefs: any;
   notification_prefs: any;
@@ -158,21 +168,27 @@ async function patchProfile(userId: string, patch: any) {
 
 // ===================== INTEGRATIONS =====================
 function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProfile: (p: ProfileRow) => void }) {
-  const [scopes, setScopes] = useState({ gmail: true, calendar: true, drive: false });
-  const [showAnthropic, setShowAnthropic] = useState(false);
   const [reconnecting, setReconnecting] = useState(false);
   const [n8nUrl, setN8nUrl] = useState("");
   const fathomWebhook = `${window.location.origin}/api/webhooks/fathom`;
   const connected = !!profile.google_refresh_token;
-  const anyScopeOff = !scopes.gmail || !scopes.calendar || !scopes.drive;
+
+  // Derive scope status from actually granted scopes on the profile
+  const granted = (profile.google_granted_scopes ?? "").toLowerCase();
+  const scopes = {
+    gmail: granted.includes("gmail."),
+    calendar: granted.includes("calendar."),
+    drive: granted.includes("drive."),
+  };
+  const anyScopeOff = connected && (!scopes.gmail || !scopes.calendar || !scopes.drive);
 
   async function reconnectGoogle() {
     setReconnecting(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/`,
-        scopes: "https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/drive.readonly",
+        redirectTo: `${window.location.origin}/settings`,
+        scopes: GOOGLE_SCOPES,
         queryParams: { access_type: "offline", prompt: "consent" },
       },
     });
@@ -184,8 +200,12 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
 
   async function disconnectGoogle() {
     if (!confirm("Disconnect Google? Inbox and Calendar will stop working until you reconnect.")) return;
-    const ok = await patchProfile(profile.id, { google_access_token: null, google_refresh_token: null });
-    if (ok) setProfile({ ...profile, google_access_token: null, google_refresh_token: null });
+    const ok = await patchProfile(profile.id, {
+      google_access_token: null,
+      google_refresh_token: null,
+      google_granted_scopes: null,
+    });
+    if (ok) setProfile({ ...profile, google_access_token: null, google_refresh_token: null, google_granted_scopes: null });
   }
 
   function copy(text: string) {
@@ -225,10 +245,9 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
           {(["gmail", "calendar", "drive"] as const).map((s) => {
             const on = scopes[s];
             return (
-              <button
+              <span
                 key={s}
-                onClick={() => setScopes({ ...scopes, [s]: !on })}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full transition-all"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full"
                 style={{
                   background: on ? "rgba(34,197,94,0.08)" : "rgba(255,255,255,0.04)",
                   border: `1px solid ${on ? "rgba(34,197,94,0.25)" : "var(--border-glass)"}`,
@@ -238,7 +257,7 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
               >
                 <span style={{ width: 6, height: 6, borderRadius: 999, background: on ? "var(--sev-success)" : "var(--text-muted)" }} />
                 {s.toUpperCase()}
-              </button>
+              </span>
             );
           })}
         </div>
@@ -250,7 +269,7 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
           >
             <AlertTriangle size={14} style={{ color: "var(--sev-warn)" }} />
             <div className="t-body" style={{ fontSize: 12, color: "var(--sev-warn)" }}>
-              Some features require reconnecting Google
+              Some scopes are missing — click Reconnect and approve all permissions.
             </div>
           </div>
         )}
@@ -272,38 +291,8 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
 
       <SectionLabel>TOOLS</SectionLabel>
 
-      <IntegrationCard
-        name="Twilio SMS"
-        connected
-        right={<span className="badge badge-success"><span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--sev-success)" }} />Active</span>}
-      >
-        <Field label="ACCOUNT SID" value="AC••••••••••••••••••••••••••3f7a" />
-        <Field label="PHONE NUMBER" value="+1 (415) 555-•••• 9012" />
-      </IntegrationCard>
-
-      <IntegrationCard
-        name="Anthropic Claude"
-        connected
-        right={<span className="badge badge-success"><span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--sev-success)" }} />Active</span>}
-      >
-        <div>
-          <div className="t-mono mb-1" style={{ fontSize: 10 }}>API KEY</div>
-          <div className="flex gap-2">
-            <input
-              className="input-glass flex-1"
-              type={showAnthropic ? "text" : "password"}
-              value={showAnthropic ? "sk-ant-api03-x9F2k••••••••••••AB12" : "••••••••••••••••••••AB12"}
-              readOnly
-            />
-            <button className="btn-icon" onClick={() => setShowAnthropic(!showAnthropic)} title="Toggle">
-              {showAnthropic ? <EyeOff size={14} /> : <Eye size={14} />}
-            </button>
-          </div>
-          <div className="t-body mt-2" style={{ fontSize: 11 }}>
-            Model in use: <span className="t-mono" style={{ color: "var(--text-accent)" }}>Claude Sonnet 4.6</span>
-          </div>
-        </div>
-      </IntegrationCard>
+      <TwilioCard profile={profile} setProfile={setProfile} />
+      <AnthropicCard profile={profile} setProfile={setProfile} />
 
       <IntegrationCard
         name="Fathom"
@@ -356,6 +345,214 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
   );
 }
 
+// ----- Twilio editable card -----
+function TwilioCard({ profile, setProfile }: { profile: ProfileRow; setProfile: (p: ProfileRow) => void }) {
+  const np = (profile.notification_prefs ?? {}) as any;
+  const tw = (np.twilio ?? {}) as any;
+  const [accountSid, setAccountSid] = useState<string>(tw.account_sid ?? "");
+  const [authToken, setAuthToken] = useState<string>(tw.auth_token ?? "");
+  const [fromNumber, setFromNumber] = useState<string>(tw.from_number ?? "");
+  const [phone, setPhone] = useState<string>(np.phone ?? "");
+  const [showToken, setShowToken] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const active = !!tw.active;
+
+  async function saveAndTest() {
+    if (!accountSid.startsWith("AC")) return toast.error("Account SID must start with AC");
+    if (authToken.length < 16) return toast.error("Auth Token looks too short");
+    if (!/^\+\d{8,15}$/.test(fromNumber)) return toast.error("Twilio number must be E.164 (+14155551234)");
+    if (!/^\+\d{8,15}$/.test(phone)) return toast.error("Your mobile number must be E.164 (+14155551234)");
+    setTesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("twilio-test-sms", {
+        body: {
+          account_sid: accountSid,
+          auth_token: authToken,
+          from_number: fromNumber,
+          to_number: phone,
+        },
+      });
+      if (error || (data as any)?.error) {
+        const msg = (data as any)?.error || error?.message || "Test failed";
+        toast.error(msg);
+        const next = { ...np, twilio: { ...(np.twilio ?? {}), active: false } };
+        setProfile({ ...profile, notification_prefs: next });
+      } else {
+        toast.success("Test SMS sent ✓");
+        const next = {
+          ...np,
+          phone,
+          twilio: {
+            account_sid: accountSid,
+            auth_token: authToken,
+            from_number: fromNumber,
+            active: true,
+            last_test_at: new Date().toISOString(),
+          },
+        };
+        setProfile({ ...profile, notification_prefs: next });
+      }
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  return (
+    <IntegrationCard
+      name="Twilio SMS"
+      connected={active}
+      right={
+        active ? (
+          <span className="badge badge-success">
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--sev-success)" }} />
+            Active
+          </span>
+        ) : (
+          <span className="badge badge-muted">Not tested</span>
+        )
+      }
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div>
+          <div className="t-mono mb-1" style={{ fontSize: 10 }}>ACCOUNT SID</div>
+          <input
+            className="input-glass"
+            value={accountSid}
+            onChange={(e) => setAccountSid(e.target.value.trim())}
+            placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          />
+        </div>
+        <div>
+          <div className="t-mono mb-1" style={{ fontSize: 10 }}>AUTH TOKEN</div>
+          <div className="flex gap-2">
+            <input
+              className="input-glass flex-1"
+              type={showToken ? "text" : "password"}
+              value={authToken}
+              onChange={(e) => setAuthToken(e.target.value.trim())}
+              placeholder="••••••••••••••••"
+            />
+            <button className="btn-icon" onClick={() => setShowToken((v) => !v)} title="Toggle">
+              {showToken ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </div>
+        </div>
+        <div>
+          <div className="t-mono mb-1" style={{ fontSize: 10 }}>TWILIO PHONE NUMBER</div>
+          <input
+            className="input-glass"
+            value={fromNumber}
+            onChange={(e) => setFromNumber(e.target.value.trim())}
+            placeholder="+14155551234"
+          />
+        </div>
+        <div>
+          <div className="t-mono mb-1" style={{ fontSize: 10 }}>YOUR MOBILE (TEST RECIPIENT)</div>
+          <input
+            className="input-glass"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value.trim())}
+            placeholder="+14155551234"
+          />
+        </div>
+      </div>
+      <button onClick={saveAndTest} disabled={testing} className="btn-primary mt-1">
+        {testing ? <><Loader2 size={14} className="animate-spin" /> Sending test…</> : <>Save &amp; Test</>}
+      </button>
+    </IntegrationCard>
+  );
+}
+
+// ----- Anthropic editable card -----
+function AnthropicCard({ profile, setProfile }: { profile: ProfileRow; setProfile: (p: ProfileRow) => void }) {
+  const ai = (profile.ai_prefs ?? {}) as any;
+  const [apiKey, setApiKey] = useState<string>(ai.anthropic_key ?? "");
+  const [showKey, setShowKey] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [status, setStatus] = useState<"idle" | "active" | "invalid">(
+    ai.anthropic_verified_at && ai.anthropic_key ? "active" : "idle"
+  );
+
+  async function saveAndVerify() {
+    if (!apiKey.startsWith("sk-ant-")) {
+      setStatus("invalid");
+      return toast.error("Key must start with sk-ant-");
+    }
+    setVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-verify-anthropic", {
+        body: { api_key: apiKey },
+      });
+      if (error || (data as any)?.error) {
+        const msg = (data as any)?.error || error?.message || "Invalid key";
+        toast.error(msg);
+        setStatus("invalid");
+      } else {
+        toast.success("Anthropic key verified ✓");
+        setStatus("active");
+        const next = { ...ai, anthropic_key: apiKey, anthropic_verified_at: new Date().toISOString() };
+        setProfile({ ...profile, ai_prefs: next });
+      }
+    } finally {
+      setVerifying(false);
+    }
+  }
+
+  return (
+    <IntegrationCard
+      name="Anthropic Claude"
+      connected={status === "active"}
+      right={
+        status === "active" ? (
+          <span className="badge badge-success">
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--sev-success)" }} />
+            Active
+          </span>
+        ) : status === "invalid" ? (
+          <span
+            className="badge"
+            style={{
+              background: "rgba(239,68,68,0.10)",
+              border: "1px solid rgba(239,68,68,0.30)",
+              color: "var(--sev-critical)",
+            }}
+          >
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--sev-critical)" }} />
+            Invalid
+          </span>
+        ) : (
+          <span className="badge badge-muted">Not verified</span>
+        )
+      }
+    >
+      <div>
+        <div className="t-mono mb-1" style={{ fontSize: 10 }}>API KEY</div>
+        <div className="flex gap-2">
+          <input
+            className="input-glass flex-1"
+            type={showKey ? "text" : "password"}
+            value={apiKey}
+            onChange={(e) => {
+              setApiKey(e.target.value.trim());
+              if (status !== "idle") setStatus("idle");
+            }}
+            placeholder="sk-ant-api03-…"
+          />
+          <button className="btn-icon" onClick={() => setShowKey((v) => !v)} title="Toggle">
+            {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
+          </button>
+        </div>
+        <div className="t-body mt-2" style={{ fontSize: 11 }}>
+          Model in use: <span className="t-mono" style={{ color: "var(--text-accent)" }}>Claude Sonnet 4.6</span>
+        </div>
+      </div>
+      <button onClick={saveAndVerify} disabled={verifying} className="btn-primary mt-1">
+        {verifying ? <><Loader2 size={14} className="animate-spin" /> Verifying…</> : <>Save &amp; Verify</>}
+      </button>
+    </IntegrationCard>
+  );
+}
+
 function IntegrationCard({
   name, connected, right, children,
 }: { name: string; connected?: boolean; right?: React.ReactNode; children: React.ReactNode }) {
@@ -394,6 +591,8 @@ function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: 
   const [username, setUsername] = useState(profile.username ?? "");
   const [savingId, setSavingId] = useState(false);
   const [savingBook, setSavingBook] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const initials = useMemo(() => {
     const n = (preferredName || displayName || profile.email || "U").trim();
@@ -423,13 +622,38 @@ function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: 
     }
   }
 
+  async function onPickAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return toast.error("Please pick an image file");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be under 5MB");
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${profile.id}/avatar.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "0" });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${pub.publicUrl}?v=${Date.now()}`;
+      const ok = await patchProfile(profile.id, { avatar_url: url });
+      if (ok) setProfile({ ...profile, avatar_url: url });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <>
       <SectionLabel>IDENTITY</SectionLabel>
       <section className="glass p-5">
         <div className="flex items-center gap-4 mb-5">
           <div
-            className="flex items-center justify-center font-bold"
+            className="flex items-center justify-center font-bold relative overflow-hidden"
             style={{
               width: 48, height: 48, borderRadius: 999,
               background: "rgba(37,99,235,0.18)",
@@ -438,10 +662,41 @@ function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: 
               color: "var(--text-accent)", fontFamily: "var(--font-display)", fontSize: 18,
             }}
           >
-            {initials}
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt="Avatar"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              initials
+            )}
+            {uploading && (
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ background: "rgba(0,0,0,0.55)" }}
+              >
+                <Loader2 size={18} className="animate-spin" style={{ color: "#fff" }} />
+              </div>
+            )}
           </div>
-          <button className="btn-ghost" onClick={() => toast.info("Photo upload coming soon")}>Change photo</button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onPickAvatar}
+          />
+          <button
+            className="btn-ghost"
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+            {uploading ? "Uploading…" : "Change photo"}
+          </button>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <LabeledInput label="FULL NAME" value={displayName} onChange={setDisplayName} placeholder="Myke Sentongo" />
