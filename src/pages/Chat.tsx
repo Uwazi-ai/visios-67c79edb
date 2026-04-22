@@ -534,6 +534,7 @@ export default function ChatPage() {
             members={members}
             isSystemChannel={activeChannel.is_system}
             typingUsers={typingUsers}
+            onEdit={editMessage}
           />
         ) : (
           <div className="flex-1" />
