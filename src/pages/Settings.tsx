@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -7,10 +7,19 @@ import { toast } from "sonner";
 import {
   Plug, User as UserIcon, Building2, Sparkles, Clock, Bell,
   Check, Loader2, RefreshCw, Copy, ExternalLink, Eye, EyeOff,
-  AlertTriangle, Lock,
+  AlertTriangle, Lock, Camera,
 } from "lucide-react";
 
 type TabKey = "integrations" | "profile" | "orgs" | "ai" | "scheduling" | "notifications";
+
+const GOOGLE_SCOPES = [
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/drive.readonly",
+].join(" ");
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
   { key: "integrations", label: "Integrations", icon: Plug },
@@ -31,6 +40,7 @@ interface ProfileRow {
   avatar_url: string | null;
   google_access_token: string | null;
   google_refresh_token: string | null;
+  google_granted_scopes: string | null;
   voice_profile: string | null;
   ai_prefs: any;
   notification_prefs: any;
