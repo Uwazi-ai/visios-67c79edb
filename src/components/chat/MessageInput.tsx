@@ -428,7 +428,7 @@ export const MessageInput = ({
         </button>
         <button
           onClick={() => void send()}
-          disabled={disabled || !text.trim()}
+          disabled={disabled || uploading > 0 || (!text.trim() && pending.length === 0)}
           className="btn-primary"
           style={{ height: 32, padding: "0 12px", flexShrink: 0 }}
         >
