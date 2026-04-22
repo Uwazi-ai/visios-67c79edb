@@ -515,6 +515,24 @@ export default function MeetingsPage() {
         onClose={() => setHuddleOpen(false)}
         onStarted={loadEvents}
       />
+      <MeetingDetailPanel
+        event={selectedEvent ? {
+          id: selectedEvent.id,
+          summary: selectedEvent.summary,
+          description: selectedEvent.description,
+          start: selectedEvent.start,
+          end: selectedEvent.end,
+          attendees: selectedEvent.attendees,
+          hangoutLink: selectedEvent.hangoutLink,
+          htmlLink: selectedEvent.htmlLink,
+          org_id: selectedEvent.org_id,
+          org_color: selectedEvent.org_color,
+        } : null}
+        mode={selectedMode}
+        transcriptUrl={selectedEvent ? fathomUrl(selectedEvent) : null}
+        formatTime={formatTime}
+        onClose={() => setSelectedId(null)}
+      />
     </div>
   );
 }
