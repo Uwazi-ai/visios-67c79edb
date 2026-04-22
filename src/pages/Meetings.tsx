@@ -193,6 +193,11 @@ export default function MeetingsPage() {
 
   const { upcoming, past } = useMemo(() => bucketEvents(filtered, tz), [filtered, tz]);
   const buckets = tab === "upcoming" ? upcoming : past;
+  const inProgress = useMemo(
+    () => filtered.filter((e) => isInProgress(e, now)).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+    [filtered, now],
+  );
+  const inProgressIds = useMemo(() => new Set(inProgress.map((e) => e.id)), [inProgress]);
 
   const generateBrief = async (ev: CalEvent, mode: "upcoming" | "past") => {
     setBriefs((s) => ({ ...s, [ev.id]: { brief: "", action_items: [], loading: true } }));
