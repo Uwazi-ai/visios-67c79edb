@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
-import { Zap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Zap, Pencil, Check, X, History } from "lucide-react";
 import type { MentionUser } from "./MessageInput";
 
 export interface ChatMessage {
@@ -9,6 +9,7 @@ export interface ChatMessage {
   org_id: string | null;
   content: string;
   created_at: string;
+  edited_at?: string | null;
   metadata?: any;
 }
 
@@ -26,6 +27,7 @@ interface Props {
   members: MentionUser[];
   isSystemChannel: boolean;
   typingUsers: { user_id: string }[];
+  onEdit?: (messageId: string, newContent: string) => Promise<void> | void;
 }
 
 function renderContent(
@@ -100,6 +102,7 @@ export const MessageList = ({
   members,
   isSystemChannel,
   typingUsers,
+  onEdit,
 }: Props) => {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -111,6 +114,44 @@ export const MessageList = ({
     () => members.find((m) => m.id === currentUserId)?.handle ?? null,
     [members, currentUserId],
   );
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [historyOpenId, setHistoryOpenId] = useState<string | null>(null);
+
+  // Last own non-system message (only this one is editable)
+  const lastOwnId = useMemo(() => {
+    if (isSystemChannel) return null;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].user_id === currentUserId) return messages[i].id;
+    }
+    return null;
+  }, [messages, currentUserId, isSystemChannel]);
+
+  function startEdit(m: ChatMessage) {
+    setEditingId(m.id);
+    setEditValue(m.content);
+  }
+
+  async function commitEdit(m: ChatMessage) {
+    const next = editValue.trim();
+    if (!next || next === m.content) {
+      setEditingId(null);
+      return;
+    }
+    if (!onEdit) {
+      setEditingId(null);
+      return;
+    }
+    setSaving(true);
+    try {
+      await onEdit(m.id, next);
+      setEditingId(null);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   let lastDay: string | null = null;
 
@@ -208,24 +249,179 @@ export const MessageList = ({
                     <span className="t-mono" style={{ fontSize: 9 }}>
                       {timeStr(m.created_at)}
                     </span>
+                    {m.edited_at && (
+                      <button
+                        onClick={() =>
+                          setHistoryOpenId(historyOpenId === m.id ? null : m.id)
+                        }
+                        className="t-mono inline-flex items-center gap-1"
+                        title={`Edited ${timeStr(m.edited_at)} · click to view history`}
+                        style={{
+                          fontSize: 9,
+                          fontStyle: "italic",
+                          color: "var(--text-muted)",
+                          padding: "0 2px",
+                        }}
+                      >
+                        <History size={9} strokeWidth={1.5} /> edited
+                      </button>
+                    )}
                   </div>
-                  <div
-                    style={{
-                      background: mine ? "rgba(37,99,235,0.18)" : "rgba(255,255,255,0.06)",
-                      border: mine
-                        ? "1px solid rgba(37,99,235,0.40)"
-                        : "1px solid var(--border-glass)",
-                      borderRadius: mine ? "12px 12px 3px 12px" : "12px 12px 12px 3px",
-                      padding: "8px 12px",
-                      color: "var(--text-primary)",
-                      fontFamily: "var(--font-body)",
-                      fontSize: 14,
-                      lineHeight: 1.5,
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {renderContent(m.content, handles, meHandle)}
+                  <div className={`group/msg relative ${mine ? "self-end" : "self-start"}`}>
+                    <div
+                      style={{
+                        background: mine ? "rgba(37,99,235,0.18)" : "rgba(255,255,255,0.06)",
+                        border: mine
+                          ? "1px solid rgba(37,99,235,0.40)"
+                          : "1px solid var(--border-glass)",
+                        borderRadius: mine ? "12px 12px 3px 12px" : "12px 12px 12px 3px",
+                        padding: "8px 12px",
+                        color: "var(--text-primary)",
+                        fontFamily: "var(--font-body)",
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                      }}
+                    >
+                      {editingId === m.id ? (
+                        <div className="flex flex-col gap-2" style={{ minWidth: 220 }}>
+                          <textarea
+                            autoFocus
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                void commitEdit(m);
+                              } else if (e.key === "Escape") {
+                                e.preventDefault();
+                                setEditingId(null);
+                              }
+                            }}
+                            rows={Math.min(6, editValue.split("\n").length)}
+                            disabled={saving}
+                            style={{
+                              background: "rgba(0,0,0,0.25)",
+                              border: "1px solid var(--border-glass)",
+                              borderRadius: 6,
+                              color: "var(--text-primary)",
+                              fontFamily: "var(--font-body)",
+                              fontSize: 14,
+                              lineHeight: 1.5,
+                              padding: "6px 8px",
+                              outline: "none",
+                              resize: "vertical",
+                              minHeight: 60,
+                            }}
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <span className="t-mono" style={{ fontSize: 9, marginRight: "auto" }}>
+                              Enter to save · Esc to cancel
+                            </span>
+                            <button
+                              onClick={() => setEditingId(null)}
+                              disabled={saving}
+                              className="btn-ghost"
+                              style={{ height: 24, padding: "0 8px", fontSize: 11 }}
+                            >
+                              <X size={11} strokeWidth={1.5} /> Cancel
+                            </button>
+                            <button
+                              onClick={() => void commitEdit(m)}
+                              disabled={saving || !editValue.trim()}
+                              className="btn-primary"
+                              style={{ height: 24, padding: "0 10px", fontSize: 11 }}
+                            >
+                              <Check size={11} strokeWidth={2} /> {saving ? "Saving…" : "Save"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        renderContent(m.content, handles, meHandle)
+                      )}
+                    </div>
+
+                    {mine && m.id === lastOwnId && editingId !== m.id && onEdit && (
+                      <button
+                        onClick={() => startEdit(m)}
+                        title="Edit message"
+                        className="absolute opacity-0 group-hover/msg:opacity-100 transition-opacity"
+                        style={{
+                          top: -10,
+                          right: -10,
+                          width: 22,
+                          height: 22,
+                          borderRadius: 6,
+                          background: "rgba(15,15,25,0.95)",
+                          border: "1px solid var(--border-glass-hover)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "var(--text-secondary)",
+                        }}
+                      >
+                        <Pencil size={11} strokeWidth={1.5} />
+                      </button>
+                    )}
+
+                    {historyOpenId === m.id && Array.isArray(m.metadata?.edits) && m.metadata.edits.length > 0 && (
+                      <div
+                        className={`absolute z-10 ${mine ? "right-0" : "left-0"}`}
+                        style={{
+                          top: "100%",
+                          marginTop: 6,
+                          minWidth: 240,
+                          maxWidth: 320,
+                          background: "rgba(10,10,20,0.95)",
+                          backdropFilter: "blur(20px)",
+                          border: "1px solid var(--border-glass-hover)",
+                          borderRadius: 10,
+                          padding: 8,
+                          boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                        }}
+                      >
+                        <div
+                          className="t-mono px-1 pb-1 mb-1 flex items-center justify-between"
+                          style={{
+                            fontSize: 9,
+                            borderBottom: "1px solid var(--border-glass)",
+                          }}
+                        >
+                          <span>Edit history · {m.metadata.edits.length}</span>
+                          <button onClick={() => setHistoryOpenId(null)}>
+                            <X size={10} strokeWidth={1.5} />
+                          </button>
+                        </div>
+                        <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
+                          {[...m.metadata.edits].reverse().map((e: any, i: number) => (
+                            <div
+                              key={i}
+                              style={{
+                                background: "var(--bg-glass-1)",
+                                border: "1px solid var(--border-glass)",
+                                borderRadius: 6,
+                                padding: "6px 8px",
+                              }}
+                            >
+                              <div className="t-mono mb-1" style={{ fontSize: 9 }}>
+                                {e.at ? timeStr(e.at) : "earlier"}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  color: "var(--text-secondary)",
+                                  whiteSpace: "pre-wrap",
+                                  wordBreak: "break-word",
+                                }}
+                              >
+                                {e.content}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

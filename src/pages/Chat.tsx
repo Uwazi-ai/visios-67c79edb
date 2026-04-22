@@ -77,7 +77,7 @@ export default function ChatPage() {
     (async () => {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, channel_id, user_id, org_id, content, created_at, metadata")
+        .select("id, channel_id, user_id, org_id, content, created_at, edited_at, metadata")
         .eq("channel_id", activeId)
         .order("created_at", { ascending: true })
         .limit(200);
@@ -105,6 +105,32 @@ export default function ChatPage() {
           const m = payload.new as unknown as ChatMessage;
           setMessages((prev) => (prev.some((p) => p.id === m.id) ? prev : [...prev, m]));
           if (m.user_id) await ensureProfiles([m.user_id]);
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `channel_id=eq.${activeId}`,
+        },
+        (payload) => {
+          const m = payload.new as unknown as ChatMessage;
+          setMessages((prev) => prev.map((p) => (p.id === m.id ? { ...p, ...m } : p)));
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          filter: `channel_id=eq.${activeId}`,
+        },
+        (payload) => {
+          const old = payload.old as { id: string };
+          setMessages((prev) => prev.filter((p) => p.id !== old.id));
         },
       )
       .subscribe();
@@ -315,6 +341,57 @@ export default function ChatPage() {
     }
   }
 
+  async function editMessage(messageId: string, newContent: string) {
+    if (!user || !activeChannel) return;
+    const target = messages.find((m) => m.id === messageId);
+    if (!target) return;
+    if (target.user_id !== user.id) {
+      toast.error("You can only edit your own messages");
+      return;
+    }
+    if (activeChannel.is_system) {
+      toast.error("System channels are read-only");
+      return;
+    }
+    if (newContent.trim() === target.content) return;
+
+    const now = new Date().toISOString();
+    const prevEdits = Array.isArray(target.metadata?.edits) ? target.metadata.edits : [];
+    const nextMetadata = {
+      ...(target.metadata ?? {}),
+      edits: [
+        ...prevEdits,
+        { content: target.content, at: target.edited_at ?? target.created_at },
+      ],
+    };
+
+    // Optimistic update
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === messageId
+          ? { ...m, content: newContent, edited_at: now, metadata: nextMetadata }
+          : m,
+      ),
+    );
+
+    const { error } = await supabase
+      .from("messages")
+      .update({
+        content: newContent,
+        edited_at: now,
+        metadata: nextMetadata as any,
+      } as any)
+      .eq("id", messageId);
+
+    if (error) {
+      // Roll back
+      setMessages((prev) => prev.map((m) => (m.id === messageId ? target : m)));
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Message updated");
+  }
+
   async function handleSummarize() {
     if (!activeChannel) return;
     setSummarizing(true);
@@ -457,6 +534,7 @@ export default function ChatPage() {
             members={members}
             isSystemChannel={activeChannel.is_system}
             typingUsers={typingUsers}
+            onEdit={editMessage}
           />
         ) : (
           <div className="flex-1" />
