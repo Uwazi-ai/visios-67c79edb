@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Video, Users, ExternalLink, Sparkles, Loader2, RefreshCw, ChevronDown, ChevronRight, Plus, CheckCircle2, AlertCircle, Calendar as CalendarIcon } from "lucide-react";
+import { Video, Users, ExternalLink, Sparkles, Loader2, RefreshCw, ChevronDown, ChevronRight, Plus, CheckCircle2, AlertCircle, Calendar as CalendarIcon, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { useTime } from "@/contexts/TimezoneContext";
@@ -8,6 +8,8 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 import { ORG_COLORS } from "@/lib/orgs";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
+import StartHuddleModal from "@/components/meetings/StartHuddleModal";
 
 interface CalEvent {
   id: string;
