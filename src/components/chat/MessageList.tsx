@@ -27,6 +27,7 @@ interface Props {
   members: MentionUser[];
   isSystemChannel: boolean;
   typingUsers: { user_id: string }[];
+  onEdit?: (messageId: string, newContent: string) => Promise<void> | void;
 }
 
 function renderContent(
