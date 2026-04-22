@@ -30,6 +30,7 @@ export default function ChatPage() {
   const [typingUsers, setTypingUsers] = useState<{ user_id: string }[]>([]);
   const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimer = useRef<number | null>(null);
+  const [dmOpen, setDmOpen] = useState(false);
 
   // Load channels
   const loadChannels = async () => {
