@@ -15,6 +15,26 @@ function toDate(d: Date | string | number): Date {
   return d instanceof Date ? d : new Date(d);
 }
 
+const _tzCache = new Map<string, string>();
+/**
+ * Validate a timezone string; fall back to DEFAULT_TZ if invalid.
+ * Intl will throw RangeError on bad zones (e.g. typos like "Amercica/Kansas City").
+ */
+export function safeTz(tz: string | null | undefined): string {
+  const key = tz || "";
+  const cached = _tzCache.get(key);
+  if (cached) return cached;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz || DEFAULT_TZ }).format(new Date());
+    const ok = tz || DEFAULT_TZ;
+    _tzCache.set(key, ok);
+    return ok;
+  } catch {
+    _tzCache.set(key, DEFAULT_TZ);
+    return DEFAULT_TZ;
+  }
+}
+
 /**
  * Force 12-hour clock by stripping/overriding any 24h hint in opts.
  */
