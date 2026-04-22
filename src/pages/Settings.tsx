@@ -169,7 +169,10 @@ async function patchProfile(userId: string, patch: any) {
 // ===================== INTEGRATIONS =====================
 function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProfile: (p: ProfileRow) => void }) {
   const [reconnecting, setReconnecting] = useState(false);
-  const [n8nUrl, setN8nUrl] = useState("");
+  const np = (profile.notification_prefs ?? {}) as any;
+  const [n8nUrl, setN8nUrl] = useState<string>(np.n8n_url ?? "");
+  const [n8nTesting, setN8nTesting] = useState(false);
+  const n8nConnected = !!np.n8n_url;
   const fathomWebhook = `${window.location.origin}/api/webhooks/fathom`;
   const connected = !!profile.google_refresh_token;
 
