@@ -77,7 +77,10 @@ export type Database = {
       channels: {
         Row: {
           created_at: string
+          dm_participants: string[]
           id: string
+          is_dm: boolean
+          is_system: boolean
           name: string | null
           org_id: string | null
           participants: Json
@@ -85,7 +88,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dm_participants?: string[]
           id?: string
+          is_dm?: boolean
+          is_system?: boolean
           name?: string | null
           org_id?: string | null
           participants?: Json
@@ -93,7 +99,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dm_participants?: string[]
           id?: string
+          is_dm?: boolean
+          is_system?: boolean
           name?: string | null
           org_id?: string | null
           participants?: Json
@@ -386,8 +395,8 @@ export type Database = {
       }
       messages: {
         Row: {
-          body: string
           channel_id: string
+          content: string
           created_at: string
           edited_at: string | null
           id: string
@@ -397,8 +406,8 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
-          body: string
           channel_id: string
+          content: string
           created_at?: string
           edited_at?: string | null
           id?: string
@@ -408,8 +417,8 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
-          body?: string
           channel_id?: string
+          content?: string
           created_at?: string
           edited_at?: string | null
           id?: string
