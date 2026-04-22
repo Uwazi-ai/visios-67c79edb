@@ -216,6 +216,48 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
     toast.success("Copied");
   }
 
+  async function connectN8n() {
+    const raw = n8nUrl.trim();
+    if (!raw) return toast.error("Enter your n8n instance URL");
+    let normalized = raw;
+    try {
+      const u = new URL(raw.startsWith("http") ? raw : `https://${raw}`);
+      normalized = u.origin;
+    } catch {
+      return toast.error("Invalid URL");
+    }
+    setN8nTesting(true);
+    try {
+      // n8n instances typically don't allow CORS — use no-cors so a successful
+      // network round-trip doesn't throw. Network failures (DNS, offline) still throw.
+      try {
+        await fetch(`${normalized}/healthz`, { method: "GET", mode: "no-cors" });
+      } catch {
+        await fetch(normalized, { method: "GET", mode: "no-cors" });
+      }
+      const nextPrefs = { ...np, n8n_url: normalized };
+      const ok = await patchProfile(profile.id, { notification_prefs: nextPrefs });
+      if (ok) {
+        setProfile({ ...profile, notification_prefs: nextPrefs });
+        setN8nUrl(normalized);
+      }
+    } catch (err: any) {
+      toast.error(`Couldn't reach n8n: ${err?.message ?? "network error"}`);
+    } finally {
+      setN8nTesting(false);
+    }
+  }
+
+  async function disconnectN8n() {
+    const nextPrefs = { ...np };
+    delete nextPrefs.n8n_url;
+    const ok = await patchProfile(profile.id, { notification_prefs: nextPrefs });
+    if (ok) {
+      setProfile({ ...profile, notification_prefs: nextPrefs });
+      setN8nUrl("");
+    }
+  }
+
   return (
     <>
       <SectionLabel>GOOGLE WORKSPACE</SectionLabel>
