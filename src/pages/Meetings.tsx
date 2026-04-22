@@ -95,6 +95,35 @@ function bucketEvents(events: CalEvent[], tz: string): { upcoming: Bucket[]; pas
 
 interface BriefState { brief: string; action_items: string[]; loading: boolean; error?: string }
 
+function isInProgress(ev: CalEvent, now: number) {
+  return new Date(ev.start).getTime() <= now && new Date(ev.end).getTime() > now;
+}
+
+function relativeLabel(startMs: number, nowMs: number): string {
+  const diff = startMs - nowMs;
+  if (diff <= 0) return "Now";
+  const mins = Math.round(diff / 60000);
+  if (mins < 60) return `In ${mins}m`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `In ${hrs}h`;
+  const days = Math.round(hrs / 24);
+  return `In ${days}d`;
+}
+
+function elapsedLabel(startMs: number, nowMs: number): string {
+  const mins = Math.max(0, Math.floor((nowMs - startMs) / 60000));
+  if (mins < 60) return `${mins}m elapsed`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${h}h ${m}m elapsed`;
+}
+
+const FATHOM_RE = /(https?:\/\/(?:[a-z0-9-]+\.)?fathom\.video\/[^\s)<>"']+)/i;
+function fathomUrl(ev: CalEvent): string | null {
+  const m = `${ev.description ?? ""} ${ev.location ?? ""}`.match(FATHOM_RE);
+  return m ? m[1] : null;
+}
+
 export default function MeetingsPage() {
   const { user } = useAuth();
   const { orgs, activeOrgId } = useOrg();
