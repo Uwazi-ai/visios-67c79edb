@@ -237,53 +237,104 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChannel?.org_id]);
 
-  async function handleSend(text: string, mentions: string[]) {
+  async function handleSend(
+    text: string,
+    mentions: string[],
+    attachments: ChatAttachment[] = [],
+  ) {
     if (!activeChannel || !user) return;
     if (activeChannel.is_system) return;
 
-    // Slash commands
-    if (text.startsWith("/todo ")) {
-      const title = text.slice(6).trim();
-      if (!title) return;
-      const { error } = await supabase.from("tasks").insert({
-        title,
-        org_id: activeChannel.org_id,
-        created_by: user.id,
-        status: "todo",
-        priority: "normal",
-      });
-      if (error) {
-        toast.error(error.message);
+    // Slash commands (only when no attachments)
+    if (attachments.length === 0) {
+      if (text.startsWith("/todo ")) {
+        const title = text.slice(6).trim();
+        if (!title) return;
+        const { error } = await supabase.from("tasks").insert({
+          title,
+          org_id: activeChannel.org_id,
+          created_by: user.id,
+          status: "todo",
+          priority: "normal",
+        });
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
+        await postMessage(`✓ Task created: ${title}`, []);
+        toast.success("Task created");
         return;
       }
-      await postMessage(`✓ Task created: ${title}`, []);
-      toast.success("Task created");
-      return;
-    }
-    if (text.startsWith("/meeting ")) {
-      const title = text.slice(9).trim();
-      if (!title) return;
-      try {
-        const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        const end = new Date(start.getTime() + 30 * 60 * 1000);
-        const { error } = await supabase.functions.invoke("calendar-create-event", {
-          body: {
-            summary: title,
-            start: start.toISOString(),
-            end: end.toISOString(),
-          },
-        });
-        if (error) throw error;
-        await postMessage(`✓ Meeting added to calendar: ${title} (tomorrow)`, []);
-        toast.success("Meeting created");
-      } catch (e: any) {
-        toast.error(e?.message ?? "Could not create meeting");
+      if (text.startsWith("/meeting ")) {
+        const title = text.slice(9).trim();
+        if (!title) return;
+        try {
+          const start = new Date(Date.now() + 24 * 60 * 60 * 1000);
+          const end = new Date(start.getTime() + 30 * 60 * 1000);
+          const { error } = await supabase.functions.invoke("calendar-create-event", {
+            body: {
+              summary: title,
+              start: start.toISOString(),
+              end: end.toISOString(),
+            },
+          });
+          if (error) throw error;
+          await postMessage(`✓ Meeting added to calendar: ${title} (tomorrow)`, []);
+          toast.success("Meeting created");
+        } catch (e: any) {
+          toast.error(e?.message ?? "Could not create meeting");
+        }
+        return;
       }
-      return;
     }
 
-    await postMessage(text, mentions);
+    await postMessage(text, mentions, attachments);
     handleTyping();
+  }
+
+  async function uploadAttachment(file: File): Promise<ChatAttachment> {
+    if (!activeChannel || !user || !activeChannel.org_id) {
+      throw new Error("No active channel");
+    }
+    if (activeChannel.is_system) {
+      throw new Error("System channels are read-only");
+    }
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `${activeChannel.org_id}/${activeChannel.id}/${user.id}/${Date.now()}-${safeName}`;
+    const { error } = await supabase.storage
+      .from("chat-attachments")
+      .upload(path, file, {
+        contentType: file.type || "application/octet-stream",
+        upsert: false,
+      });
+    if (error) {
+      toast.error(`Upload failed: ${error.message}`);
+      throw error;
+    }
+    return {
+      path,
+      name: file.name,
+      size: file.size,
+      type: file.type || "application/octet-stream",
+    };
+  }
+
+  // Cache of signed URLs (path -> { url, expiresAt })
+  const signedUrlCache = useRef<Map<string, { url: string; expiresAt: number }>>(new Map());
+
+  async function resolveAttachmentUrl(path: string): Promise<string | null> {
+    const now = Date.now();
+    const cached = signedUrlCache.current.get(path);
+    if (cached && cached.expiresAt > now + 30_000) return cached.url;
+    const { data, error } = await supabase.storage
+      .from("chat-attachments")
+      .createSignedUrl(path, 60 * 60); // 1 hour
+    if (error || !data?.signedUrl) return null;
+    signedUrlCache.current.set(path, {
+      url: data.signedUrl,
+      expiresAt: now + 60 * 60 * 1000,
+    });
+    return data.signedUrl;
   }
 
   async function postMessage(content: string, mentions: string[] = []) {
