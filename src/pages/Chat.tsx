@@ -7,6 +7,7 @@ import { ORG_COLORS } from "@/lib/orgs";
 import { ChannelList, ChatChannel } from "@/components/chat/ChannelList";
 import { MessageList, ChatMessage, ProfileLite } from "@/components/chat/MessageList";
 import { MessageInput, MentionUser } from "@/components/chat/MessageInput";
+import { NewDmModal } from "@/components/chat/NewDmModal";
 import { toast } from "sonner";
 
 export function toHandle(name: string | null | undefined, email: string): string {
@@ -29,6 +30,7 @@ export default function ChatPage() {
   const [typingUsers, setTypingUsers] = useState<{ user_id: string }[]>([]);
   const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimer = useRef<number | null>(null);
+  const [dmOpen, setDmOpen] = useState(false);
 
   // Load channels
   const loadChannels = async () => {
@@ -352,6 +354,16 @@ export default function ChatPage() {
         activeId={activeId}
         onSelect={setActiveId}
         onCreated={loadChannels}
+        onNewDm={() => setDmOpen(true)}
+      />
+
+      <NewDmModal
+        open={dmOpen}
+        onClose={() => setDmOpen(false)}
+        onCreated={async (channelId) => {
+          await loadChannels();
+          setActiveId(channelId);
+        }}
       />
 
       <div className="flex-1 flex flex-col min-w-0">

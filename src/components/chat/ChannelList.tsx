@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Plus, Hash, Zap, Rocket } from "lucide-react";
+import { Search, Plus, Hash, Zap, Rocket, MessageSquarePlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrg } from "@/contexts/OrgContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,9 +21,10 @@ interface Props {
   activeId: string | null;
   onSelect: (id: string) => void;
   onCreated: () => void;
+  onNewDm?: () => void;
 }
 
-export const ChannelList = ({ channels, activeId, onSelect, onCreated }: Props) => {
+export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }: Props) => {
   const { orgs, activeOrgId } = useOrg();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -85,14 +86,26 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated }: Props) 
       <div className="px-3 py-3" style={{ borderBottom: "1px solid var(--border-glass)" }}>
         <div className="flex items-center justify-between mb-2">
           <div className="t-card-title">Chat</div>
-          <button
-            className="btn-icon"
-            style={{ width: 26, height: 26 }}
-            onClick={() => setCreating((v) => !v)}
-            title="New channel"
-          >
-            <Plus size={14} strokeWidth={1.5} />
-          </button>
+          <div className="flex items-center gap-1">
+            {onNewDm && (
+              <button
+                className="btn-icon"
+                style={{ width: 26, height: 26 }}
+                onClick={onNewDm}
+                title="New direct message"
+              >
+                <MessageSquarePlus size={14} strokeWidth={1.5} />
+              </button>
+            )}
+            <button
+              className="btn-icon"
+              style={{ width: 26, height: 26 }}
+              onClick={() => setCreating((v) => !v)}
+              title="New channel"
+            >
+              <Plus size={14} strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
         <div className="relative">
           <Search
@@ -163,15 +176,33 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated }: Props) 
           </div>
         ))}
 
-        {dms.length > 0 && (
-          <div className="mt-2">
-            <div
-              className="t-mono px-3 py-1"
-              style={{ fontSize: 9, textTransform: "uppercase" }}
-            >
-              Direct Messages
+        <div className="mt-2">
+          <div
+            className="t-mono px-3 py-1 flex items-center justify-between"
+            style={{ fontSize: 9, textTransform: "uppercase" }}
+          >
+            <span>Direct Messages</span>
+            {onNewDm && (
+              <button
+                onClick={onNewDm}
+                title="New direct message"
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: 11,
+                  lineHeight: 1,
+                  padding: "0 4px",
+                }}
+              >
+                +
+              </button>
+            )}
+          </div>
+          {dms.length === 0 ? (
+            <div className="px-3 py-1 t-mono" style={{ fontSize: 9, opacity: 0.6 }}>
+              No conversations yet
             </div>
-            {dms.map((c) => (
+          ) : (
+            dms.map((c) => (
               <ChannelRow
                 key={c.id}
                 channel={c}
@@ -179,9 +210,9 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated }: Props) 
                 onClick={() => onSelect(c.id)}
                 color={undefined}
               />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
