@@ -277,7 +277,7 @@ export const MessageList = ({
         </div>
       )}
       {messages.map((m) => {
-        const day = dayKey(m.created_at);
+        const day = dayKey(m.created_at, tz);
         const showDay = day !== lastDay;
         lastDay = day;
         const mine = m.user_id === currentUserId;
@@ -300,7 +300,7 @@ export const MessageList = ({
                     fontSize: 9,
                   }}
                 >
-                  {dayLabel(m.created_at)}
+                  {dayLabel(m.created_at, tz)}
                 </div>
               </div>
             )}
@@ -361,7 +361,7 @@ export const MessageList = ({
                       {mine ? "You" : name}
                     </span>
                     <span className="t-mono" style={{ fontSize: 9 }}>
-                      {timeStr(m.created_at)}
+                      {timeStr(m.created_at, tz)}
                     </span>
                     {m.edited_at && (
                       <button
@@ -369,7 +369,7 @@ export const MessageList = ({
                           setHistoryOpenId(historyOpenId === m.id ? null : m.id)
                         }
                         className="t-mono inline-flex items-center gap-1"
-                        title={`Edited ${timeStr(m.edited_at)} · click to view history`}
+                        title={`Edited ${timeStr(m.edited_at, tz)} · click to view history`}
                         style={{
                           fontSize: 9,
                           fontStyle: "italic",
@@ -534,7 +534,7 @@ export const MessageList = ({
                               }}
                             >
                               <div className="t-mono mb-1" style={{ fontSize: 9 }}>
-                                {e.at ? timeStr(e.at) : "earlier"}
+                                {e.at ? timeStr(e.at, tz) : "earlier"}
                               </div>
                               <div
                                 style={{
