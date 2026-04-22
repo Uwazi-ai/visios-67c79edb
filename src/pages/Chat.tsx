@@ -258,8 +258,9 @@ export default function ChatPage() {
     handleTyping();
   }
 
-  async function postMessage(content: string) {
+  async function postMessage(content: string, mentions: string[] = []) {
     if (!activeChannel || !user) return;
+    const metadata: Record<string, unknown> = mentions.length ? { mentions } : {};
     const optimistic: ChatMessage = {
       id: `tmp-${Date.now()}`,
       channel_id: activeChannel.id,
@@ -267,16 +268,19 @@ export default function ChatPage() {
       org_id: activeChannel.org_id,
       content,
       created_at: new Date().toISOString(),
+      metadata,
     };
     setMessages((prev) => [...prev, optimistic]);
+    const insertRow: any = {
+      channel_id: activeChannel.id,
+      user_id: user.id,
+      org_id: activeChannel.org_id,
+      content,
+    };
+    if (mentions.length) insertRow.metadata = metadata;
     const { data, error } = await supabase
       .from("messages")
-      .insert({
-        channel_id: activeChannel.id,
-        user_id: user.id,
-        org_id: activeChannel.org_id,
-        content,
-      })
+      .insert(insertRow)
       .select()
       .single();
     if (error) {
@@ -287,6 +291,26 @@ export default function ChatPage() {
     setMessages((prev) =>
       prev.map((m) => (m.id === optimistic.id ? (data as unknown as ChatMessage) : m)),
     );
+
+    // Fan-out notifications for mentioned teammates (excluding self)
+    const targets = mentions.filter((id) => id !== user.id);
+    if (targets.length > 0 && activeChannel.org_id) {
+      const senderName =
+        profiles[user.id]?.display_name ?? profiles[user.id]?.email ?? "Someone";
+      const rows = targets.map((uid) => ({
+        org_id: activeChannel.org_id,
+        app: "chat",
+        severity: "info",
+        title: `${senderName} mentioned you in #${activeChannel.name ?? "chat"}`,
+        body: content.slice(0, 240),
+        metadata: {
+          channel_id: activeChannel.id,
+          message_id: (data as any)?.id,
+          mentioned_user_id: uid,
+        },
+      }));
+      void supabase.from("notifications").insert(rows);
+    }
   }
 
   async function handleSummarize() {
