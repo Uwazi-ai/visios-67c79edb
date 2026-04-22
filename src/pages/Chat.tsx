@@ -354,6 +354,16 @@ export default function ChatPage() {
         activeId={activeId}
         onSelect={setActiveId}
         onCreated={loadChannels}
+        onNewDm={() => setDmOpen(true)}
+      />
+
+      <NewDmModal
+        open={dmOpen}
+        onClose={() => setDmOpen(false)}
+        onCreated={async (channelId) => {
+          await loadChannels();
+          setActiveId(channelId);
+        }}
       />
 
       <div className="flex-1 flex flex-col min-w-0">
