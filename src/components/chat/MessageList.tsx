@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Zap, Pencil, Check, X, History } from "lucide-react";
-import type { MentionUser } from "./MessageInput";
+import { Zap, Pencil, Check, X, History, FileText, Download } from "lucide-react";
+import type { ChatAttachment, MentionUser } from "./MessageInput";
 
 export interface ChatMessage {
   id: string;
@@ -28,6 +28,117 @@ interface Props {
   isSystemChannel: boolean;
   typingUsers: { user_id: string }[];
   onEdit?: (messageId: string, newContent: string) => Promise<void> | void;
+  resolveAttachmentUrl?: (path: string) => Promise<string | null>;
+}
+
+function formatBytes(n: number) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function AttachmentTile({
+  att,
+  resolve,
+  mine,
+}: {
+  att: ChatAttachment;
+  resolve?: (path: string) => Promise<string | null>;
+  mine: boolean;
+}) {
+  const [url, setUrl] = useState<string | null>(null);
+  const isImg = att.type?.startsWith("image/");
+  const isPdf = att.type === "application/pdf";
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!resolve) return;
+    void resolve(att.path).then((u) => {
+      if (!cancelled) setUrl(u);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [att.path, resolve]);
+
+  if (isImg) {
+    return (
+      <a
+        href={url ?? "#"}
+        target="_blank"
+        rel="noreferrer"
+        className="block overflow-hidden"
+        style={{
+          maxWidth: 320,
+          borderRadius: 8,
+          border: "1px solid var(--border-glass)",
+          background: "rgba(0,0,0,0.25)",
+        }}
+      >
+        {url ? (
+          <img
+            src={url}
+            alt={att.name}
+            style={{
+              maxWidth: "100%",
+              maxHeight: 280,
+              display: "block",
+              objectFit: "cover",
+            }}
+          />
+        ) : (
+          <div
+            className="t-mono"
+            style={{ padding: 24, textAlign: "center", fontSize: 10 }}
+          >
+            Loading image…
+          </div>
+        )}
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={url ?? "#"}
+      target="_blank"
+      rel="noreferrer"
+      className="flex items-center gap-2 px-3 py-2"
+      style={{
+        background: mine ? "rgba(37,99,235,0.10)" : "rgba(255,255,255,0.04)",
+        border: "1px solid var(--border-glass)",
+        borderRadius: 8,
+        color: "var(--text-primary)",
+        textDecoration: "none",
+        maxWidth: 320,
+      }}
+    >
+      <div
+        className="flex items-center justify-center flex-shrink-0"
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: 6,
+          background: isPdf ? "rgba(239,68,68,0.18)" : "rgba(96,165,250,0.18)",
+          color: isPdf ? "#FCA5A5" : "#93C5FD",
+        }}
+      >
+        <FileText size={14} strokeWidth={1.5} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div
+          className="truncate"
+          style={{ fontSize: 12, fontWeight: 500 }}
+        >
+          {att.name}
+        </div>
+        <div className="t-mono" style={{ fontSize: 9 }}>
+          {(isPdf ? "PDF · " : "") + formatBytes(att.size)}
+        </div>
+      </div>
+      <Download size={12} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
+    </a>
+  );
 }
 
 function renderContent(
@@ -103,6 +214,7 @@ export const MessageList = ({
   isSystemChannel,
   typingUsers,
   onEdit,
+  resolveAttachmentUrl,
 }: Props) => {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -267,7 +379,8 @@ export const MessageList = ({
                       </button>
                     )}
                   </div>
-                  <div className={`group/msg relative ${mine ? "self-end" : "self-start"}`}>
+                  <div className={`group/msg relative ${mine ? "self-end" : "self-start"} flex flex-col gap-1.5 ${mine ? "items-end" : "items-start"}`}>
+                    {(m.content?.trim() || editingId === m.id) && (
                     <div
                       style={{
                         background: mine ? "rgba(37,99,235,0.18)" : "rgba(255,255,255,0.06)",
@@ -341,6 +454,20 @@ export const MessageList = ({
                         renderContent(m.content, handles, meHandle)
                       )}
                     </div>
+                    )}
+
+                    {Array.isArray(m.metadata?.attachments) && m.metadata.attachments.length > 0 && (
+                      <div className={`flex flex-col gap-1.5 ${mine ? "items-end" : "items-start"}`}>
+                        {(m.metadata.attachments as ChatAttachment[]).map((att) => (
+                          <AttachmentTile
+                            key={att.path}
+                            att={att}
+                            mine={mine}
+                            resolve={resolveAttachmentUrl}
+                          />
+                        ))}
+                      </div>
+                    )}
 
                     {mine && m.id === lastOwnId && editingId !== m.id && onEdit && (
                       <button

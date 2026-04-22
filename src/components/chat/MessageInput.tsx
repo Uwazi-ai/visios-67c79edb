@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Sparkles, Send } from "lucide-react";
+import { Paperclip, Sparkles, Send, X, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
 
 export interface MentionUser {
   id: string;
@@ -8,15 +8,26 @@ export interface MentionUser {
   handle: string; // lowercased name for @-matching
 }
 
+export interface ChatAttachment {
+  path: string; // storage object key
+  name: string; // original file name
+  size: number; // bytes
+  type: string; // mime type
+}
+
 interface Props {
   channelName: string;
   disabled?: boolean;
   members: MentionUser[];
-  onSend: (text: string, mentions: string[]) => Promise<void> | void;
+  onSend: (text: string, mentions: string[], attachments: ChatAttachment[]) => Promise<void> | void;
+  onUpload?: (file: File) => Promise<ChatAttachment>;
   onTyping?: () => void;
   onSummarize?: () => void;
   summarizing?: boolean;
 }
+
+const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20 MB
+const MAX_ATTACHMENTS = 5;
 
 interface MentionState {
   open: boolean;
@@ -32,13 +43,17 @@ export const MessageInput = ({
   disabled,
   members,
   onSend,
+  onUpload,
   onTyping,
   onSummarize,
   summarizing,
 }: Props) => {
   const [text, setText] = useState("");
   const [mention, setMention] = useState<MentionState>(initialMention);
+  const [pending, setPending] = useState<ChatAttachment[]>([]);
+  const [uploading, setUploading] = useState(0);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const el = taRef.current;
@@ -118,13 +133,42 @@ export const MessageInput = ({
 
   async function send() {
     const t = text.trim();
-    if (!t || disabled) return;
+    if ((!t && pending.length === 0) || disabled) return;
+    if (uploading > 0) return;
     const mentions = extractMentions(t);
+    const atts = pending;
     setText("");
+    setPending([]);
     setMention(initialMention);
-    await onSend(t, mentions);
+    await onSend(t, mentions, atts);
   }
 
+  async function handleFiles(files: FileList | null) {
+    if (!files || !onUpload) return;
+    const arr = Array.from(files);
+    for (const f of arr) {
+      if (pending.length + 1 > MAX_ATTACHMENTS) {
+        // Cap silently after the first overflow
+        break;
+      }
+      if (f.size > MAX_FILE_BYTES) {
+        // Skip oversized files
+        // eslint-disable-next-line no-console
+        console.warn(`Skipping ${f.name}: exceeds 20 MB`);
+        continue;
+      }
+      setUploading((n) => n + 1);
+      try {
+        const att = await onUpload(f);
+        setPending((prev) => [...prev, att]);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Upload failed", err);
+      } finally {
+        setUploading((n) => n - 1);
+      }
+    }
+  }
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (mention.open && suggestions.length > 0) {
       if (e.key === "ArrowDown") {
@@ -252,6 +296,70 @@ export const MessageInput = ({
         </div>
       )}
 
+      {pending.length > 0 && (
+        <div
+          className="flex flex-wrap gap-2 mb-2 p-2 rounded-[10px]"
+          style={{
+            background: "var(--bg-glass-1)",
+            border: "1px solid var(--border-glass)",
+          }}
+        >
+          {pending.map((a, i) => {
+            const isImg = a.type.startsWith("image/");
+            return (
+              <div
+                key={a.path}
+                className="flex items-center gap-2 px-2 py-1 rounded-[8px]"
+                style={{
+                  background: "rgba(96,165,250,0.10)",
+                  border: "1px solid rgba(96,165,250,0.30)",
+                  fontSize: 11,
+                  maxWidth: 220,
+                }}
+              >
+                {isImg ? (
+                  <ImageIcon size={12} strokeWidth={1.5} style={{ color: "#60A5FA" }} />
+                ) : (
+                  <FileText size={12} strokeWidth={1.5} style={{ color: "#60A5FA" }} />
+                )}
+                <span className="truncate" style={{ color: "var(--text-primary)" }}>
+                  {a.name}
+                </span>
+                <button
+                  onClick={() =>
+                    setPending((prev) => prev.filter((_, idx) => idx !== i))
+                  }
+                  title="Remove"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  <X size={11} strokeWidth={1.5} />
+                </button>
+              </div>
+            );
+          })}
+          {uploading > 0 && (
+            <div
+              className="flex items-center gap-2 px-2 py-1 t-mono"
+              style={{ fontSize: 10, color: "var(--text-muted)" }}
+            >
+              <Loader2 size={11} className="animate-spin" /> Uploading {uploading}…
+            </div>
+          )}
+        </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        multiple
+        accept="image/*,application/pdf,.pdf,.doc,.docx,.txt,.csv"
+        className="hidden"
+        onChange={(e) => {
+          void handleFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
+
       <div
         className="flex items-end gap-2 p-2 rounded-[12px]"
         style={{
@@ -262,10 +370,11 @@ export const MessageInput = ({
         <button
           className="btn-icon"
           style={{ width: 32, height: 32, flexShrink: 0 }}
-          title="Attach (coming soon)"
-          disabled
+          title="Attach files"
+          disabled={disabled || !onUpload || pending.length >= MAX_ATTACHMENTS}
+          onClick={() => fileRef.current?.click()}
         >
-          <Plus size={14} strokeWidth={1.5} />
+          <Paperclip size={14} strokeWidth={1.5} />
         </button>
         <textarea
           ref={taRef}
@@ -319,7 +428,7 @@ export const MessageInput = ({
         </button>
         <button
           onClick={() => void send()}
-          disabled={disabled || !text.trim()}
+          disabled={disabled || uploading > 0 || (!text.trim() && pending.length === 0)}
           className="btn-primary"
           style={{ height: 32, padding: "0 12px", flexShrink: 0 }}
         >
