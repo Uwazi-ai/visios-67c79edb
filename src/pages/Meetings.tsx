@@ -470,6 +470,17 @@ export default function MeetingsPage() {
           </section>
         ))}
       </div>
+
+      <ScheduleMeetingModal
+        open={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        onCreated={loadEvents}
+      />
+      <StartHuddleModal
+        open={huddleOpen}
+        onClose={() => setHuddleOpen(false)}
+        onStarted={loadEvents}
+      />
     </div>
   );
 }
