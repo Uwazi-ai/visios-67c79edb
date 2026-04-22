@@ -225,7 +225,7 @@ export const MessageList = ({
                       wordBreak: "break-word",
                     }}
                   >
-                    {m.content}
+                    {renderContent(m.content, handles, meHandle)}
                   </div>
                 </div>
               </div>
