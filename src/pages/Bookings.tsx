@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
+import { useTime } from "@/contexts/TimezoneContext";
 import { Plus, Copy, Check, Link2, Calendar, Clock, ExternalLink, Sparkles, Trash2, GripVertical, ToggleLeft, ToggleRight } from "lucide-react";
 import { ORG_COLORS } from "@/lib/orgs";
 
@@ -56,9 +57,9 @@ function initials(name: string) {
   return ((p[0]?.[0] ?? "") + (p[1]?.[0] ?? "")).toUpperCase() || "?";
 }
 
-function formatDateLine(iso: string) {
+function formatDateLine(iso: string, tz: string) {
   const d = new Date(iso);
-  return d.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return d.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz });
 }
 
 const BookingsPage = () => {
