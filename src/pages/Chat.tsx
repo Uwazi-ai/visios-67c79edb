@@ -167,7 +167,49 @@ export default function ChatPage() {
     }, 2000);
   };
 
-  async function handleSend(text: string) {
+  // Load org members for @mention suggestions when active channel changes
+  useEffect(() => {
+    if (!activeChannel?.org_id) {
+      setMembers([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data: ms } = await supabase
+        .from("org_memberships")
+        .select("user_id")
+        .eq("org_id", activeChannel.org_id);
+      const ids = (ms ?? []).map((m) => m.user_id).filter(Boolean) as string[];
+      if (ids.length === 0) {
+        if (!cancelled) setMembers([]);
+        return;
+      }
+      const { data: ps } = await supabase
+        .from("profiles")
+        .select("id, display_name, email, avatar_url")
+        .in("id", ids);
+      if (cancelled) return;
+      const list: MentionUser[] = (ps ?? []).map((p) => ({
+        id: p.id,
+        display_name: p.display_name,
+        email: p.email,
+        handle: toHandle(p.display_name, p.email),
+      }));
+      setMembers(list);
+      // Also seed profile cache so mentioned users render in bubbles
+      setProfiles((prev) => {
+        const next = { ...prev };
+        for (const p of (ps ?? []) as ProfileLite[]) next[p.id] = p;
+        return next;
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChannel?.org_id]);
+
+  async function handleSend(text: string, mentions: string[]) {
     if (!activeChannel || !user) return;
     if (activeChannel.is_system) return;
 
@@ -186,7 +228,7 @@ export default function ChatPage() {
         toast.error(error.message);
         return;
       }
-      await postMessage(`✓ Task created: ${title}`);
+      await postMessage(`✓ Task created: ${title}`, []);
       toast.success("Task created");
       return;
     }
@@ -204,7 +246,7 @@ export default function ChatPage() {
           },
         });
         if (error) throw error;
-        await postMessage(`✓ Meeting added to calendar: ${title} (tomorrow)`);
+        await postMessage(`✓ Meeting added to calendar: ${title} (tomorrow)`, []);
         toast.success("Meeting created");
       } catch (e: any) {
         toast.error(e?.message ?? "Could not create meeting");
@@ -212,7 +254,7 @@ export default function ChatPage() {
       return;
     }
 
-    await postMessage(text);
+    await postMessage(text, mentions);
     handleTyping();
   }
 
