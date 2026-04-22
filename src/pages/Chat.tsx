@@ -454,6 +454,7 @@ export default function ChatPage() {
           <MessageInput
             channelName={activeChannel.name ?? ""}
             disabled={activeChannel.is_system}
+            members={members}
             onSend={handleSend}
             onTyping={handleTyping}
             onSummarize={handleSummarize}
