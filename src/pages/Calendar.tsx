@@ -636,6 +636,7 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
   onApplied: () => void;
 }) {
   const { user } = useAuth();
+  const { tz } = useTime();
   const [loading, setLoading] = useState(false);
   const [applying, setApplying] = useState(false);
   const [blocks, setBlocks] = useState<PlanBlock[] | null>(null);
@@ -731,7 +732,7 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
         <button onClick={onClose} className="btn-icon" style={{ width: 24, height: 24 }}><X size={12} /></button>
       </div>
 
-      <div className="t-mono">{date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</div>
+      <div className="t-mono">{fmtDateLong(date, tz, { weekday: "short", month: "short", day: "numeric" })}</div>
 
       {stats && (
         <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
@@ -754,7 +755,7 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
             const e = new Date(b.end);
             return (
               <div key={i} className="rounded-md p-2 flex flex-col gap-0.5" style={{ background: `${c}1A`, borderLeft: `2px solid ${c}` }}>
-                <div className="t-mono" style={{ fontSize: 10 }}>{fmtTimeShort(s)}–{fmtTimeShort(e)}</div>
+                <div className="t-mono" style={{ fontSize: 10 }}>{fmtTimeShort(s, tz)}–{fmtTimeShort(e, tz)}</div>
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 11, color: c, textTransform: "uppercase", letterSpacing: 0.04 }}>
                   {b.title}
                 </div>
