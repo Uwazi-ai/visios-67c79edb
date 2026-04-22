@@ -442,6 +442,7 @@ export default function ChatPage() {
             messages={messages}
             profiles={profiles}
             currentUserId={user?.id ?? ""}
+            members={members}
             isSystemChannel={activeChannel.is_system}
             typingUsers={typingUsers}
           />
