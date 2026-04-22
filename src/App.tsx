@@ -16,8 +16,9 @@ import SettingsPage from "./pages/Settings";
 import CalendarPage from "./pages/Calendar";
 import TasksPage from "./pages/Tasks";
 import ChatPage from "./pages/Chat";
+import MeetingsPage from "./pages/Meetings";
 import {
-  NotificationsPage, ContactsPage, MeetingsPage, FinancePage,
+  NotificationsPage, ContactsPage, FinancePage,
 } from "./pages/EmptyPages";
 import NotFound from "./pages/NotFound";
 
