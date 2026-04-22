@@ -77,7 +77,7 @@ export default function ChatPage() {
     (async () => {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, channel_id, user_id, org_id, content, created_at, metadata")
+        .select("id, channel_id, user_id, org_id, content, created_at, edited_at, metadata")
         .eq("channel_id", activeId)
         .order("created_at", { ascending: true })
         .limit(200);
@@ -105,6 +105,32 @@ export default function ChatPage() {
           const m = payload.new as unknown as ChatMessage;
           setMessages((prev) => (prev.some((p) => p.id === m.id) ? prev : [...prev, m]));
           if (m.user_id) await ensureProfiles([m.user_id]);
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages",
+          filter: `channel_id=eq.${activeId}`,
+        },
+        (payload) => {
+          const m = payload.new as unknown as ChatMessage;
+          setMessages((prev) => prev.map((p) => (p.id === m.id ? { ...p, ...m } : p)));
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "messages",
+          filter: `channel_id=eq.${activeId}`,
+        },
+        (payload) => {
+          const old = payload.old as { id: string };
+          setMessages((prev) => prev.filter((p) => p.id !== old.id));
         },
       )
       .subscribe();
