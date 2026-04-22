@@ -654,7 +654,9 @@ function Field({ label, value }: { label: string; value: string }) {
 function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: (p: ProfileRow) => void }) {
   const [displayName, setDisplayName] = useState(profile.display_name ?? "");
   const [preferredName, setPreferredName] = useState(profile.preferred_name ?? "");
-  const [timezone, setTimezone] = useState(profile.timezone ?? "America/Los_Angeles");
+  const VALID_TZS = ["America/Chicago","America/New_York","America/Denver","America/Los_Angeles","America/Phoenix","Pacific/Honolulu"];
+  const initialTz = profile.timezone && VALID_TZS.includes(profile.timezone) ? profile.timezone : "America/Chicago";
+  const [timezone, setTimezone] = useState(initialTz);
   const [username, setUsername] = useState(profile.username ?? "");
   const [savingId, setSavingId] = useState(false);
   const [savingBook, setSavingBook] = useState(false);
