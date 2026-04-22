@@ -107,6 +107,8 @@ export default function MeetingsPage() {
   const [briefs, setBriefs] = useState<Record<string, BriefState>>({});
   const [creatingTask, setCreatingTask] = useState<string | null>(null);
   const [createdTasks, setCreatedTasks] = useState<Set<string>>(new Set());
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [huddleOpen, setHuddleOpen] = useState(false);
 
   const orgBySlug = useMemo(() => {
     const m = new Map<string, { id: string; color: string }>();
