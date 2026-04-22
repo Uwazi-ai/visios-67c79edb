@@ -337,9 +337,15 @@ export default function ChatPage() {
     return data.signedUrl;
   }
 
-  async function postMessage(content: string, mentions: string[] = []) {
+  async function postMessage(
+    content: string,
+    mentions: string[] = [],
+    attachments: ChatAttachment[] = [],
+  ) {
     if (!activeChannel || !user) return;
-    const metadata: Record<string, unknown> = mentions.length ? { mentions } : {};
+    const metadata: Record<string, unknown> = {};
+    if (mentions.length) metadata.mentions = mentions;
+    if (attachments.length) metadata.attachments = attachments;
     const optimistic: ChatMessage = {
       id: `tmp-${Date.now()}`,
       channel_id: activeChannel.id,
@@ -356,7 +362,7 @@ export default function ChatPage() {
       org_id: activeChannel.org_id,
       content,
     };
-    if (mentions.length) insertRow.metadata = metadata;
+    if (Object.keys(metadata).length) insertRow.metadata = metadata;
     const { data, error } = await supabase
       .from("messages")
       .insert(insertRow)
