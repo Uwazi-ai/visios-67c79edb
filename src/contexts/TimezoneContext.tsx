@@ -7,6 +7,7 @@ import {
   formatDate as fmtDate,
   formatDateTime as fmtDateTime,
   formatTimeShort as fmtTimeShort,
+  safeTz,
   type TimeOpts,
 } from "@/lib/time";
 
@@ -29,7 +30,7 @@ export const TimezoneProvider = ({ children }: { children: ReactNode }) => {
     let cancelled = false;
     (async () => {
       const { data } = await supabase.from("profiles").select("timezone").eq("id", user.id).maybeSingle();
-      if (!cancelled) setTimezone((data?.timezone as string) || DEFAULT_TZ);
+      if (!cancelled) setTimezone(safeTz(data?.timezone as string));
     })();
     return () => { cancelled = true; };
   }, [user]);

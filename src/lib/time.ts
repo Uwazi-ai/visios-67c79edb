@@ -15,6 +15,26 @@ function toDate(d: Date | string | number): Date {
   return d instanceof Date ? d : new Date(d);
 }
 
+const _tzCache = new Map<string, string>();
+/**
+ * Validate a timezone string; fall back to DEFAULT_TZ if invalid.
+ * Intl will throw RangeError on bad zones (e.g. typos like "Amercica/Kansas City").
+ */
+export function safeTz(tz: string | null | undefined): string {
+  const key = tz || "";
+  const cached = _tzCache.get(key);
+  if (cached) return cached;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz || DEFAULT_TZ }).format(new Date());
+    const ok = tz || DEFAULT_TZ;
+    _tzCache.set(key, ok);
+    return ok;
+  } catch {
+    _tzCache.set(key, DEFAULT_TZ);
+    return DEFAULT_TZ;
+  }
+}
+
 /**
  * Force 12-hour clock by stripping/overriding any 24h hint in opts.
  */
@@ -26,14 +46,14 @@ export function formatTime(d: Date | string | number, tz: string = DEFAULT_TZ, o
   return toDate(d).toLocaleTimeString("en-US", with12h({
     hour: "numeric",
     minute: "2-digit",
-    timeZone: tz,
+    timeZone: safeTz(tz),
     ...opts,
   }));
 }
 
 export function formatDate(d: Date | string | number, tz: string = DEFAULT_TZ, opts: TimeOpts = {}): string {
   return toDate(d).toLocaleDateString("en-US", {
-    timeZone: tz,
+    timeZone: safeTz(tz),
     ...opts,
   });
 }
@@ -44,7 +64,7 @@ export function formatDateTime(d: Date | string | number, tz: string = DEFAULT_T
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-    timeZone: tz,
+    timeZone: safeTz(tz),
     ...opts,
   }));
 }
@@ -53,6 +73,6 @@ export function formatDateTime(d: Date | string | number, tz: string = DEFAULT_T
  * Short, casual time like "2:30 PM" or "2 PM" when on the hour.
  */
 export function formatTimeShort(d: Date | string | number, tz: string = DEFAULT_TZ): string {
-  const s = formatTime(d, tz);
+  const s = formatTime(d, safeTz(tz));
   return s.replace(":00", "");
 }
