@@ -217,6 +217,7 @@ export const MessageList = ({
   onEdit,
   resolveAttachmentUrl,
 }: Props) => {
+  const { tz } = useTime();
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
