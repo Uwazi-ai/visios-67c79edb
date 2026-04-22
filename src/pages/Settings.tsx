@@ -769,7 +769,28 @@ function ProfileTab({ profile, setProfile }: { profile: ProfileRow; setProfile: 
           <LabeledInput label="FULL NAME" value={displayName} onChange={setDisplayName} placeholder="Myke Sentongo" />
           <LabeledInput label="PREFERRED NAME" value={preferredName} onChange={setPreferredName} placeholder="Myke" />
           <LabeledInput label="EMAIL (read-only)" value={profile.email} onChange={() => {}} disabled />
-          <LabeledInput label="TIMEZONE" value={timezone} onChange={setTimezone} placeholder="America/Los_Angeles" />
+          <div>
+            <div className="t-mono mb-1" style={{ fontSize: 10 }}>TIMEZONE</div>
+            <select
+              className="input-glass"
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
+              style={{ appearance: "none", cursor: "pointer" }}
+            >
+              {[
+                { v: "America/Chicago", l: "America/Chicago (Central)" },
+                { v: "America/New_York", l: "America/New_York (Eastern)" },
+                { v: "America/Denver", l: "America/Denver (Mountain)" },
+                { v: "America/Los_Angeles", l: "America/Los_Angeles (Pacific)" },
+                { v: "America/Phoenix", l: "America/Phoenix (Arizona)" },
+                { v: "Pacific/Honolulu", l: "Pacific/Honolulu (Hawaii)" },
+              ].map((tz) => (
+                <option key={tz.v} value={tz.v} style={{ background: "#0b0b0f", color: "#fff" }}>
+                  {tz.l}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <button onClick={saveIdentity} disabled={savingId} className="btn-primary mt-4">
