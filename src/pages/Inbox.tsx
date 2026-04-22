@@ -425,6 +425,7 @@ function ThreadMessage({ from, fromInitials, timestamp, body, isMe, attachments,
 const InboxPage = () => {
   const { session, user } = useAuth();
   const { orgs, activeOrgId } = useOrg();
+  const { tz } = useTime();
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -944,7 +945,7 @@ const InboxPage = () => {
                     fromColor={colorFromName(t.fromName)}
                     subject={t.subject}
                     aiSummary={c?.ai_summary || t.snippet}
-                    time={formatTime(t.date)}
+                    time={formatTime(t.date, tz)}
                     urgency={(c?.urgency as Urgency) ?? t.urgency}
                     isUnread={t.isUnread}
                     isSelected={selectedId === t.id}
@@ -1014,7 +1015,7 @@ const InboxPage = () => {
                         const email = last?.fromEmail && last.fromEmail !== name ? last.fromEmail : "";
                         const dateStr = last?.date ? (() => {
                           const d = new Date(last.date);
-                          return isNaN(d.getTime()) ? last.date : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+                          return isNaN(d.getTime()) ? last.date : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz });
                         })() : "";
                         return (
                           <p
@@ -1119,7 +1120,7 @@ const InboxPage = () => {
                       key={m.id}
                       from={displayName}
                       fromInitials={initials(displayName)}
-                      timestamp={formatTime(m.date)}
+                      timestamp={formatTime(m.date, tz)}
                       body={m.bodyText || m.body || m.snippet}
                       bodyHtml={m.bodyHtml}
                       isMe={isMe}
