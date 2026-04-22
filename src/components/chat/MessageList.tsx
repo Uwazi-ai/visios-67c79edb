@@ -379,7 +379,8 @@ export const MessageList = ({
                       </button>
                     )}
                   </div>
-                  <div className={`group/msg relative ${mine ? "self-end" : "self-start"}`}>
+                  <div className={`group/msg relative ${mine ? "self-end" : "self-start"} flex flex-col gap-1.5 ${mine ? "items-end" : "items-start"}`}>
+                    {(m.content?.trim() || editingId === m.id) && (
                     <div
                       style={{
                         background: mine ? "rgba(37,99,235,0.18)" : "rgba(255,255,255,0.06)",
@@ -453,6 +454,20 @@ export const MessageList = ({
                         renderContent(m.content, handles, meHandle)
                       )}
                     </div>
+                    )}
+
+                    {Array.isArray(m.metadata?.attachments) && m.metadata.attachments.length > 0 && (
+                      <div className={`flex flex-col gap-1.5 ${mine ? "items-end" : "items-start"}`}>
+                        {(m.metadata.attachments as ChatAttachment[]).map((att) => (
+                          <AttachmentTile
+                            key={att.path}
+                            att={att}
+                            mine={mine}
+                            resolve={resolveAttachmentUrl}
+                          />
+                        ))}
+                      </div>
+                    )}
 
                     {mine && m.id === lastOwnId && editingId !== m.id && onEdit && (
                       <button
