@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import DOMPurify from "dompurify";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
+import { useTime } from "@/contexts/TimezoneContext";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Inbox as InboxIcon,
@@ -81,16 +82,16 @@ function colorFromName(name: string) {
   return `hsl(${h} 55% 45%)`;
 }
 
-function formatTime(date: string) {
+function formatTime(date: string, tz: string) {
   if (!date) return "";
   const d = new Date(date);
   if (isNaN(d.getTime())) return "";
   const now = new Date();
-  const sameDay = d.toDateString() === now.toDateString();
-  if (sameDay) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const sameDay = d.toLocaleDateString("en-US", { timeZone: tz }) === now.toLocaleDateString("en-US", { timeZone: tz });
+  if (sameDay) return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz });
   const diff = (now.getTime() - d.getTime()) / 86400000;
-  if (diff < 7) return d.toLocaleDateString([], { weekday: "short" });
-  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+  if (diff < 7) return d.toLocaleDateString("en-US", { weekday: "short", timeZone: tz });
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: tz });
 }
 
 // Match sender domain or AI org_tag to one of the user's orgs (by name or slug).
@@ -424,6 +425,7 @@ function ThreadMessage({ from, fromInitials, timestamp, body, isMe, attachments,
 const InboxPage = () => {
   const { session, user } = useAuth();
   const { orgs, activeOrgId } = useOrg();
+  const { tz } = useTime();
   const [threads, setThreads] = useState<ThreadSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -943,7 +945,7 @@ const InboxPage = () => {
                     fromColor={colorFromName(t.fromName)}
                     subject={t.subject}
                     aiSummary={c?.ai_summary || t.snippet}
-                    time={formatTime(t.date)}
+                    time={formatTime(t.date, tz)}
                     urgency={(c?.urgency as Urgency) ?? t.urgency}
                     isUnread={t.isUnread}
                     isSelected={selectedId === t.id}
@@ -1013,7 +1015,7 @@ const InboxPage = () => {
                         const email = last?.fromEmail && last.fromEmail !== name ? last.fromEmail : "";
                         const dateStr = last?.date ? (() => {
                           const d = new Date(last.date);
-                          return isNaN(d.getTime()) ? last.date : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+                          return isNaN(d.getTime()) ? last.date : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz });
                         })() : "";
                         return (
                           <p
@@ -1118,7 +1120,7 @@ const InboxPage = () => {
                       key={m.id}
                       from={displayName}
                       fromInitials={initials(displayName)}
-                      timestamp={formatTime(m.date)}
+                      timestamp={formatTime(m.date, tz)}
                       body={m.bodyText || m.body || m.snippet}
                       bodyHtml={m.bodyHtml}
                       isMe={isMe}

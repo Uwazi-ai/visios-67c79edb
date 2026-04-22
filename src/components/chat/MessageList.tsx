@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Zap, Pencil, Check, X, History, FileText, Download } from "lucide-react";
 import type { ChatAttachment, MentionUser } from "./MessageInput";
+import { useTime } from "@/contexts/TimezoneContext";
 
 export interface ChatMessage {
   id: string;
@@ -173,24 +174,24 @@ function renderContent(
   });
 }
 
-function timeStr(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+function timeStr(iso: string, tz: string) {
+  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz });
 }
 
-function dayKey(iso: string) {
-  const d = new Date(iso);
-  return d.toDateString();
+function dayKey(iso: string, tz: string) {
+  // Use the user's timezone when bucketing days so a 11pm CT message
+  // doesn't get grouped under the next UTC day.
+  return new Date(iso).toLocaleDateString("en-US", { timeZone: tz });
 }
 
-function dayLabel(iso: string) {
+function dayLabel(iso: string, tz: string) {
   const d = new Date(iso);
-  const today = new Date().toDateString();
-  const yest = new Date(Date.now() - 86400000).toDateString();
-  const k = d.toDateString();
+  const today = new Date().toLocaleDateString("en-US", { timeZone: tz });
+  const yest = new Date(Date.now() - 86400000).toLocaleDateString("en-US", { timeZone: tz });
+  const k = d.toLocaleDateString("en-US", { timeZone: tz });
   if (k === today) return "Today";
   if (k === yest) return "Yesterday";
-  return d.toLocaleDateString([], { weekday: "long", month: "short", day: "numeric" });
+  return d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: tz });
 }
 
 function initials(p?: ProfileLite) {
@@ -216,6 +217,7 @@ export const MessageList = ({
   onEdit,
   resolveAttachmentUrl,
 }: Props) => {
+  const { tz } = useTime();
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -275,7 +277,7 @@ export const MessageList = ({
         </div>
       )}
       {messages.map((m) => {
-        const day = dayKey(m.created_at);
+        const day = dayKey(m.created_at, tz);
         const showDay = day !== lastDay;
         lastDay = day;
         const mine = m.user_id === currentUserId;
@@ -298,7 +300,7 @@ export const MessageList = ({
                     fontSize: 9,
                   }}
                 >
-                  {dayLabel(m.created_at)}
+                  {dayLabel(m.created_at, tz)}
                 </div>
               </div>
             )}
@@ -359,7 +361,7 @@ export const MessageList = ({
                       {mine ? "You" : name}
                     </span>
                     <span className="t-mono" style={{ fontSize: 9 }}>
-                      {timeStr(m.created_at)}
+                      {timeStr(m.created_at, tz)}
                     </span>
                     {m.edited_at && (
                       <button
@@ -367,7 +369,7 @@ export const MessageList = ({
                           setHistoryOpenId(historyOpenId === m.id ? null : m.id)
                         }
                         className="t-mono inline-flex items-center gap-1"
-                        title={`Edited ${timeStr(m.edited_at)} · click to view history`}
+                        title={`Edited ${timeStr(m.edited_at, tz)} · click to view history`}
                         style={{
                           fontSize: 9,
                           fontStyle: "italic",
@@ -532,7 +534,7 @@ export const MessageList = ({
                               }}
                             >
                               <div className="t-mono mb-1" style={{ fontSize: 9 }}>
-                                {e.at ? timeStr(e.at) : "earlier"}
+                                {e.at ? timeStr(e.at, tz) : "earlier"}
                               </div>
                               <div
                                 style={{

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
+import { useTime } from "@/contexts/TimezoneContext";
 import { Plus, Copy, Check, Link2, Calendar, Clock, ExternalLink, Sparkles, Trash2, GripVertical, ToggleLeft, ToggleRight } from "lucide-react";
 import { ORG_COLORS } from "@/lib/orgs";
 
@@ -56,14 +57,15 @@ function initials(name: string) {
   return ((p[0]?.[0] ?? "") + (p[1]?.[0] ?? "")).toUpperCase() || "?";
 }
 
-function formatDateLine(iso: string) {
+function formatDateLine(iso: string, tz: string) {
   const d = new Date(iso);
-  return d.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return d.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz });
 }
 
 const BookingsPage = () => {
   const { user } = useAuth();
   const { orgs, memberships, activeOrgId } = useOrg();
+  const { tz } = useTime();
   const [tab, setTab] = useState<"types" | "upcoming">("types");
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -294,7 +296,7 @@ const BookingsPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-display font-bold truncate" style={{ fontSize: 13, color: "var(--text-primary)" }}>{b.invitee_name}</div>
-                    <div className="t-mono mt-0.5" style={{ fontSize: 10 }}>{formatDateLine(b.start_at)}</div>
+                    <div className="t-mono mt-0.5" style={{ fontSize: 10 }}>{formatDateLine(b.start_at, tz)}</div>
                     {et && (
                       <span className="inline-block mt-1 px-1.5 py-0.5 rounded t-mono" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-glass)", fontSize: 9 }}>
                         {et.name}
@@ -546,6 +548,7 @@ const BookingDetail = ({
   onGenerateBrief: () => void;
   generating: boolean;
 }) => {
+  const { tz } = useTime();
   const orgColor = (org && (ORG_COLORS[org.slug] ?? "#60A5FA")) ?? "#60A5FA";
   const meetLink = (booking as unknown as { meet_link?: string }).meet_link;
   return (
@@ -597,7 +600,7 @@ const BookingDetail = ({
 
       {/* Grid of facts */}
       <div className="grid grid-cols-2 gap-3">
-        <FactCell label="Date" value={formatDateLine(booking.start_at)} />
+        <FactCell label="Date" value={formatDateLine(booking.start_at, tz)} />
         <FactCell label="Duration" value={`${eventType?.duration_mins ?? 30} mins`} />
         <FactCell label="Meet" value={meetLink ? "Google Meet ready" : (booking.google_event_id ? "On Google Calendar" : "—")} />
         <FactCell label="Org" value={org?.name ?? "—"} />

@@ -158,7 +158,7 @@ const BookingPublic = () => {
           </div>
           <div className="t-hero mb-3" style={{ fontSize: 28 }}>You're booked!</div>
           <div className="t-body mb-1">{lookup.eventType.name} with {lookup.host.display_name ?? lookup.host.username}</div>
-          <div className="t-mono mb-4" style={{ fontSize: 12 }}>{new Date(confirmation.start).toLocaleString([], { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit" })}</div>
+          <div className="t-mono mb-4" style={{ fontSize: 12 }}>{new Date(confirmation.start).toLocaleString("en-US", { weekday: "long", month: "long", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}</div>
           {confirmation.meetLink && (
             <a href={confirmation.meetLink} target="_blank" rel="noreferrer" className="btn-primary">Open Google Meet</a>
           )}
@@ -231,7 +231,7 @@ const BookingPublic = () => {
                 <div className="grid grid-cols-2 gap-2 max-h-[420px] overflow-y-auto">
                   {slots.map((s) => (
                     <button key={s.toISOString()} onClick={() => setSelectedSlot(s)} className="glass py-2 t-mono" style={{ fontSize: 12, color: "var(--text-primary)" }}>
-                      {s.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                      {s.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}
                     </button>
                   ))}
                 </div>
@@ -242,7 +242,7 @@ const BookingPublic = () => {
             <div className="space-y-3">
               <div className="t-card-title">Confirm details</div>
               <div className="glass-active p-3 t-mono" style={{ fontSize: 12, color: "var(--text-primary)" }}>
-                {selectedSlot.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                {selectedSlot.toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
               </div>
               <div>
                 <div className="t-mono mb-1" style={{ fontSize: 10 }}>NAME *</div>

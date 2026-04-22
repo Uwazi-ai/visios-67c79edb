@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as Ca
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
+import { useTime } from "@/contexts/TimezoneContext";
 import { supabase } from "@/integrations/supabase/client";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { ORG_COLORS } from "@/lib/orgs";
@@ -63,9 +64,10 @@ const startOfWeek = (d: Date) => { const x = startOfDay(d); x.setDate(x.getDate(
 const startOfMonth = (d: Date) => { const x = new Date(d.getFullYear(), d.getMonth(), 1); x.setHours(0, 0, 0, 0); return x; };
 const endOfMonth = (d: Date) => { const x = new Date(d.getFullYear(), d.getMonth() + 1, 0); x.setHours(23, 59, 59, 999); return x; };
 const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-const fmtTime = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-const fmtTimeShort = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(":00", "").toLowerCase();
-const fmtRange = (s: Date, e: Date) => `${fmtTime(s)} – ${fmtTime(e)}`;
+const fmtTime = (d: Date, tz: string) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz });
+const fmtTimeShort = (d: Date, tz: string) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz }).replace(":00", "").toLowerCase();
+const fmtRange = (s: Date, e: Date, tz: string) => `${fmtTime(s, tz)} – ${fmtTime(e, tz)}`;
+const fmtDateLong = (d: Date, tz: string, opts: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-US", { ...opts, timeZone: tz });
 
 // keyword → org slug
 function detectOrgSlug(title: string, description: string): string | null {
@@ -80,6 +82,7 @@ export default function Calendar() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const { orgs } = useOrg();
+  const { tz } = useTime();
   const [view, setView] = useState<View>(isMobile ? "day" : "week");
   const [cursor, setCursor] = useState<Date>(new Date());
   const [events, setEvents] = useState<CalEvent[]>([]);
@@ -158,7 +161,7 @@ export default function Calendar() {
   const goNext = () => setCursor(view === "day" ? addDays(cursor, 1) : view === "week" ? addDays(cursor, 7) : new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1));
 
   const headerLabel = useMemo(() => {
-    if (view === "day") return cursor.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    if (view === "day") return fmtDateLong(cursor, tz, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
     if (view === "month") return `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`;
     const ws = startOfWeek(cursor);
     const we = addDays(ws, 6);
@@ -422,6 +425,7 @@ function WeekView({ events, cursor, now, onSelect }: { events: CalEvent[]; curso
 }
 
 function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSelect: (e: CalEvent) => void; columnHeight: number }) {
+  const { tz } = useTime();
   const start = new Date(event.start);
   const end = new Date(event.end);
   const startMinutes = (start.getHours() - HOUR_START) * 60 + start.getMinutes();
@@ -450,7 +454,7 @@ function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSele
         {event.summary}
       </div>
       {height > 28 && (
-        <div className="t-mono" style={{ fontSize: 8 }}>{fmtTimeShort(start)}–{fmtTimeShort(end)}</div>
+        <div className="t-mono" style={{ fontSize: 8 }}>{fmtTimeShort(start, tz)}–{fmtTimeShort(end, tz)}</div>
       )}
     </button>
   );
@@ -563,6 +567,7 @@ function MonthView({ events, cursor, onSelect, setCursor, setView }: { events: C
 
 // =================== EVENT DETAIL PANEL ===================
 function EventDetailPanel({ event, onClose, orgs }: { event: CalEvent; onClose: () => void; orgs: { id: string; name: string; color: string; slug: string }[] }) {
+  const { tz } = useTime();
   const start = new Date(event.start);
   const end = new Date(event.end);
   const org = event.org_id ? orgs.find((o) => o.id === event.org_id) : null;
@@ -574,7 +579,7 @@ function EventDetailPanel({ event, onClose, orgs }: { event: CalEvent; onClose: 
         <button onClick={onClose} className="btn-icon" style={{ width: 24, height: 24 }}><X size={12} /></button>
       </div>
       <h3 className="t-section">{event.summary}</h3>
-      <div className="t-mono">{start.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {fmtRange(start, end)}</div>
+      <div className="t-mono">{fmtDateLong(start, tz, { weekday: "short", month: "short", day: "numeric" })} · {fmtRange(start, end, tz)}</div>
 
       {org ? (
         <div className="org-pill self-start active">
@@ -631,6 +636,7 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
   onApplied: () => void;
 }) {
   const { user } = useAuth();
+  const { tz } = useTime();
   const [loading, setLoading] = useState(false);
   const [applying, setApplying] = useState(false);
   const [blocks, setBlocks] = useState<PlanBlock[] | null>(null);
@@ -726,7 +732,7 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
         <button onClick={onClose} className="btn-icon" style={{ width: 24, height: 24 }}><X size={12} /></button>
       </div>
 
-      <div className="t-mono">{date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</div>
+      <div className="t-mono">{fmtDateLong(date, tz, { weekday: "short", month: "short", day: "numeric" })}</div>
 
       {stats && (
         <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
@@ -749,7 +755,7 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
             const e = new Date(b.end);
             return (
               <div key={i} className="rounded-md p-2 flex flex-col gap-0.5" style={{ background: `${c}1A`, borderLeft: `2px solid ${c}` }}>
-                <div className="t-mono" style={{ fontSize: 10 }}>{fmtTimeShort(s)}–{fmtTimeShort(e)}</div>
+                <div className="t-mono" style={{ fontSize: 10 }}>{fmtTimeShort(s, tz)}–{fmtTimeShort(e, tz)}</div>
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 11, color: c, textTransform: "uppercase", letterSpacing: 0.04 }}>
                   {b.title}
                 </div>
