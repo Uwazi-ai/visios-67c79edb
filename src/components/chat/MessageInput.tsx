@@ -296,6 +296,70 @@ export const MessageInput = ({
         </div>
       )}
 
+      {pending.length > 0 && (
+        <div
+          className="flex flex-wrap gap-2 mb-2 p-2 rounded-[10px]"
+          style={{
+            background: "var(--bg-glass-1)",
+            border: "1px solid var(--border-glass)",
+          }}
+        >
+          {pending.map((a, i) => {
+            const isImg = a.type.startsWith("image/");
+            return (
+              <div
+                key={a.path}
+                className="flex items-center gap-2 px-2 py-1 rounded-[8px]"
+                style={{
+                  background: "rgba(96,165,250,0.10)",
+                  border: "1px solid rgba(96,165,250,0.30)",
+                  fontSize: 11,
+                  maxWidth: 220,
+                }}
+              >
+                {isImg ? (
+                  <ImageIcon size={12} strokeWidth={1.5} style={{ color: "#60A5FA" }} />
+                ) : (
+                  <FileText size={12} strokeWidth={1.5} style={{ color: "#60A5FA" }} />
+                )}
+                <span className="truncate" style={{ color: "var(--text-primary)" }}>
+                  {a.name}
+                </span>
+                <button
+                  onClick={() =>
+                    setPending((prev) => prev.filter((_, idx) => idx !== i))
+                  }
+                  title="Remove"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  <X size={11} strokeWidth={1.5} />
+                </button>
+              </div>
+            );
+          })}
+          {uploading > 0 && (
+            <div
+              className="flex items-center gap-2 px-2 py-1 t-mono"
+              style={{ fontSize: 10, color: "var(--text-muted)" }}
+            >
+              <Loader2 size={11} className="animate-spin" /> Uploading {uploading}…
+            </div>
+          )}
+        </div>
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        multiple
+        accept="image/*,application/pdf,.pdf,.doc,.docx,.txt,.csv"
+        className="hidden"
+        onChange={(e) => {
+          void handleFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
+
       <div
         className="flex items-end gap-2 p-2 rounded-[12px]"
         style={{
@@ -306,10 +370,11 @@ export const MessageInput = ({
         <button
           className="btn-icon"
           style={{ width: 32, height: 32, flexShrink: 0 }}
-          title="Attach (coming soon)"
-          disabled
+          title="Attach files"
+          disabled={disabled || !onUpload || pending.length >= MAX_ATTACHMENTS}
+          onClick={() => fileRef.current?.click()}
         >
-          <Plus size={14} strokeWidth={1.5} />
+          <Paperclip size={14} strokeWidth={1.5} />
         </button>
         <textarea
           ref={taRef}
