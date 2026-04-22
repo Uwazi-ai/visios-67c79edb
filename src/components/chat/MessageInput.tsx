@@ -133,13 +133,42 @@ export const MessageInput = ({
 
   async function send() {
     const t = text.trim();
-    if (!t || disabled) return;
+    if ((!t && pending.length === 0) || disabled) return;
+    if (uploading > 0) return;
     const mentions = extractMentions(t);
+    const atts = pending;
     setText("");
+    setPending([]);
     setMention(initialMention);
-    await onSend(t, mentions);
+    await onSend(t, mentions, atts);
   }
 
+  async function handleFiles(files: FileList | null) {
+    if (!files || !onUpload) return;
+    const arr = Array.from(files);
+    for (const f of arr) {
+      if (pending.length + 1 > MAX_ATTACHMENTS) {
+        // Cap silently after the first overflow
+        break;
+      }
+      if (f.size > MAX_FILE_BYTES) {
+        // Skip oversized files
+        // eslint-disable-next-line no-console
+        console.warn(`Skipping ${f.name}: exceeds 20 MB`);
+        continue;
+      }
+      setUploading((n) => n + 1);
+      try {
+        const att = await onUpload(f);
+        setPending((prev) => [...prev, att]);
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Upload failed", err);
+      } finally {
+        setUploading((n) => n - 1);
+      }
+    }
+  }
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (mention.open && suggestions.length > 0) {
       if (e.key === "ArrowDown") {
