@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OrgProvider } from "@/contexts/OrgContext";
+import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { AppShell } from "@/components/visi/AppShell";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -30,6 +31,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <OrgProvider>
+            <TimezoneProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
@@ -48,6 +50,7 @@ const App = () => (
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </TimezoneProvider>
           </OrgProvider>
         </AuthProvider>
       </BrowserRouter>
