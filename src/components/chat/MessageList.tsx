@@ -1,5 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Zap } from "lucide-react";
+import type { MentionUser } from "./MessageInput";
 
 export interface ChatMessage {
   id: string;
@@ -22,8 +23,41 @@ interface Props {
   messages: ChatMessage[];
   profiles: Record<string, ProfileLite>;
   currentUserId: string;
+  members: MentionUser[];
   isSystemChannel: boolean;
   typingUsers: { user_id: string }[];
+}
+
+function renderContent(
+  content: string,
+  handles: Map<string, string>,
+  meHandle: string | null,
+) {
+  const re = /(@[a-zA-Z0-9_.-]+)/g;
+  const parts = content.split(re);
+  return parts.map((part, i) => {
+    if (!part.startsWith("@")) return <span key={i}>{part}</span>;
+    const handle = part.slice(1).toLowerCase();
+    if (!handles.has(handle)) return <span key={i}>{part}</span>;
+    const isMe = meHandle === handle;
+    return (
+      <span
+        key={i}
+        style={{
+          background: isMe ? "rgba(245,158,11,0.18)" : "rgba(96,165,250,0.18)",
+          color: isMe ? "#FCD34D" : "#93C5FD",
+          border: isMe
+            ? "1px solid rgba(245,158,11,0.35)"
+            : "1px solid rgba(96,165,250,0.35)",
+          borderRadius: 4,
+          padding: "0 4px",
+          fontWeight: 600,
+        }}
+      >
+        {part}
+      </span>
+    );
+  });
 }
 
 function timeStr(iso: string) {
@@ -63,6 +97,7 @@ export const MessageList = ({
   messages,
   profiles,
   currentUserId,
+  members,
   isSystemChannel,
   typingUsers,
 }: Props) => {
@@ -70,6 +105,12 @@ export const MessageList = ({
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, typingUsers.length]);
+
+  const handles = useMemo(() => new Map(members.map((m) => [m.handle, m.id])), [members]);
+  const meHandle = useMemo(
+    () => members.find((m) => m.id === currentUserId)?.handle ?? null,
+    [members, currentUserId],
+  );
 
   let lastDay: string | null = null;
 
