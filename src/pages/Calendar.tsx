@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as Ca
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
+import { useTime } from "@/contexts/TimezoneContext";
 import { supabase } from "@/integrations/supabase/client";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { ORG_COLORS } from "@/lib/orgs";
@@ -63,9 +64,10 @@ const startOfWeek = (d: Date) => { const x = startOfDay(d); x.setDate(x.getDate(
 const startOfMonth = (d: Date) => { const x = new Date(d.getFullYear(), d.getMonth(), 1); x.setHours(0, 0, 0, 0); return x; };
 const endOfMonth = (d: Date) => { const x = new Date(d.getFullYear(), d.getMonth() + 1, 0); x.setHours(23, 59, 59, 999); return x; };
 const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-const fmtTime = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-const fmtTimeShort = (d: Date) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(":00", "").toLowerCase();
-const fmtRange = (s: Date, e: Date) => `${fmtTime(s)} – ${fmtTime(e)}`;
+const fmtTime = (d: Date, tz: string) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz });
+const fmtTimeShort = (d: Date, tz: string) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: tz }).replace(":00", "").toLowerCase();
+const fmtRange = (s: Date, e: Date, tz: string) => `${fmtTime(s, tz)} – ${fmtTime(e, tz)}`;
+const fmtDateLong = (d: Date, tz: string, opts: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-US", { ...opts, timeZone: tz });
 
 // keyword → org slug
 function detectOrgSlug(title: string, description: string): string | null {
