@@ -260,6 +260,32 @@ export default function MeetingsPage() {
           ))}
         </div>
 
+        <button
+          onClick={() => setHuddleOpen(true)}
+          className="flex items-center gap-1.5"
+          style={{
+            height: 32,
+            padding: "0 12px",
+            borderRadius: 8,
+            background: "#22C55E",
+            color: "#0A0A0A",
+            fontFamily: "var(--font-body)",
+            fontWeight: 600,
+            fontSize: 11,
+            boxShadow: "0 0 14px rgba(34,197,94,0.45)",
+          }}
+        >
+          <Zap size={12} /> Start Huddle
+        </button>
+
+        <button
+          onClick={() => setScheduleOpen(true)}
+          className="btn-primary flex items-center gap-1.5"
+          style={{ height: 32, padding: "0 12px", fontSize: 11 }}
+        >
+          <Plus size={12} /> Schedule
+        </button>
+
         <button onClick={loadEvents} className="btn-icon" aria-label="Refresh" disabled={loading}>
           {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
         </button>
