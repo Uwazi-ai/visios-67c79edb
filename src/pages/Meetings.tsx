@@ -392,7 +392,114 @@ export default function MeetingsPage() {
             <div className="flex flex-col gap-2">
               {bucket.events.map((ev) => {
                 if (tab === "upcoming" && inProgressIds.has(ev.id)) return null;
-                const isOpen = expanded === ev.id;
+                const start = new Date(ev.start);
+                const end = new Date(ev.end);
+                const startMs = start.getTime();
+                const endMs = end.getTime();
+                const durationMins = Math.max(1, Math.round((endMs - startMs) / 60000));
+                const org = ev.org_id ? orgs.find((o) => o.id === ev.org_id) : null;
+                const transcript = fathomUrl(ev);
+                const showRelative = tab === "upcoming" && startMs > now && (startMs - now) <= 8 * 3600 * 1000;
+                const isSelected = selectedId === ev.id;
+                return (
+                  <div
+                    key={ev.id}
+                    className="glass overflow-hidden"
+                    style={{
+                      borderLeft: `3px solid ${ev.org_color}`,
+                      outline: isSelected ? "1px solid var(--border-active)" : "none",
+                    }}
+                  >
+                    <button
+                      onClick={() => setSelectedId(ev.id)}
+                      className="w-full flex items-center gap-3 p-3 text-left hover:bg-[var(--bg-glass-2)] transition-colors"
+                    >
+                      <div className="t-mono shrink-0 flex flex-col" style={{ fontSize: 11, width: 110, color: "var(--text-secondary)" }}>
+                        <span>{formatTime(start)} – {formatTime(end)}</span>
+                        <span style={{ fontSize: 9, color: showRelative ? "var(--accent, #60A5FA)" : "var(--text-muted)", marginTop: 2 }}>
+                          {showRelative ? relativeLabel(startMs, now) : `${durationMins} min`}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="t-card-title truncate">{ev.summary}</div>
+                          {transcript && (
+                            <a
+                              href={transcript}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="t-mono shrink-0"
+                              style={{
+                                padding: "2px 8px", borderRadius: 999, fontSize: 9,
+                                background: "rgba(139,92,246,0.12)",
+                                color: "#A78BFA",
+                                border: "1px solid rgba(139,92,246,0.3)",
+                              }}
+                              title="Open Fathom transcript"
+                            >
+                              📝 Transcript
+                            </a>
+                          )}
+                          {tab === "past" && transcript && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setSelectedId(ev.id); }}
+                              className="t-mono shrink-0"
+                              style={{
+                                padding: "2px 8px", borderRadius: 999, fontSize: 9,
+                                background: "rgba(99,102,241,0.14)",
+                                color: "#A5B4FC",
+                                border: "1px solid rgba(99,102,241,0.35)",
+                              }}
+                              title="Summarize transcript with AI"
+                            >
+                              ✦ Summary
+                            </button>
+                          )}
+                        </div>
+                        {ev.attendees.length > 0 && (
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <Users size={10} style={{ color: "var(--text-muted)" }} />
+                            <div className="t-mono truncate" style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                              {ev.attendees.length} attendee{ev.attendees.length === 1 ? "" : "s"}
+                              {org && <> · <span style={{ color: ev.org_color }}>{org.name}</span></>}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {tab === "upcoming" && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedId(ev.id); }}
+                          className="t-mono shrink-0 flex items-center gap-1"
+                          style={{
+                            height: 26, padding: "0 10px", borderRadius: 6,
+                            background: "var(--bg-glass-1)",
+                            color: "var(--text-secondary)",
+                            border: "1px solid var(--border-glass)",
+                            fontSize: 10,
+                          }}
+                          title="AI prep brief"
+                        >
+                          <Sparkles size={11} /> Prep
+                        </button>
+                      )}
+                      {ev.hangoutLink && (
+                        <a
+                          href={ev.hangoutLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="btn-icon shrink-0"
+                          title="Join meeting"
+                        >
+                          <Video size={14} />
+                        </a>
+                      )}
+                      <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />
+                    </button>
+                  </div>
+                );
+              })}
                 const start = new Date(ev.start);
                 const end = new Date(ev.end);
                 const startMs = start.getTime();
