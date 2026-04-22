@@ -65,6 +65,7 @@ function formatDateLine(iso: string, tz: string) {
 const BookingsPage = () => {
   const { user } = useAuth();
   const { orgs, memberships, activeOrgId } = useOrg();
+  const { tz } = useTime();
   const [tab, setTab] = useState<"types" | "upcoming">("types");
   const [eventTypes, setEventTypes] = useState<EventType[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
