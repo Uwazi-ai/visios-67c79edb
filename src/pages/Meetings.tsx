@@ -132,10 +132,7 @@ export default function MeetingsPage() {
   const [loading, setLoading] = useState(false);
   const [needsReconnect, setNeedsReconnect] = useState(false);
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const [briefs, setBriefs] = useState<Record<string, BriefState>>({});
-  const [creatingTask, setCreatingTask] = useState<string | null>(null);
-  const [createdTasks, setCreatedTasks] = useState<Set<string>>(new Set());
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [huddleOpen, setHuddleOpen] = useState(false);
   const [now, setNow] = useState(() => Date.now());
