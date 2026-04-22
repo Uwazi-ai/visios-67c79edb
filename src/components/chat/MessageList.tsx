@@ -214,6 +214,7 @@ export const MessageList = ({
   isSystemChannel,
   typingUsers,
   onEdit,
+  resolveAttachmentUrl,
 }: Props) => {
   const endRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
