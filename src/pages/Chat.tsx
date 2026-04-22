@@ -7,6 +7,7 @@ import { ORG_COLORS } from "@/lib/orgs";
 import { ChannelList, ChatChannel } from "@/components/chat/ChannelList";
 import { MessageList, ChatMessage, ProfileLite } from "@/components/chat/MessageList";
 import { MessageInput, MentionUser } from "@/components/chat/MessageInput";
+import { NewDmModal } from "@/components/chat/NewDmModal";
 import { toast } from "sonner";
 
 export function toHandle(name: string | null | undefined, email: string): string {
