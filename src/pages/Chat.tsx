@@ -6,8 +6,13 @@ import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
 import { ChannelList, ChatChannel } from "@/components/chat/ChannelList";
 import { MessageList, ChatMessage, ProfileLite } from "@/components/chat/MessageList";
-import { MessageInput } from "@/components/chat/MessageInput";
+import { MessageInput, MentionUser } from "@/components/chat/MessageInput";
 import { toast } from "sonner";
+
+export function toHandle(name: string | null | undefined, email: string): string {
+  const base = (name ?? email.split("@")[0] ?? "").toLowerCase().trim();
+  return base.replace(/\s+/g, "").replace(/[^a-z0-9_.-]/g, "") || "user";
+}
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -17,6 +22,7 @@ export default function ChatPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
+  const [members, setMembers] = useState<MentionUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<string | null>(null);
   const [summarizing, setSummarizing] = useState(false);
@@ -161,7 +167,49 @@ export default function ChatPage() {
     }, 2000);
   };
 
-  async function handleSend(text: string) {
+  // Load org members for @mention suggestions when active channel changes
+  useEffect(() => {
+    if (!activeChannel?.org_id) {
+      setMembers([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data: ms } = await supabase
+        .from("org_memberships")
+        .select("user_id")
+        .eq("org_id", activeChannel.org_id);
+      const ids = (ms ?? []).map((m) => m.user_id).filter(Boolean) as string[];
+      if (ids.length === 0) {
+        if (!cancelled) setMembers([]);
+        return;
+      }
+      const { data: ps } = await supabase
+        .from("profiles")
+        .select("id, display_name, email, avatar_url")
+        .in("id", ids);
+      if (cancelled) return;
+      const list: MentionUser[] = (ps ?? []).map((p) => ({
+        id: p.id,
+        display_name: p.display_name,
+        email: p.email,
+        handle: toHandle(p.display_name, p.email),
+      }));
+      setMembers(list);
+      // Also seed profile cache so mentioned users render in bubbles
+      setProfiles((prev) => {
+        const next = { ...prev };
+        for (const p of (ps ?? []) as ProfileLite[]) next[p.id] = p;
+        return next;
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChannel?.org_id]);
+
+  async function handleSend(text: string, mentions: string[]) {
     if (!activeChannel || !user) return;
     if (activeChannel.is_system) return;
 
@@ -180,7 +228,7 @@ export default function ChatPage() {
         toast.error(error.message);
         return;
       }
-      await postMessage(`✓ Task created: ${title}`);
+      await postMessage(`✓ Task created: ${title}`, []);
       toast.success("Task created");
       return;
     }
@@ -198,7 +246,7 @@ export default function ChatPage() {
           },
         });
         if (error) throw error;
-        await postMessage(`✓ Meeting added to calendar: ${title} (tomorrow)`);
+        await postMessage(`✓ Meeting added to calendar: ${title} (tomorrow)`, []);
         toast.success("Meeting created");
       } catch (e: any) {
         toast.error(e?.message ?? "Could not create meeting");
@@ -206,12 +254,13 @@ export default function ChatPage() {
       return;
     }
 
-    await postMessage(text);
+    await postMessage(text, mentions);
     handleTyping();
   }
 
-  async function postMessage(content: string) {
+  async function postMessage(content: string, mentions: string[] = []) {
     if (!activeChannel || !user) return;
+    const metadata: Record<string, unknown> = mentions.length ? { mentions } : {};
     const optimistic: ChatMessage = {
       id: `tmp-${Date.now()}`,
       channel_id: activeChannel.id,
@@ -219,16 +268,19 @@ export default function ChatPage() {
       org_id: activeChannel.org_id,
       content,
       created_at: new Date().toISOString(),
+      metadata,
     };
     setMessages((prev) => [...prev, optimistic]);
+    const insertRow: any = {
+      channel_id: activeChannel.id,
+      user_id: user.id,
+      org_id: activeChannel.org_id,
+      content,
+    };
+    if (mentions.length) insertRow.metadata = metadata;
     const { data, error } = await supabase
       .from("messages")
-      .insert({
-        channel_id: activeChannel.id,
-        user_id: user.id,
-        org_id: activeChannel.org_id,
-        content,
-      })
+      .insert(insertRow)
       .select()
       .single();
     if (error) {
@@ -239,6 +291,26 @@ export default function ChatPage() {
     setMessages((prev) =>
       prev.map((m) => (m.id === optimistic.id ? (data as unknown as ChatMessage) : m)),
     );
+
+    // Fan-out notifications for mentioned teammates (excluding self)
+    const targets = mentions.filter((id) => id !== user.id);
+    if (targets.length > 0 && activeChannel.org_id) {
+      const senderName =
+        profiles[user.id]?.display_name ?? profiles[user.id]?.email ?? "Someone";
+      const rows = targets.map((uid) => ({
+        org_id: activeChannel.org_id,
+        app: "chat",
+        severity: "info",
+        title: `${senderName} mentioned you in #${activeChannel.name ?? "chat"}`,
+        body: content.slice(0, 240),
+        metadata: {
+          channel_id: activeChannel.id,
+          message_id: (data as any)?.id,
+          mentioned_user_id: uid,
+        },
+      }));
+      void supabase.from("notifications").insert(rows);
+    }
   }
 
   async function handleSummarize() {
@@ -370,6 +442,7 @@ export default function ChatPage() {
             messages={messages}
             profiles={profiles}
             currentUserId={user?.id ?? ""}
+            members={members}
             isSystemChannel={activeChannel.is_system}
             typingUsers={typingUsers}
           />
@@ -382,6 +455,7 @@ export default function ChatPage() {
           <MessageInput
             channelName={activeChannel.name ?? ""}
             disabled={activeChannel.is_system}
+            members={members}
             onSend={handleSend}
             onTyping={handleTyping}
             onSummarize={handleSummarize}
