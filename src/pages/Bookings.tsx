@@ -296,7 +296,7 @@ const BookingsPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-display font-bold truncate" style={{ fontSize: 13, color: "var(--text-primary)" }}>{b.invitee_name}</div>
-                    <div className="t-mono mt-0.5" style={{ fontSize: 10 }}>{formatDateLine(b.start_at)}</div>
+                    <div className="t-mono mt-0.5" style={{ fontSize: 10 }}>{formatDateLine(b.start_at, tz)}</div>
                     {et && (
                       <span className="inline-block mt-1 px-1.5 py-0.5 rounded t-mono" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border-glass)", fontSize: 9 }}>
                         {et.name}
@@ -548,6 +548,7 @@ const BookingDetail = ({
   onGenerateBrief: () => void;
   generating: boolean;
 }) => {
+  const { tz } = useTime();
   const orgColor = (org && (ORG_COLORS[org.slug] ?? "#60A5FA")) ?? "#60A5FA";
   const meetLink = (booking as unknown as { meet_link?: string }).meet_link;
   return (
@@ -599,7 +600,7 @@ const BookingDetail = ({
 
       {/* Grid of facts */}
       <div className="grid grid-cols-2 gap-3">
-        <FactCell label="Date" value={formatDateLine(booking.start_at)} />
+        <FactCell label="Date" value={formatDateLine(booking.start_at, tz)} />
         <FactCell label="Duration" value={`${eventType?.duration_mins ?? 30} mins`} />
         <FactCell label="Meet" value={meetLink ? "Google Meet ready" : (booking.google_event_id ? "On Google Calendar" : "—")} />
         <FactCell label="Org" value={org?.name ?? "—"} />
