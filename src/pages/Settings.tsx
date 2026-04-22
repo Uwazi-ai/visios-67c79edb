@@ -357,7 +357,17 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
 
       <IntegrationCard
         name="n8n Automations"
-        right={<span className="badge badge-muted">Not connected</span>}
+        connected={n8nConnected}
+        right={
+          n8nConnected ? (
+            <span className="badge badge-success">
+              <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--sev-success)" }} />
+              Connected
+            </span>
+          ) : (
+            <span className="badge badge-muted">Not connected</span>
+          )
+        }
       >
         <div>
           <div className="t-mono mb-1" style={{ fontSize: 10 }}>INSTANCE URL</div>
@@ -368,12 +378,24 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
             onChange={(e) => setN8nUrl(e.target.value)}
           />
         </div>
-        <button
-          className="btn-primary mt-2 inline-flex"
-          onClick={() => toast.info("n8n connection test coming soon")}
-        >
-          Connect
-        </button>
+        <div className="flex gap-2 mt-2">
+          <button
+            className="btn-primary inline-flex"
+            onClick={connectN8n}
+            disabled={n8nTesting}
+          >
+            {n8nTesting ? <><Loader2 size={14} className="animate-spin" /> Testing…</> : n8nConnected ? "Update" : "Connect"}
+          </button>
+          {n8nConnected && (
+            <button
+              className="btn-ghost"
+              onClick={disconnectN8n}
+              style={{ color: "var(--sev-critical)", borderColor: "rgba(239,68,68,0.25)" }}
+            >
+              Disconnect
+            </button>
+          )}
+        </div>
       </IntegrationCard>
 
       <IntegrationCard
