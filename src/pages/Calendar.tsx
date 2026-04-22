@@ -425,6 +425,7 @@ function WeekView({ events, cursor, now, onSelect }: { events: CalEvent[]; curso
 }
 
 function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSelect: (e: CalEvent) => void; columnHeight: number }) {
+  const { tz } = useTime();
   const start = new Date(event.start);
   const end = new Date(event.end);
   const startMinutes = (start.getHours() - HOUR_START) * 60 + start.getMinutes();
@@ -453,7 +454,7 @@ function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSele
         {event.summary}
       </div>
       {height > 28 && (
-        <div className="t-mono" style={{ fontSize: 8 }}>{fmtTimeShort(start)}–{fmtTimeShort(end)}</div>
+        <div className="t-mono" style={{ fontSize: 8 }}>{fmtTimeShort(start, tz)}–{fmtTimeShort(end, tz)}</div>
       )}
     </button>
   );
@@ -566,6 +567,7 @@ function MonthView({ events, cursor, onSelect, setCursor, setView }: { events: C
 
 // =================== EVENT DETAIL PANEL ===================
 function EventDetailPanel({ event, onClose, orgs }: { event: CalEvent; onClose: () => void; orgs: { id: string; name: string; color: string; slug: string }[] }) {
+  const { tz } = useTime();
   const start = new Date(event.start);
   const end = new Date(event.end);
   const org = event.org_id ? orgs.find((o) => o.id === event.org_id) : null;
@@ -577,7 +579,7 @@ function EventDetailPanel({ event, onClose, orgs }: { event: CalEvent; onClose: 
         <button onClick={onClose} className="btn-icon" style={{ width: 24, height: 24 }}><X size={12} /></button>
       </div>
       <h3 className="t-section">{event.summary}</h3>
-      <div className="t-mono">{start.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · {fmtRange(start, end)}</div>
+      <div className="t-mono">{fmtDateLong(start, tz, { weekday: "short", month: "short", day: "numeric" })} · {fmtRange(start, end, tz)}</div>
 
       {org ? (
         <div className="org-pill self-start active">
