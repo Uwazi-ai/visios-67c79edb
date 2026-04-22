@@ -583,6 +583,7 @@ export type Database = {
           display_name: string | null
           email: string
           google_access_token: string | null
+          google_granted_scopes: string | null
           google_refresh_token: string | null
           id: string
           notification_prefs: Json
@@ -600,6 +601,7 @@ export type Database = {
           display_name?: string | null
           email: string
           google_access_token?: string | null
+          google_granted_scopes?: string | null
           google_refresh_token?: string | null
           id: string
           notification_prefs?: Json
@@ -617,6 +619,7 @@ export type Database = {
           display_name?: string | null
           email?: string
           google_access_token?: string | null
+          google_granted_scopes?: string | null
           google_refresh_token?: string | null
           id?: string
           notification_prefs?: Json
