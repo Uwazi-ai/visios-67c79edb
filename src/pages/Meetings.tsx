@@ -95,6 +95,35 @@ function bucketEvents(events: CalEvent[], tz: string): { upcoming: Bucket[]; pas
 
 interface BriefState { brief: string; action_items: string[]; loading: boolean; error?: string }
 
+function isInProgress(ev: CalEvent, now: number) {
+  return new Date(ev.start).getTime() <= now && new Date(ev.end).getTime() > now;
+}
+
+function relativeLabel(startMs: number, nowMs: number): string {
+  const diff = startMs - nowMs;
+  if (diff <= 0) return "Now";
+  const mins = Math.round(diff / 60000);
+  if (mins < 60) return `In ${mins}m`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `In ${hrs}h`;
+  const days = Math.round(hrs / 24);
+  return `In ${days}d`;
+}
+
+function elapsedLabel(startMs: number, nowMs: number): string {
+  const mins = Math.max(0, Math.floor((nowMs - startMs) / 60000));
+  if (mins < 60) return `${mins}m elapsed`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return `${h}h ${m}m elapsed`;
+}
+
+const FATHOM_RE = /(https?:\/\/(?:[a-z0-9-]+\.)?fathom\.video\/[^\s)<>"']+)/i;
+function fathomUrl(ev: CalEvent): string | null {
+  const m = `${ev.description ?? ""} ${ev.location ?? ""}`.match(FATHOM_RE);
+  return m ? m[1] : null;
+}
+
 export default function MeetingsPage() {
   const { user } = useAuth();
   const { orgs, activeOrgId } = useOrg();
@@ -109,6 +138,12 @@ export default function MeetingsPage() {
   const [createdTasks, setCreatedTasks] = useState<Set<string>>(new Set());
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [huddleOpen, setHuddleOpen] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const orgBySlug = useMemo(() => {
     const m = new Map<string, { id: string; color: string }>();
@@ -158,6 +193,11 @@ export default function MeetingsPage() {
 
   const { upcoming, past } = useMemo(() => bucketEvents(filtered, tz), [filtered, tz]);
   const buckets = tab === "upcoming" ? upcoming : past;
+  const inProgress = useMemo(
+    () => filtered.filter((e) => isInProgress(e, now)).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()),
+    [filtered, now],
+  );
+  const inProgressIds = useMemo(() => new Set(inProgress.map((e) => e.id)), [inProgress]);
 
   const generateBrief = async (ev: CalEvent, mode: "upcoming" | "past") => {
     setBriefs((s) => ({ ...s, [ev.id]: { brief: "", action_items: [], loading: true } }));
@@ -318,6 +358,71 @@ export default function MeetingsPage() {
         </div>
       )}
 
+      {/* In progress / Now */}
+      {tab === "upcoming" && inProgress.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 px-1">
+            <span
+              className="inline-block"
+              style={{
+                width: 8, height: 8, borderRadius: 999,
+                background: "#22C55E",
+                boxShadow: "0 0 0 0 rgba(34,197,94,0.7)",
+                animation: "visi-pulse 1.6s ease-out infinite",
+              }}
+            />
+            <div className="t-section" style={{ fontSize: 14 }}>Now</div>
+            <div style={{ flex: 1, height: 1, background: "var(--border-glass)" }} />
+            <div className="t-mono" style={{ fontSize: 10, color: "#22C55E" }}>
+              {inProgress.length} live
+            </div>
+          </div>
+          <style>{`@keyframes visi-pulse { 0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.6);} 70% { box-shadow: 0 0 0 10px rgba(34,197,94,0);} 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0);} }`}</style>
+          <div className="flex flex-col gap-2">
+            {inProgress.map((ev) => {
+              const start = new Date(ev.start).getTime();
+              const org = ev.org_id ? orgs.find((o) => o.id === ev.org_id) : null;
+              return (
+                <div key={`now-${ev.id}`} className="glass overflow-hidden flex items-center gap-3 p-3" style={{ borderLeft: `3px solid #22C55E`, boxShadow: "0 0 24px rgba(34,197,94,0.15)" }}>
+                  <span
+                    style={{
+                      width: 8, height: 8, borderRadius: 999, background: "#22C55E",
+                      animation: "visi-pulse 1.6s ease-out infinite",
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="t-card-title truncate">{ev.summary}</div>
+                    <div className="t-mono truncate" style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+                      {elapsedLabel(start, now)}
+                      {ev.attendees.length > 0 && <> · {ev.attendees.length} in call</>}
+                      {org && <> · <span style={{ color: ev.org_color }}>{org.name}</span></>}
+                    </div>
+                  </div>
+                  {ev.hangoutLink ? (
+                    <a
+                      href={ev.hangoutLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1.5"
+                      style={{
+                        height: 32, padding: "0 14px", borderRadius: 8,
+                        background: "#22C55E", color: "#0A0A0A",
+                        fontFamily: "var(--font-body)", fontWeight: 600, fontSize: 12,
+                        boxShadow: "0 0 16px rgba(34,197,94,0.5)",
+                      }}
+                    >
+                      <Video size={12} /> Join
+                    </a>
+                  ) : (
+                    <span className="t-mono" style={{ fontSize: 10, color: "var(--text-muted)" }}>No link</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Timeline */}
       <div className="flex flex-col gap-5">
         {buckets.map((bucket) => (
@@ -331,22 +436,51 @@ export default function MeetingsPage() {
             </div>
             <div className="flex flex-col gap-2">
               {bucket.events.map((ev) => {
+                if (tab === "upcoming" && inProgressIds.has(ev.id)) return null;
                 const isOpen = expanded === ev.id;
                 const start = new Date(ev.start);
                 const end = new Date(ev.end);
+                const startMs = start.getTime();
+                const endMs = end.getTime();
+                const durationMins = Math.max(1, Math.round((endMs - startMs) / 60000));
                 const brief = briefs[ev.id];
                 const org = ev.org_id ? orgs.find((o) => o.id === ev.org_id) : null;
+                const transcript = fathomUrl(ev);
+                const showRelative = tab === "upcoming" && startMs > now && (startMs - now) <= 8 * 3600 * 1000;
                 return (
                   <div key={ev.id} className="glass overflow-hidden" style={{ borderLeft: `3px solid ${ev.org_color}` }}>
                     <button
                       onClick={() => setExpanded(isOpen ? null : ev.id)}
                       className="w-full flex items-center gap-3 p-3 text-left hover:bg-[var(--bg-glass-2)] transition-colors"
                     >
-                      <div className="t-mono shrink-0" style={{ fontSize: 11, width: 110, color: "var(--text-secondary)" }}>
-                        {formatTime(start)} – {formatTime(end)}
+                      <div className="t-mono shrink-0 flex flex-col" style={{ fontSize: 11, width: 110, color: "var(--text-secondary)" }}>
+                        <span>{formatTime(start)} – {formatTime(end)}</span>
+                        <span style={{ fontSize: 9, color: showRelative ? "var(--accent, #60A5FA)" : "var(--text-muted)", marginTop: 2 }}>
+                          {showRelative ? relativeLabel(startMs, now) : `${durationMins} min`}
+                        </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="t-card-title truncate">{ev.summary}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="t-card-title truncate">{ev.summary}</div>
+                          {transcript && (
+                            <a
+                              href={transcript}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="t-mono shrink-0"
+                              style={{
+                                padding: "2px 8px", borderRadius: 999, fontSize: 9,
+                                background: "rgba(139,92,246,0.12)",
+                                color: "#A78BFA",
+                                border: "1px solid rgba(139,92,246,0.3)",
+                              }}
+                              title="Open Fathom transcript"
+                            >
+                              📝 Transcript
+                            </a>
+                          )}
+                        </div>
                         {ev.attendees.length > 0 && (
                           <div className="flex items-center gap-1 mt-0.5">
                             <Users size={10} style={{ color: "var(--text-muted)" }} />
@@ -357,6 +491,28 @@ export default function MeetingsPage() {
                           </div>
                         )}
                       </div>
+                      {tab === "upcoming" && !brief?.brief && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpanded(ev.id);
+                            if (!brief?.loading) generateBrief(ev, "upcoming");
+                          }}
+                          disabled={brief?.loading}
+                          className="t-mono shrink-0 flex items-center gap-1"
+                          style={{
+                            height: 26, padding: "0 10px", borderRadius: 6,
+                            background: "var(--bg-glass-1)",
+                            color: "var(--text-secondary)",
+                            border: "1px solid var(--border-glass)",
+                            fontSize: 10,
+                          }}
+                          title="Generate AI prep brief"
+                        >
+                          {brief?.loading ? <Loader2 size={11} className="animate-spin" /> : <Sparkles size={11} />}
+                          Prep
+                        </button>
+                      )}
                       {ev.hangoutLink && (
                         <a
                           href={ev.hangoutLink}
