@@ -86,14 +86,26 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }
       <div className="px-3 py-3" style={{ borderBottom: "1px solid var(--border-glass)" }}>
         <div className="flex items-center justify-between mb-2">
           <div className="t-card-title">Chat</div>
-          <button
-            className="btn-icon"
-            style={{ width: 26, height: 26 }}
-            onClick={() => setCreating((v) => !v)}
-            title="New channel"
-          >
-            <Plus size={14} strokeWidth={1.5} />
-          </button>
+          <div className="flex items-center gap-1">
+            {onNewDm && (
+              <button
+                className="btn-icon"
+                style={{ width: 26, height: 26 }}
+                onClick={onNewDm}
+                title="New direct message"
+              >
+                <MessageSquarePlus size={14} strokeWidth={1.5} />
+              </button>
+            )}
+            <button
+              className="btn-icon"
+              style={{ width: 26, height: 26 }}
+              onClick={() => setCreating((v) => !v)}
+              title="New channel"
+            >
+              <Plus size={14} strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
         <div className="relative">
           <Search
