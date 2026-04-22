@@ -138,6 +138,12 @@ export default function MeetingsPage() {
   const [createdTasks, setCreatedTasks] = useState<Set<string>>(new Set());
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [huddleOpen, setHuddleOpen] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   const orgBySlug = useMemo(() => {
     const m = new Map<string, { id: string; color: string }>();
