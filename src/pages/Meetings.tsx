@@ -241,7 +241,7 @@ export default function MeetingsPage() {
           {(["upcoming", "past"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => { setTab(t); setExpanded(null); }}
+              onClick={() => { setTab(t); setSelectedId(null); }}
               className="t-nav"
               style={{
                 padding: "6px 14px", borderRadius: 6, textTransform: "capitalize",
