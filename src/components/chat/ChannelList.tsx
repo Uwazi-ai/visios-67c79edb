@@ -21,9 +21,10 @@ interface Props {
   activeId: string | null;
   onSelect: (id: string) => void;
   onCreated: () => void;
+  onNewDm?: () => void;
 }
 
-export const ChannelList = ({ channels, activeId, onSelect, onCreated }: Props) => {
+export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }: Props) => {
   const { orgs, activeOrgId } = useOrg();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
