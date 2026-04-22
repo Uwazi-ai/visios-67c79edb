@@ -43,13 +43,17 @@ export const MessageInput = ({
   disabled,
   members,
   onSend,
+  onUpload,
   onTyping,
   onSummarize,
   summarizing,
 }: Props) => {
   const [text, setText] = useState("");
   const [mention, setMention] = useState<MentionState>(initialMention);
+  const [pending, setPending] = useState<ChatAttachment[]>([]);
+  const [uploading, setUploading] = useState(0);
   const taRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const el = taRef.current;
