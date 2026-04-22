@@ -10,6 +10,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
 import StartHuddleModal from "@/components/meetings/StartHuddleModal";
+import MeetingDetailPanel from "@/components/meetings/MeetingDetailPanel";
 
 interface CalEvent {
   id: string;
