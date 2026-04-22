@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Video, Users, ExternalLink, Sparkles, Loader2, RefreshCw, ChevronDown, ChevronRight, Plus, CheckCircle2, AlertCircle, Calendar as CalendarIcon } from "lucide-react";
+import { Video, Users, ExternalLink, Sparkles, Loader2, RefreshCw, ChevronDown, ChevronRight, Plus, CheckCircle2, AlertCircle, Calendar as CalendarIcon, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { useTime } from "@/contexts/TimezoneContext";
@@ -8,6 +8,8 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 import { ORG_COLORS } from "@/lib/orgs";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
+import StartHuddleModal from "@/components/meetings/StartHuddleModal";
 
 interface CalEvent {
   id: string;
@@ -105,6 +107,8 @@ export default function MeetingsPage() {
   const [briefs, setBriefs] = useState<Record<string, BriefState>>({});
   const [creatingTask, setCreatingTask] = useState<string | null>(null);
   const [createdTasks, setCreatedTasks] = useState<Set<string>>(new Set());
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [huddleOpen, setHuddleOpen] = useState(false);
 
   const orgBySlug = useMemo(() => {
     const m = new Map<string, { id: string; color: string }>();
@@ -255,6 +259,32 @@ export default function MeetingsPage() {
             </button>
           ))}
         </div>
+
+        <button
+          onClick={() => setHuddleOpen(true)}
+          className="flex items-center gap-1.5"
+          style={{
+            height: 32,
+            padding: "0 12px",
+            borderRadius: 8,
+            background: "#22C55E",
+            color: "#0A0A0A",
+            fontFamily: "var(--font-body)",
+            fontWeight: 600,
+            fontSize: 11,
+            boxShadow: "0 0 14px rgba(34,197,94,0.45)",
+          }}
+        >
+          <Zap size={12} /> Start Huddle
+        </button>
+
+        <button
+          onClick={() => setScheduleOpen(true)}
+          className="btn-primary flex items-center gap-1.5"
+          style={{ height: 32, padding: "0 12px", fontSize: 11 }}
+        >
+          <Plus size={12} /> Schedule
+        </button>
 
         <button onClick={loadEvents} className="btn-icon" aria-label="Refresh" disabled={loading}>
           {loading ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
@@ -440,6 +470,17 @@ export default function MeetingsPage() {
           </section>
         ))}
       </div>
+
+      <ScheduleMeetingModal
+        open={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        onCreated={loadEvents}
+      />
+      <StartHuddleModal
+        open={huddleOpen}
+        onClose={() => setHuddleOpen(false)}
+        onStarted={loadEvents}
+      />
     </div>
   );
 }
