@@ -176,15 +176,33 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }
           </div>
         ))}
 
-        {dms.length > 0 && (
-          <div className="mt-2">
-            <div
-              className="t-mono px-3 py-1"
-              style={{ fontSize: 9, textTransform: "uppercase" }}
-            >
-              Direct Messages
+        <div className="mt-2">
+          <div
+            className="t-mono px-3 py-1 flex items-center justify-between"
+            style={{ fontSize: 9, textTransform: "uppercase" }}
+          >
+            <span>Direct Messages</span>
+            {onNewDm && (
+              <button
+                onClick={onNewDm}
+                title="New direct message"
+                style={{
+                  color: "var(--text-muted)",
+                  fontSize: 11,
+                  lineHeight: 1,
+                  padding: "0 4px",
+                }}
+              >
+                +
+              </button>
+            )}
+          </div>
+          {dms.length === 0 ? (
+            <div className="px-3 py-1 t-mono" style={{ fontSize: 9, opacity: 0.6 }}>
+              No conversations yet
             </div>
-            {dms.map((c) => (
+          ) : (
+            dms.map((c) => (
               <ChannelRow
                 key={c.id}
                 channel={c}
@@ -192,9 +210,9 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }
                 onClick={() => onSelect(c.id)}
                 color={undefined}
               />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
