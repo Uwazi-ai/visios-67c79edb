@@ -196,57 +196,15 @@ export default function MeetingsPage() {
   );
   const inProgressIds = useMemo(() => new Set(inProgress.map((e) => e.id)), [inProgress]);
 
-  const generateBrief = async (ev: CalEvent, mode: "upcoming" | "past") => {
-    setBriefs((s) => ({ ...s, [ev.id]: { brief: "", action_items: [], loading: true } }));
-    try {
-      const { data, error } = await supabase.functions.invoke("ai-meeting-brief", {
-        body: {
-          title: ev.summary,
-          description: ev.description,
-          attendees: ev.attendees,
-          start: ev.start,
-          end: ev.end,
-          mode,
-        },
-      });
-      const errMsg = (await getFunctionErrorMessage(error)) ?? data?.error ?? null;
-      if (errMsg) throw new Error(errMsg);
-      setBriefs((s) => ({ ...s, [ev.id]: { brief: data.brief ?? "", action_items: data.action_items ?? [], loading: false } }));
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : "Failed to generate brief";
-      setBriefs((s) => ({ ...s, [ev.id]: { brief: "", action_items: [], loading: false, error: msg } }));
-      toast.error(msg);
-    }
-  };
+  const selectedEvent = useMemo(
+    () => (selectedId ? filtered.find((e) => e.id === selectedId) ?? null : null),
+    [selectedId, filtered],
+  );
+  const selectedMode: "upcoming" | "past" = useMemo(() => {
+    if (!selectedEvent) return tab;
+    return new Date(selectedEvent.end).getTime() < Date.now() ? "past" : "upcoming";
+  }, [selectedEvent, tab]);
 
-  const convertToTask = async (ev: CalEvent, item: string, idx: number) => {
-    if (!user) return;
-    const orgIdForTask = ev.org_id ?? (activeOrgId && activeOrgId !== "all" ? activeOrgId : null);
-    if (!orgIdForTask) {
-      toast.error("Pick an organization to create tasks");
-      return;
-    }
-    const key = `${ev.id}:${idx}`;
-    setCreatingTask(key);
-    try {
-      const { error } = await supabase.from("tasks").insert({
-        title: item,
-        description: `From meeting: ${ev.summary}`,
-        org_id: orgIdForTask,
-        created_by: user.id,
-        assignee_id: user.id,
-        status: "todo",
-        priority: "normal",
-      });
-      if (error) throw error;
-      setCreatedTasks((s) => new Set(s).add(key));
-      toast.success("Task created");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to create task");
-    } finally {
-      setCreatingTask(null);
-    }
-  };
 
   const reconnectGoogle = async () => {
     try {
