@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
@@ -190,16 +191,11 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
 
   async function reconnectGoogle() {
     setReconnecting(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/settings`,
-        scopes: GOOGLE_SCOPES,
-        queryParams: { access_type: "offline", prompt: "consent" },
-      },
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `${window.location.origin}/settings`,
     });
-    if (error) {
-      toast.error(error.message);
+    if (result.error) {
+      toast.error(result.error.message ?? "Reconnect failed");
       setReconnecting(false);
     }
   }
