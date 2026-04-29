@@ -90,6 +90,7 @@ export default function Calendar() {
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalEvent | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
