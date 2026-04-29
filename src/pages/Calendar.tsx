@@ -9,6 +9,7 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 import { ORG_COLORS } from "@/lib/orgs";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
 
 type View = "day" | "week" | "month";
 
