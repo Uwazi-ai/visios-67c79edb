@@ -6,8 +6,17 @@ Deno.serve(async (req) => {
     const { user } = await getAuthedUser(req);
     if (!user) return jsonResponse({ error: "Unauthorized" }, 401);
 
-    const googleToken = getGoogleToken(req);
-    if (!googleToken) return jsonResponse({ error: "Missing Google token. Please sign in again." }, 400);
+    let googleToken: string;
+    try {
+      googleToken = await getGoogleToken(req, user.id) ?? "";
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      if (/refresh token|GOOGLE_AUTH_REQUIRED/i.test(message)) {
+        return jsonResponse({ error: "GOOGLE_AUTH_REQUIRED", threads: [] });
+      }
+      throw e;
+    }
+    if (!googleToken) return jsonResponse({ error: "GOOGLE_AUTH_REQUIRED", threads: [] });
 
     const url = new URL(req.url);
     const q = url.searchParams.get("q") ?? "in:inbox";

@@ -461,11 +461,6 @@ const InboxPage = () => {
   }, [orgs, activeOrgId]);
 
   async function loadThreads() {
-    if (!googleToken) {
-      setLoading(false);
-      setError("Gmail access not granted. Sign out and sign in again to grant Gmail scopes.");
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
@@ -479,10 +474,23 @@ const InboxPage = () => {
       setThreads(fetched);
       void syncThreadsToItems(fetched);
     } catch (e: any) {
-      setError(e?.message ?? "Failed to load inbox");
+      const message = e?.message ?? "Failed to load inbox";
+      setError(/GOOGLE_AUTH_REQUIRED|refresh token/i.test(message) ? "Google connection needs to be refreshed." : message);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function reconnectGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/inbox`,
+        scopes: "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/drive.readonly",
+        queryParams: { access_type: "offline", prompt: "consent" },
+      },
+    });
+    if (error) setError(error.message ?? "Reconnect failed");
   }
 
   async function syncThreadsToItems(list: ThreadSummary[]) {
@@ -895,10 +903,14 @@ const InboxPage = () => {
                   Couldn't load inbox
                 </h3>
                 <p style={{ fontFamily: "var(--font-body)", fontSize: 11.5, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                  Check your Google connection in Settings
+                  {error ?? "Check your Google connection in Settings"}
                 </p>
-                <button onClick={loadThreads} className="btn-ghost mt-3" style={{ fontSize: 11 }}>
-                  <RefreshCw size={11} /> RETRY
+                <button
+                  onClick={error && /Google connection|Gmail access|GOOGLE_AUTH_REQUIRED/i.test(error) ? reconnectGoogle : loadThreads}
+                  className="btn-ghost mt-3"
+                  style={{ fontSize: 11 }}
+                >
+                  <RefreshCw size={11} /> {error && /Google connection|Gmail access|GOOGLE_AUTH_REQUIRED/i.test(error) ? "RECONNECT" : "RETRY"}
                 </button>
               </div>
             ) : filtered.length === 0 ? (
