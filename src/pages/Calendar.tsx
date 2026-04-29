@@ -205,6 +205,9 @@ export default function Calendar() {
             ))}
           </div>
 
+          <button onClick={() => setCreateOpen(true)} className="btn-ghost flex items-center gap-1.5" style={{ height: 36 }}>
+            <Plus size={14} /> New event
+          </button>
           <button onClick={() => setPlanOpen(true)} className="btn-primary" style={{ height: 36 }}>
             <Sparkles size={14} /> Plan My Day
           </button>
