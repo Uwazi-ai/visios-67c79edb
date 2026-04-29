@@ -9,6 +9,7 @@ import { FunctionsHttpError } from "@supabase/supabase-js";
 import { ORG_COLORS } from "@/lib/orgs";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
+import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
 
 type View = "day" | "week" | "month";
 
@@ -89,6 +90,7 @@ export default function Calendar() {
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalEvent | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -203,6 +205,9 @@ export default function Calendar() {
             ))}
           </div>
 
+          <button onClick={() => setCreateOpen(true)} className="btn-ghost flex items-center gap-1.5" style={{ height: 36 }}>
+            <Plus size={14} /> New event
+          </button>
           <button onClick={() => setPlanOpen(true)} className="btn-primary" style={{ height: 36 }}>
             <Sparkles size={14} /> Plan My Day
           </button>
@@ -233,6 +238,13 @@ export default function Calendar() {
           onApplied={loadEvents}
         />
       )}
+
+      {/* Create event modal */}
+      <ScheduleMeetingModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={loadEvents}
+      />
     </div>
   );
 }
