@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { useTime } from "@/contexts/TimezoneContext";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import {
   Inbox as InboxIcon,
   Search,
@@ -483,15 +482,15 @@ const InboxPage = () => {
   }
 
   async function reconnectGoogle() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/inbox",
-      extraParams: {
-        scope: "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/drive.readonly",
-        access_type: "offline",
-        prompt: "consent",
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/inbox`,
+        scopes: "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/drive.readonly",
+        queryParams: { access_type: "offline", prompt: "consent" },
       },
     });
-    if (result.error) setError(result.error.message ?? "Reconnect failed");
+    if (error) setError(error.message ?? "Reconnect failed");
   }
 
   async function syncThreadsToItems(list: ThreadSummary[]) {
