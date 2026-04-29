@@ -331,6 +331,9 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
           >
             Disconnect
           </button>
+          <a href="/settings/token-health" className="btn-ghost ml-auto flex items-center gap-1.5">
+            <AlertTriangle size={14} /> Token health
+          </a>
         </div>
       </section>
 

@@ -17,6 +17,7 @@ import CalendarPage from "./pages/Calendar";
 import TasksPage from "./pages/Tasks";
 import ChatPage from "./pages/Chat";
 import MeetingsPage from "./pages/Meetings";
+import TokenHealthPage from "./pages/TokenHealth";
 import {
   NotificationsPage, ContactsPage, FinancePage,
 } from "./pages/EmptyPages";
@@ -48,6 +49,7 @@ const App = () => (
                 <Route path="/meetings" element={<MeetingsPage />} />
                 <Route path="/finance" element={<FinancePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/settings/token-health" element={<TokenHealthPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
