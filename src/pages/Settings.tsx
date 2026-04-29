@@ -13,6 +13,9 @@ import {
 type TabKey = "integrations" | "profile" | "orgs" | "ai" | "scheduling" | "notifications";
 
 const GOOGLE_SCOPES = [
+  "openid",
+  "email",
+  "profile",
   "https://www.googleapis.com/auth/gmail.readonly",
   "https://www.googleapis.com/auth/gmail.send",
   "https://www.googleapis.com/auth/gmail.modify",
