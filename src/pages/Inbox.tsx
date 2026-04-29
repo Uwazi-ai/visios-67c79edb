@@ -904,10 +904,14 @@ const InboxPage = () => {
                   Couldn't load inbox
                 </h3>
                 <p style={{ fontFamily: "var(--font-body)", fontSize: 11.5, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                  Check your Google connection in Settings
+                  {error ?? "Check your Google connection in Settings"}
                 </p>
-                <button onClick={loadThreads} className="btn-ghost mt-3" style={{ fontSize: 11 }}>
-                  <RefreshCw size={11} /> RETRY
+                <button
+                  onClick={error && /Google connection|Gmail access|GOOGLE_AUTH_REQUIRED/i.test(error) ? reconnectGoogle : loadThreads}
+                  className="btn-ghost mt-3"
+                  style={{ fontSize: 11 }}
+                >
+                  <RefreshCw size={11} /> {error && /Google connection|Gmail access|GOOGLE_AUTH_REQUIRED/i.test(error) ? "RECONNECT" : "RETRY"}
                 </button>
               </div>
             ) : filtered.length === 0 ? (
