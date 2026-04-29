@@ -17,6 +17,7 @@ import CalendarPage from "./pages/Calendar";
 import TasksPage from "./pages/Tasks";
 import ChatPage from "./pages/Chat";
 import MeetingsPage from "./pages/Meetings";
+import TokenHealthPage from "./pages/TokenHealth";
 import {
   NotificationsPage, ContactsPage, FinancePage,
 } from "./pages/EmptyPages";
