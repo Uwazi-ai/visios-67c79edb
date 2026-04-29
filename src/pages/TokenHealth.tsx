@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   CheckCircle2, XCircle, AlertTriangle, RefreshCw, Loader2, ArrowLeft, Shield, Key, Clock,
