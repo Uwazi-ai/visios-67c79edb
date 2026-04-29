@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { useTime } from "@/contexts/TimezoneContext";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import {
   Inbox as InboxIcon,
   Search,
@@ -461,11 +462,6 @@ const InboxPage = () => {
   }, [orgs, activeOrgId]);
 
   async function loadThreads() {
-    if (!googleToken) {
-      setLoading(false);
-      setError("Gmail access not granted. Sign out and sign in again to grant Gmail scopes.");
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
@@ -479,10 +475,23 @@ const InboxPage = () => {
       setThreads(fetched);
       void syncThreadsToItems(fetched);
     } catch (e: any) {
-      setError(e?.message ?? "Failed to load inbox");
+      const message = e?.message ?? "Failed to load inbox";
+      setError(/GOOGLE_AUTH_REQUIRED|refresh token/i.test(message) ? "Google connection needs to be refreshed." : message);
     } finally {
       setLoading(false);
     }
+  }
+
+  async function reconnectGoogle() {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin + "/inbox",
+      extraParams: {
+        scope: "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/drive.readonly",
+        access_type: "offline",
+        prompt: "consent",
+      },
+    });
+    if (result.error) setError(result.error.message ?? "Reconnect failed");
   }
 
   async function syncThreadsToItems(list: ThreadSummary[]) {
