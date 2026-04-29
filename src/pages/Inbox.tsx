@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { useTime } from "@/contexts/TimezoneContext";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import {
   Inbox as InboxIcon,
   Search,
