@@ -251,6 +251,13 @@ export default function TokenHealthPage() {
             {refreshing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
             Force server refresh
           </button>
+          <button
+            onClick={forceFreshConsent}
+            className="btn-primary flex items-center gap-1.5"
+            title="Revokes existing Google grant, then runs OAuth so Google issues a new refresh_token"
+          >
+            <Shield size={14} /> Force fresh consent (fix missing refresh token)
+          </button>
         </div>
       </div>
 
