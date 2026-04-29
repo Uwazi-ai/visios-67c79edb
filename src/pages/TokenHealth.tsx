@@ -89,6 +89,37 @@ export default function TokenHealthPage() {
     }
   };
 
+  const forceFreshConsent = async () => {
+    // Revoke any existing Google grant so the next consent is treated as first-time
+    // and Google returns a refresh_token.
+    if (profile?.google_access_token) {
+      try {
+        await fetch(
+          `https://oauth2.googleapis.com/revoke?token=${encodeURIComponent(profile.google_access_token)}`,
+          { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+        );
+      } catch {
+        // ignore — the consent prompt below is what matters
+      }
+    }
+    if (user) {
+      await supabase
+        .from("profiles")
+        .update({ google_access_token: null, google_refresh_token: null, google_granted_scopes: null })
+        .eq("id", user.id);
+    }
+    const scopes = REQUIRED_SCOPES.map((s) => s.scope).join(" ");
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/settings/token-health`,
+        scopes,
+        queryParams: { access_type: "offline", prompt: "consent" },
+      },
+    });
+    if (error) toast.error(error.message);
+  };
+
   const grantedSet = new Set(
     (profile?.google_granted_scopes ?? tokenInfo?.scope ?? "")
       .split(/\s+/)
@@ -219,6 +250,13 @@ export default function TokenHealthPage() {
           >
             {refreshing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
             Force server refresh
+          </button>
+          <button
+            onClick={forceFreshConsent}
+            className="btn-primary flex items-center gap-1.5"
+            title="Revokes existing Google grant, then runs OAuth so Google issues a new refresh_token"
+          >
+            <Shield size={14} /> Force fresh consent (fix missing refresh token)
           </button>
         </div>
       </div>
