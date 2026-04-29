@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
@@ -191,11 +190,24 @@ function IntegrationsTab({ profile, setProfile }: { profile: ProfileRow; setProf
 
   async function reconnectGoogle() {
     setReconnecting(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/settings`,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/settings`,
+        scopes: [
+          "openid","email","profile",
+          "https://www.googleapis.com/auth/gmail.readonly",
+          "https://www.googleapis.com/auth/gmail.send",
+          "https://www.googleapis.com/auth/gmail.modify",
+          "https://www.googleapis.com/auth/calendar.events",
+          "https://www.googleapis.com/auth/calendar.readonly",
+          "https://www.googleapis.com/auth/drive.readonly",
+        ].join(" "),
+        queryParams: { access_type: "offline", prompt: "consent", include_granted_scopes: "true" },
+      },
     });
-    if (result.error) {
-      toast.error(result.error.message ?? "Reconnect failed");
+    if (error) {
+      toast.error(error.message ?? "Reconnect failed");
       setReconnecting(false);
     }
   }
