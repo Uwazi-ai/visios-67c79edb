@@ -1,10 +1,11 @@
 // Shared Gmail helpers for Visi OS edge functions
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { getFreshGoogleAccessToken } from "./google.ts";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+    "authorization, x-client-info, apikey, content-type, x-google-token, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 export function jsonResponse(body: unknown, status = 200) {
@@ -35,8 +36,11 @@ export async function getAuthedUser(req: Request) {
  * but it expires; for live calls we use the current session's provider_token
  * which the client must forward via header `x-google-token`).
  */
-export function getGoogleToken(req: Request): string | null {
-  return req.headers.get("x-google-token");
+export async function getGoogleToken(req: Request, userId?: string): Promise<string | null> {
+  const sessionToken = req.headers.get("x-google-token");
+  if (sessionToken) return sessionToken;
+  if (!userId) return null;
+  return await getFreshGoogleAccessToken(userId);
 }
 
 export async function gmailFetch(
