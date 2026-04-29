@@ -5,22 +5,39 @@ import type { Session, User } from "@supabase/supabase-js";
 async function syncGoogleTokens(session: Session | null) {
   if (!session?.user) return;
 
+  // Tokens may arrive on the session itself, on user_metadata, or on app_metadata
+  // depending on the OAuth path (managed vs direct). Check all three.
   const sessionWithProvider = session as Session & {
     provider_token?: string;
     provider_refresh_token?: string;
     provider_scopes?: string;
   };
-  const userMeta = session.user.user_metadata as {
+  const userMeta = (session.user.user_metadata ?? null) as {
+    provider_token?: string;
+    provider_refresh_token?: string;
+    provider_scopes?: string;
+  } | null;
+  const appMeta = (session.user.app_metadata ?? null) as {
     provider_token?: string;
     provider_refresh_token?: string;
     provider_scopes?: string;
   } | null;
 
-  const google_access_token = sessionWithProvider.provider_token ?? userMeta?.provider_token ?? null;
-  const google_refresh_token = sessionWithProvider.provider_refresh_token ?? userMeta?.provider_refresh_token ?? null;
+  const google_access_token =
+    sessionWithProvider.provider_token ??
+    userMeta?.provider_token ??
+    appMeta?.provider_token ??
+    null;
+  const google_refresh_token =
+    sessionWithProvider.provider_refresh_token ??
+    userMeta?.provider_refresh_token ??
+    appMeta?.provider_refresh_token ??
+    null;
+
   // Supabase doesn't expose granted scopes directly — derive from access token via tokeninfo when present.
-  let google_granted_scopes: string | null = null;
-  if (google_access_token) {
+  let google_granted_scopes: string | null =
+    sessionWithProvider.provider_scopes ?? userMeta?.provider_scopes ?? appMeta?.provider_scopes ?? null;
+  if (!google_granted_scopes && google_access_token) {
     try {
       const r = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(google_access_token)}`);
       if (r.ok) {
@@ -32,9 +49,13 @@ async function syncGoogleTokens(session: Session | null) {
     }
   }
 
-  if (!google_access_token && !google_refresh_token && !google_granted_scopes) return;
+  if (!google_access_token && !google_refresh_token && !google_granted_scopes) {
+    // Nothing to persist this tick — could be a normal token-refresh event.
+    // Don't log; this fires often.
+    return;
+  }
 
-  await supabase
+  const { error } = await supabase
     .from("profiles")
     .update({
       ...(google_access_token ? { google_access_token } : {}),
@@ -42,6 +63,12 @@ async function syncGoogleTokens(session: Session | null) {
       ...(google_granted_scopes ? { google_granted_scopes } : {}),
     })
     .eq("id", session.user.id);
+
+  if (error) {
+    console.error("[syncGoogleTokens] failed to persist Google tokens:", error.message);
+  } else if (google_refresh_token) {
+    console.info("[syncGoogleTokens] Google refresh token stored on profile");
+  }
 }
 
 interface AuthCtx {
