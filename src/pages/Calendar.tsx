@@ -238,6 +238,13 @@ export default function Calendar() {
           onApplied={loadEvents}
         />
       )}
+
+      {/* Create event modal */}
+      <ScheduleMeetingModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={loadEvents}
+      />
     </div>
   );
 }
