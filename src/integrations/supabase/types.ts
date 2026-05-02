@@ -53,6 +53,122 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          org_id: string | null
+          persona: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          org_id?: string | null
+          persona?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          org_id?: string | null
+          persona?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_messages: {
+        Row: {
+          citations: Json
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          persona: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          citations?: Json
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          persona?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          citations?: Json
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          persona?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_training: {
+        Row: {
+          canned_responses: Json
+          created_at: string
+          id: string
+          never_say: string | null
+          org_context: Json
+          response_length: string
+          sample_emails: Json
+          signature_style: string
+          updated_at: string
+          user_id: string
+          workflow_notes: Json
+          writing_style: string
+        }
+        Insert: {
+          canned_responses?: Json
+          created_at?: string
+          id?: string
+          never_say?: string | null
+          org_context?: Json
+          response_length?: string
+          sample_emails?: Json
+          signature_style?: string
+          updated_at?: string
+          user_id: string
+          workflow_notes?: Json
+          writing_style?: string
+        }
+        Update: {
+          canned_responses?: Json
+          created_at?: string
+          id?: string
+          never_say?: string | null
+          org_context?: Json
+          response_length?: string
+          sample_emails?: Json
+          signature_style?: string
+          updated_at?: string
+          user_id?: string
+          workflow_notes?: Json
+          writing_style?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string
@@ -566,6 +682,101 @@ export type Database = {
           },
         ]
       }
+      kb_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          document_id: string
+          id: string
+          org_id: string | null
+          tsv: unknown
+          user_id: string
+        }
+        Insert: {
+          chunk_index?: number
+          content: string
+          created_at?: string
+          document_id: string
+          id?: string
+          org_id?: string | null
+          tsv?: unknown
+          user_id: string
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          org_id?: string | null
+          tsv?: unknown
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "kb_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_documents: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          error_message: string | null
+          file_path: string | null
+          file_type: string | null
+          id: string
+          org_id: string | null
+          source_type: string
+          source_url: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+          word_count: number | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          error_message?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          org_id?: string | null
+          source_type?: string
+          source_url?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+          word_count?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          error_message?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          org_id?: string | null
+          source_type?: string
+          source_url?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          word_count?: number | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           channel_id: string
@@ -1035,6 +1246,21 @@ export type Database = {
         Returns: boolean
       }
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
+      search_kb_text: {
+        Args: {
+          match_count?: number
+          org_filter?: string
+          query_text: string
+          user_filter?: string
+        }
+        Returns: {
+          content: string
+          document_id: string
+          document_title: string
+          id: string
+          rank: number
+        }[]
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
