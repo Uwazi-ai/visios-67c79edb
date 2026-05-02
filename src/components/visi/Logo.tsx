@@ -22,15 +22,10 @@ export const VisiLogo = ({ size = 28, showWordmark = false }: LogoProps) => {
   // Compact: V mark + /OS wordmark image
   const wordmarkHeight = (size > 30 ? 20 : 15) * 5;
   return (
-    <div className="flex items-center gap-2.5">
-      <img
-        src={logoSrc}
-        alt="Visi"
-        style={{ height: size, width: size, objectFit: "contain", display: "block" }}
-      />
+    <div className="flex items-center">
       <img
         src={wordmarkSrc}
-        alt="/OS"
+        alt="Visi OS"
         style={{ height: wordmarkHeight, width: "auto", objectFit: "contain", display: "block" }}
       />
     </div>
