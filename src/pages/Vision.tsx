@@ -196,25 +196,22 @@ export default function Vision() {
       conversation_id: convId, user_id: user.id, role: "user", content: text, persona,
     }).then(() => {});
 
-    // Build context (best effort, optional)
-    let ctx: AIContextSnapshot = {
-      today: new Date().toISOString(),
-      active_org_name: activeOrg?.name ?? null,
-      profile: { display_name: (user.user_metadata?.full_name as string) ?? null, email: user.email ?? null },
-    };
+    // Fetch live context from Vision Context Engine
+    let visionCtx: VisionContext = {};
     try {
-      const { data: ctxData } = await supabase.functions.invoke("ai-build-context", {
-        body: { org_id: activeOrgId ?? null, query: text, use_kb: true },
+      const { data: ctxData } = await supabase.functions.invoke("vision-context", {
+        body: { org_id: activeOrgId ?? null, message: text },
       });
-      if (ctxData) {
-        ctx = { ...ctxData, today: ctxData.today ?? new Date().toISOString(), active_org_name: activeOrg?.name ?? null };
-      }
-    } catch { /* ignore */ }
+      if (ctxData) visionCtx = ctxData as VisionContext;
+    } catch (e) {
+      console.warn("vision-context failed", e);
+    }
 
-    let system = buildSystemPrompt(persona, ctx, { surface: "/vision" });
-    // Re-brand: this is Vision, not Visi.
-    system = system.replace(/You are Visi,/g, "You are Vision,");
-    system += "\n\nIMPORTANT: You are Vision. Never refer to yourself as Claude, Anthropic, or Visi. Be warm, direct, and founder-aware.";
+    const system = buildVisionSystemPrompt(persona, visionCtx, {
+      display_name: (user.user_metadata?.full_name as string) ?? null,
+      email: user.email ?? null,
+      active_org_name: activeOrg?.name ?? null,
+    });
 
     const history = [...messages, userMsg]
       .filter((m) => m.content && !m.streaming)
