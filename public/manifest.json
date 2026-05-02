@@ -1,0 +1,20 @@
+{
+  "name": "Visi OS",
+  "short_name": "Visi",
+  "description": "Your AI-powered business operating system",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#02020A",
+  "theme_color": "#02020A",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Daily Brief", "url": "/", "description": "Open your morning brief" },
+    { "name": "Scan Card", "url": "/contacts?scan=true", "description": "Scan a business card" },
+    { "name": "My Card", "url": "/settings/my-card", "description": "View your digital card" }
+  ]
+}
