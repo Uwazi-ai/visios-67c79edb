@@ -79,7 +79,8 @@ const PERSONA_ICONS: Record<PersonaKey, typeof Target> = {
 
 export default function Vision() {
   const { user } = useAuth();
-  const { activeOrgId, orgs } = useOrg();
+  const { activeOrgId: rawActiveOrgId, orgs } = useOrg();
+  const activeOrgId = rawActiveOrgId && rawActiveOrgId !== "all" ? rawActiveOrgId : null;
   const navigate = useNavigate();
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
 
