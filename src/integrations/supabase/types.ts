@@ -556,6 +556,7 @@ export type Database = {
           color: string
           created_at: string
           id: string
+          metadata: Json
           name: string
           slug: string
         }
@@ -563,6 +564,7 @@ export type Database = {
           color: string
           created_at?: string
           id?: string
+          metadata?: Json
           name: string
           slug: string
         }
@@ -570,6 +572,7 @@ export type Database = {
           color?: string
           created_at?: string
           id?: string
+          metadata?: Json
           name?: string
           slug?: string
         }
