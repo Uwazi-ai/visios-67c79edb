@@ -53,6 +53,11 @@ const Contacts = () => {
   } | null>(null);
   const [scanSource, setScanSource] = useState<string | undefined>(undefined);
 
+  const [agentOpen, setAgentOpen] = useState(false);
+  const [agentInitialPhase, setAgentInitialPhase] = useState<"config" | "review">("config");
+  const { count: pendingCount, refresh: refreshPending } = usePendingReviewCount();
+  const { settings: agentSettings } = useAgentSettings();
+
   const activeOrg = useMemo(() => {
     if (!activeOrgId || activeOrgId === "all") return null;
     return orgs.find((o) => o.id === activeOrgId) ?? null;
