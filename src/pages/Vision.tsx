@@ -543,11 +543,38 @@ export default function Vision() {
 
       {/* Main column */}
       <div className="flex-1 flex flex-col min-w-0" style={{ background: "#0b0b14" }}>
-        {/* Mobile top bar */}
-        <div className="md:hidden flex items-center px-3 py-2" style={{ borderBottom: "1px solid #1f1f2e" }}>
-          <button onClick={() => setSidebarOpen(true)} className="text-gray-300"><Menu size={20} /></button>
-          <div className="flex-1 text-center text-white font-display font-bold">Vision</div>
-          <button onClick={newChat} className="text-gray-300"><Plus size={18} /></button>
+        {/* Top bar */}
+        <div className="flex items-center px-3 py-2 gap-2" style={{ borderBottom: "1px solid #1f1f2e" }}>
+          <button onClick={() => setSidebarOpen(true)} className="text-gray-300 md:hidden"><Menu size={20} /></button>
+          <div className="flex-1 text-center md:text-left text-white font-display font-bold md:pl-2">Vision</div>
+          <div className="relative">
+            <button
+              onClick={() => setSourcesOpen((v) => !v)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-gray-300 hover:text-white hover:bg-[#1f2937]"
+              title="What Vision can see"
+            >
+              <Eye size={14} /> <span className="hidden sm:inline">Sources</span>
+            </button>
+            {sourcesOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setSourcesOpen(false)} />
+                <div
+                  className="absolute right-0 top-full mt-2 z-50 rounded-xl p-3 w-72"
+                  style={{ background: "#111827", border: "1px solid #374151" }}
+                >
+                  <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Vision can see</div>
+                  <SourceList sources={lastSources?.sources ?? null} counts={lastSources?.counts ?? null} />
+                  <button
+                    onClick={() => { setSourcesOpen(false); navigate("/settings"); }}
+                    className="mt-3 w-full text-xs text-[#a78bfa] hover:text-white text-left"
+                  >
+                    Manage Connections →
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          <button onClick={newChat} className="text-gray-300 md:hidden"><Plus size={18} /></button>
         </div>
 
         {/* Messages or welcome */}
