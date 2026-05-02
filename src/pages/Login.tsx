@@ -116,6 +116,42 @@ const Login = () => {
             </span>
           </button>
 
+          <div className="mt-6 flex w-full items-center gap-3" style={{ color: "var(--text-tertiary)", fontSize: 11 }}>
+            <div style={{ flex: 1, height: 1, background: "var(--border-subtle)" }} />
+            <span className="t-mono">DEV BYPASS</span>
+            <div style={{ flex: 1, height: 1, background: "var(--border-subtle)" }} />
+          </div>
+
+          <form onSubmit={handleDevLogin} className="mt-4 flex w-full flex-col gap-2">
+            <input
+              type="email"
+              required
+              placeholder="email@dev.local"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-glass"
+              style={{ height: 40, padding: "0 12px", fontSize: 13 }}
+            />
+            <input
+              type="password"
+              required
+              minLength={6}
+              placeholder="password (min 6 chars)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-glass"
+              style={{ height: 40, padding: "0 12px", fontSize: 13 }}
+            />
+            <button
+              type="submit"
+              disabled={signing}
+              className="btn-primary mt-1 w-full justify-center"
+              style={{ height: 44, fontSize: 13 }}
+            >
+              {signing ? "Signing in…" : "Sign in / Sign up"}
+            </button>
+          </form>
+
           {error && <p className="mt-4 text-xs" style={{ color: "var(--sev-critical)" }}>{error}</p>}
 
           <p className="t-mono mt-10">THREE COMPANIES <span className="slash">/</span> ZERO CHAOS</p>
