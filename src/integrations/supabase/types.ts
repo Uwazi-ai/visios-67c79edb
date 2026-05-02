@@ -993,26 +993,38 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          description: string | null
           id: string
           metadata: Json
           name: string
+          priorities: Json
           slug: string
+          stage_labels: Json
+          success_definition: string | null
         }
         Insert: {
           color: string
           created_at?: string
+          description?: string | null
           id?: string
           metadata?: Json
           name: string
+          priorities?: Json
           slug: string
+          stage_labels?: Json
+          success_definition?: string | null
         }
         Update: {
           color?: string
           created_at?: string
+          description?: string | null
           id?: string
           metadata?: Json
           name?: string
+          priorities?: Json
           slug?: string
+          stage_labels?: Json
+          success_definition?: string | null
         }
         Relationships: []
       }
@@ -1033,6 +1045,7 @@ export type Database = {
           linkedin_url: string | null
           notification_prefs: Json
           phone: string | null
+          preferences: Json
           preferred_name: string | null
           primary_org_id: string | null
           scheduling_prefs: Json
@@ -1060,6 +1073,7 @@ export type Database = {
           linkedin_url?: string | null
           notification_prefs?: Json
           phone?: string | null
+          preferences?: Json
           preferred_name?: string | null
           primary_org_id?: string | null
           scheduling_prefs?: Json
@@ -1087,6 +1101,7 @@ export type Database = {
           linkedin_url?: string | null
           notification_prefs?: Json
           phone?: string | null
+          preferences?: Json
           preferred_name?: string | null
           primary_org_id?: string | null
           scheduling_prefs?: Json
@@ -1142,6 +1157,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       task_activity: {
         Row: {

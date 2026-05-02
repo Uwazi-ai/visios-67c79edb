@@ -1,98 +1,69 @@
-# Vision Context Engine — Implementation Plan
+# Visi OS Settings — Master Control Center
 
-A large multi-system build. Shipping in phases so each part is verifiable. This plan covers scope, schema, edge functions, UI, and ordering.
+Scope is large (8 tabs, multiple integrations, danger zone, mobile reflow). Shipping in clear phases so the page is usable after each phase. Every save uses existing `profiles`, `orgs`, `integrations`, `ai_training`, and a new `push_subscriptions` table.
 
-## Scope summary
+## Architecture
 
-Build the data layer that lets Vision see, in every conversation:
-Gmail, Google Calendar, Google Drive, Contacts, Tasks, Slack, Jira, Confluence, Knowledge Base — each user sees only their own data, org-scoped, with per-source toggles.
+- New route stays at `/settings`. Replace current `Settings.tsx` with `SettingsLayout` shell that renders a left sidebar (220px) + scrollable content panel.
+- Each tab is its own component in `src/components/settings/tabs/` so the file stays maintainable: `ProfileTab`, `OrganizationsTab`, `ConnectionsTab`, `VisionAITab`, `DigitalCardTab`, `NotificationsTab`, `PrivacyTab`, `AccountTab`.
+- A single `useSettingsCompletion()` hook computes per-tab status (`complete | warning | empty` + count) and feeds the sidebar dots.
+- Save pattern helper `useAutoSave` (500ms debounce for text, immediate for toggles, manual for complex forms) writes to Supabase and emits a toast.
+- Add `Settings` link with `Gear` icon at the bottom of the main app sidebar (`src/components/visi/Sidebar.tsx`).
 
-## Schema changes (one migration)
-
-There is no `integrations` table today. Create one:
+## Database changes (one migration up front)
 
 ```sql
-create table public.integrations (
+alter table profiles add column if not exists preferences jsonb not null default '{}'::jsonb;
+alter table orgs add column if not exists description text;
+alter table orgs add column if not exists priorities jsonb not null default '[]'::jsonb;
+alter table orgs add column if not exists success_definition text;
+alter table orgs add column if not exists stage_labels jsonb not null default '[]'::jsonb;
+
+create table if not exists push_subscriptions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null,
-  org_id uuid,
-  provider text not null,            -- 'google'|'slack'|'jira'|'confluence'
-  status text not null default 'connected',
-  vision_enabled boolean not null default true,
-  metadata jsonb not null default '{}'::jsonb,
-  -- google: { gmail_enabled, calendar_enabled, drive_enabled, drive_folder_ids[] }
-  -- slack: { team_id, channels[], bot_token_ref }
-  -- jira/confluence: { domain, email }
-  last_synced_at timestamptz,
-  last_kb_sync_at timestamptz,
-  kb_doc_count integer not null default 0,
+  endpoint text not null,
+  p256dh text not null,
+  auth text not null,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  unique(user_id, provider, org_id)
+  unique (user_id, endpoint)
 );
--- RLS: self-only read/write
+alter table push_subscriptions enable row level security;
+create policy "Push: self all" on push_subscriptions for all
+  using (user_id = auth.uid()) with check (user_id = auth.uid());
 ```
 
-Extend `kb_documents`:
-```sql
-alter table kb_documents
-  add column if not exists external_id text,
-  add column if not exists full_text text,
-  add column if not exists source_integration text;
-create unique index if not exists kb_docs_external_id_idx
-  on kb_documents(user_id, external_id) where external_id is not null;
-```
+Reuses existing `integrations` (one row per provider with `vision_enabled`, `metadata`, `status`) and `user_integration_secrets` (encrypted tokens for Slack / Jira / Confluence / Twilio / Fathom / Granola).
 
-Secrets stored server-side (never in metadata): per-user Slack/Jira/Confluence tokens go in a `user_integration_secrets` table with RLS self-only, columns `(user_id, provider, token, refresh_token)`.
+## Phase plan (each phase ships independently)
 
-## Edge functions
+1. Layout + sidebar nav + completion dots + `Settings` entry in main sidebar.
+2. Profile tab (avatar upload to `avatars` bucket, all fields, Preferences JSONB).
+3. Organizations tab (3 sub-tabs, color picker, Drive folder verify via `calendar-list-events`-style edge, stage labels).
+4. Connections tab — Google Workspace tile (reuse current ConnectionsPanel logic, expand toggles for Gmail / Calendar / Drive sub-features, Sync Now buttons).
+5. Slack tile via Lovable connector (`standard_connectors--connect slack`), channel whitelist stored in `integrations.metadata`.
+6. Jira + Confluence tiles (API token form → encrypted store in `user_integration_secrets`, project/space whitelist, new edge functions `jira-test-connection`, `confluence-test-connection`).
+7. Twilio + Fathom + Granola tiles (token forms, masked inputs, test buttons).
+8. Vision AI tab (default persona, full data-source toggle grid bound to `integrations.vision_enabled`, voice training → `ai_training`, Business Context per org, Morning Brief settings, conversation history controls + Clear All).
+9. Digital Card tab — embed existing MyCardSettings UI in two-column layout with live phone-frame preview and QR.
+10. Notifications tab (in-app/email/push toggles → `profiles.notification_prefs`; PWA push subscribe flow writing to `push_subscriptions`).
+11. Privacy tab + Export data edge function `export-user-data` returning a ZIP signed URL.
+12. Account tab (plan info, API usage from a new `usage_events` query, change password via `supabase.auth.updateUser`, Switch/Disconnect Google).
+13. Danger Zone (Reset Settings, Clear Contacts, Delete Account — typed confirmation modals; delete account via new edge function `delete-account` using service role).
+14. Test Connection buttons across all tiles + completion-indicator polish.
+15. Mobile reflow: sidebar → horizontal scroll tab strip; ensure 16px input font; verify in preview.
 
-New:
-- `vision-context` — intent classifier (Lovable AI: openai/gpt-5-mini, JSON mode) + parallel fetchers; returns `{ emails, calendar, drive, contacts, tasks, slack, kb }`. Called from Vision before each message.
-- `slack-oauth-callback` + `slack-sync` (every 30 min via pg_cron)
-- `jira-sync` (every 2h)
-- `confluence-sync` (every 6h)
+## Design notes
 
-Extend:
-- `_shared/google.ts` already has `getFreshGoogleAccessToken` — reuse for Gmail/Calendar/Drive fetchers inside `vision-context` (no separate google-proxy needed; we already have gmail/calendar functions to model after).
-- `Vision.tsx` send flow → call `vision-context` first, pass result into system prompt builder, then stream Claude.
+- All styling via existing tokens / utility classes (`.glass`, `.glass-active`, `.btn-primary`, `.input-glass`, `.nav-item`, `var(--text-primary)`). Connected tiles get a 3px green left border via `border-l-[3px] border-[hsl(var(--success))]`; disconnected gets red.
+- Completion dots: `●` green = `hsl(var(--success))`, `⚠` amber = `hsl(var(--warning))` with count.
+- Toggles use existing shadcn `Switch`. API tokens use `<Input type="password">` with eye toggle. Confirmations via shadcn `AlertDialog`.
+- All copy lives inline in each tab component — no i18n layer.
 
-Scheduled jobs registered via `supabase--insert` (pg_cron + pg_net), not migration.
+## Out of scope for this build
 
-## System prompt
+- Real billing / plan management (just display placeholder plan info).
+- Real Claude usage tracking infrastructure (display zeros until usage table exists).
+- Building the Fathom/Granola sync workers (UI + token storage only; sync edge functions stubbed).
 
-New `src/lib/visionPrompt.ts` exporting `buildVisionSystemPrompt(persona, context, profile)` matching the spec format with sections for emails/calendar/tasks/contacts/drive/slack/kb. Vision rule: never say "Claude".
-
-## UI
-
-1. **Settings → Connections tab** (`src/pages/Settings.tsx` + new `src/components/settings/ConnectionsPanel.tsx`):
-   - 3-col grid of tiles: Gmail, Calendar, Drive, Contacts, Tasks, Slack, KB, Jira, Confluence
-   - Each tile: status dot, last synced, vision toggle, manage button
-   - Google tile group has 3 sub-toggles
-   - Drive tile has org-folder ID inputs
-   - Slack/Jira/Confluence tiles have connect modals (token inputs)
-2. **Vision header "What I Can See"** button (`Eye` icon) → popover listing connected sources with counts.
-3. **Citation chips** in Vision messages: parse `[gmail:THREADID|label]`, `[drive:FILEID|label]`, `[kb:DOCID|label]`, `[jira:KEY|label]`, `[slack:CHANNEL|label]` and render as clickable chips. Tell Vision in the system prompt to emit these tokens.
-
-## Implementation order (multi-message — start with foundation)
-
-This message ships **Phase 1** so the rest has something to build on:
-
-1. Migration: `integrations`, `user_integration_secrets`, `kb_documents` columns + RLS
-2. `vision-context` edge function with intent classifier + parallel fetchers (Gmail, Calendar, Contacts, Tasks, KB; Drive/Slack/Jira return null until configured)
-3. `src/lib/visionPrompt.ts` system prompt builder
-4. Wire `Vision.tsx` to call `vision-context` and use the new prompt
-5. Settings → Connections tab with Google sub-toggles, Vision toggles, KB tile (read-only counts). Slack/Jira/Confluence tiles show "Coming soon" connect buttons that will be activated in Phase 2.
-6. "What I Can See" popover in Vision header
-7. Basic citation chip rendering
-
-**Phase 2 (next message after you confirm Phase 1 works):** Slack OAuth, Jira sync, Confluence sync, pg_cron jobs, Drive folder content extraction, full citation routing.
-
-## Notes / decisions
-
-- Use Lovable AI (`openai/gpt-5-mini`, response_format json) for intent classification — no Anthropic Haiku call needed, no extra key.
-- Drive/Gmail/Calendar fetchers call Google APIs directly inside `vision-context` using the existing `getFreshGoogleAccessToken` helper — avoids adding a new proxy.
-- All fetches wrapped in `Promise.allSettled` so one failing source never blocks Vision.
-- Vision keeps working exactly as today if `vision-context` fails — we fall back to the existing prompt.
-
-Ready to ship Phase 1 on approval.
+Confirm and I'll start with Phase 1 (layout + sidebar + completion dots + Settings entry in main nav) and the migration.
