@@ -26,6 +26,7 @@ import CardPublic from "./pages/CardPublic";
 import MyCardSettings from "./pages/MyCardSettings";
 import KnowledgePage from "./pages/Knowledge";
 import AISettings from "./pages/AISettings";
+import Vision from "./pages/Vision";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/card/:username" element={<CardPublic />} />
               <Route element={<AppShell />}>
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/vision" element={<Vision />} />
                 <Route path="/inbox" element={<InboxPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
