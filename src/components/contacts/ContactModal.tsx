@@ -225,9 +225,18 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
   );
 };
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({ label, children, extracted }: { label: string; children: React.ReactNode; extracted?: boolean }) => (
   <div>
-    <label className="t-mono block mb-1.5" style={{ fontSize: 10 }}>{label}</label>
+    <label className="t-mono mb-1.5 flex items-center gap-1.5" style={{ fontSize: 10 }}>
+      <span>{label}</span>
+      {extracted && (
+        <span style={{
+          padding: "1px 5px", borderRadius: 4, fontSize: 8, fontWeight: 600,
+          background: "var(--accent-soft, rgba(99,102,241,0.15))", color: "var(--text-accent)",
+          border: "1px solid rgba(99,102,241,0.3)",
+        }}>AI</span>
+      )}
+    </label>
     {children}
   </div>
 );
