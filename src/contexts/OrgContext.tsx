@@ -48,7 +48,7 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
         .from("org_memberships")
         .select("org_id, role")
         .eq("user_id", user.id);
-      setOrgs(orgsData ?? []);
+      setOrgs(((orgsData ?? []) as unknown) as Org[]);
       setMemberships((memData ?? []) as Membership[]);
 
       const stored = localStorage.getItem("visi:activeOrg");
