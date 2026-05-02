@@ -131,7 +131,7 @@ export default function Calendar() {
       if (data?.error) throw new Error(data.error);
       setNeedsReconnect(false);
       const mapped: CalEvent[] = (data.events ?? []).map((e: { id: string; summary: string; description: string; start: string; end: string; allDay: boolean; attendees: string[]; hangoutLink: string | null; htmlLink: string | null }) => {
-        const slug = detectOrgSlugFromEmails(e.attendees ?? []);
+        const slug = detectOrgSlugFromEmails(e.attendees ?? [], orgs);
         const orgInfo = slug ? orgBySlug.get(slug) : null;
         return {
           ...e,
@@ -146,7 +146,7 @@ export default function Calendar() {
     } finally {
       setLoading(false);
     }
-  }, [range.from, range.to, user, orgBySlug]);
+  }, [range.from, range.to, user, orgBySlug, orgs]);
 
   useEffect(() => { loadEvents(); }, [loadEvents]);
 
