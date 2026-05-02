@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, CheckSquare, Calendar, Link2, MessageSquare,
-  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen,
+  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles,
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
@@ -11,6 +11,7 @@ import { ORG_COLORS } from "@/lib/orgs";
 
 const NAV = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/vision", label: "Vision", icon: Sparkles },
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/tasks", label: "Tasks", icon: CheckSquare },
   { to: "/calendar", label: "Calendar", icon: Calendar },

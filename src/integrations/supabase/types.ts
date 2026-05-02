@@ -1228,6 +1228,77 @@ export type Database = {
           },
         ]
       }
+      vision_conversations: {
+        Row: {
+          active_org_id: string | null
+          active_persona: string
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_org_id?: string | null
+          active_persona?: string
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_org_id?: string | null
+          active_persona?: string
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      vision_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          feedback: string | null
+          id: string
+          persona: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          persona?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          feedback?: string | null
+          id?: string
+          persona?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vision_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "vision_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
