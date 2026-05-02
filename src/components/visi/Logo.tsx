@@ -14,7 +14,7 @@ export const VisiLogo = ({ size = 28, showWordmark = false }: LogoProps) => {
   return (
     <div className="flex items-center">
       <img
-        src={`${wordmarkSrc}?v=3`}
+        src={withVersion(wordmarkSrc)}
         alt="Visi OS"
         style={{ height: wordmarkHeight, width: "auto", objectFit: "contain", display: "block" }}
       />
