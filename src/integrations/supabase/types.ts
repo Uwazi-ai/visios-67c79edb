@@ -622,6 +622,51 @@ export type Database = {
           },
         ]
       }
+      integrations: {
+        Row: {
+          created_at: string
+          id: string
+          kb_doc_count: number
+          last_kb_sync_at: string | null
+          last_synced_at: string | null
+          metadata: Json
+          org_id: string | null
+          provider: string
+          status: string
+          updated_at: string
+          user_id: string
+          vision_enabled: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kb_doc_count?: number
+          last_kb_sync_at?: string | null
+          last_synced_at?: string | null
+          metadata?: Json
+          org_id?: string | null
+          provider: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          vision_enabled?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kb_doc_count?: number
+          last_kb_sync_at?: string | null
+          last_synced_at?: string | null
+          metadata?: Json
+          org_id?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          vision_enabled?: boolean
+        }
+        Relationships: []
+      }
       items: {
         Row: {
           body: string | null
@@ -729,10 +774,13 @@ export type Database = {
           created_at: string
           description: string | null
           error_message: string | null
+          external_id: string | null
           file_path: string | null
           file_type: string | null
+          full_text: string | null
           id: string
           org_id: string | null
+          source_integration: string | null
           source_type: string
           source_url: string | null
           status: string
@@ -746,10 +794,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           error_message?: string | null
+          external_id?: string | null
           file_path?: string | null
           file_type?: string | null
+          full_text?: string | null
           id?: string
           org_id?: string | null
+          source_integration?: string | null
           source_type?: string
           source_url?: string | null
           status?: string
@@ -763,10 +814,13 @@ export type Database = {
           created_at?: string
           description?: string | null
           error_message?: string | null
+          external_id?: string | null
           file_path?: string | null
           file_type?: string | null
+          full_text?: string | null
           id?: string
           org_id?: string | null
+          source_integration?: string | null
           source_type?: string
           source_url?: string | null
           status?: string
@@ -1227,6 +1281,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_integration_secrets: {
+        Row: {
+          created_at: string
+          id: string
+          metadata: Json
+          provider: string
+          refresh_token: string | null
+          token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metadata?: Json
+          provider: string
+          refresh_token?: string | null
+          token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metadata?: Json
+          provider?: string
+          refresh_token?: string | null
+          token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       vision_conversations: {
         Row: {
