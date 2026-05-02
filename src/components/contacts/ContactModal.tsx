@@ -149,31 +149,38 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="t-section">{editing ? "Edit Contact" : "Add Contact"}</h3>
+          <div>
+            <h3 className="t-section">{editing ? "Edit Contact" : source === "card_scan" ? "Review Scanned Card" : "Add Contact"}</h3>
+            {source === "card_scan" && (
+              <div className="t-mono mt-1" style={{ fontSize: 10, color: "var(--text-accent)" }}>
+                ✨ AI extracted — please verify before saving
+              </div>
+            )}
+          </div>
           <button onClick={onClose} className="btn-icon"><X size={14} /></button>
         </div>
 
         <div className="space-y-3">
-          <Field label="Name *">
+          <Field label="Name *" extracted={prefilled("name")}>
             <input className="input-glass" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Email">
+            <Field label="Email" extracted={prefilled("email")}>
               <input className="input-glass" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" />
             </Field>
-            <Field label="Phone">
+            <Field label="Phone" extracted={prefilled("phone")}>
               <input className="input-glass" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555…" />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Company">
+            <Field label="Company" extracted={prefilled("company")}>
               <input className="input-glass" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Acme Inc." />
             </Field>
-            <Field label="Role / Title">
+            <Field label="Role / Title" extracted={prefilled("role")}>
               <input className="input-glass" value={role} onChange={(e) => setRole(e.target.value)} placeholder="CEO" />
             </Field>
           </div>
-          <Field label="LinkedIn URL">
+          <Field label="LinkedIn URL" extracted={prefilled("linkedin_url")}>
             <input className="input-glass" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/…" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
