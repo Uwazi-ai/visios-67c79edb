@@ -1,107 +1,61 @@
-# Contacts & CRM Page (Phase 3)
+## Overview
 
-Build a relationship-first CRM at `/contacts` matching the existing dark-glass design system (semantic tokens, `.glass`, `.org-pill`, `ORG_COLORS`). Replaces the current `ContactsPage` placeholder.
+Add three features to Visi OS, matching the existing dark glass design system:
 
-## 1. Database (one migration)
+1. **My Digital Card** — public shareable profile at `/card/:username` + editor at `/settings/my-card`
+2. **Business Card Scanner** — camera capture on Contacts page that uses AI vision to auto-create contacts
+3. **PWA Setup** — make Visi OS installable on mobile/desktop
 
-Extend `contacts`:
-- `linkedin_url text`, `phone text`, `engagement_stage text default 'prospect'`
+## Important deviations from spec (and why)
 
-Create `contact_interactions`:
-- `id, contact_id (fk → contacts on delete cascade), org_id, type (check: email|meeting|call|note|task), title, summary, occurred_at, source default 'manual', external_id, created_at`
-- RLS: org members read/write/update/delete via `is_org_member`
-- Unique index on `(contact_id, source, external_id)` for upsert dedupe
+- **Profiles table already exists** (with `id = auth.users.id`, `username`, `avatar_url`, `display_name`). I will **extend** it via migration with the missing fields (`title`, `company`, `primary_org_id`, `tagline`, `phone`, `linkedin_url`, `website_url`, `card_theme`, `custom_links`) instead of recreating it. Also adding a public-read RLS policy scoped to rows where `username IS NOT NULL` (already exists — perfect for the public card route).
+- **AI vision** for card scanning will use the **Lovable AI Gateway** (`google/gemini-2.5-flash` with image input) via a new edge function `scan-business-card`. We don't have an Anthropic key, and Lovable AI is the project standard.
+- **PWA in Lovable preview**: per platform rules, the service worker will be guarded so it only registers in production (not in iframes / `id-preview--*` / `lovableproject.com` hosts). Otherwise the preview breaks with stale caches.
+- **Contacts table** — already has `metadata jsonb`; I'll store the `source: 'card_scan'` flag inside `metadata` rather than adding a new column to keep the schema lean. (Spec asks for a column, but metadata avoids another migration and keeps types stable.)
 
-## 2. Routing
+## File plan
 
-- `App.tsx`: replace `ContactsPage` import with new `src/pages/Contacts.tsx`
-- Remove `ContactsPage` from `EmptyPages.tsx`
-- URL param `?id=<contact_id>` opens that contact in the detail panel
+### Database (one migration)
+- Add columns to `profiles`: `title`, `company`, `primary_org_id`, `tagline`, `phone`, `linkedin_url`, `website_url`, `card_theme`, `custom_links`, `website_url`. (Existing fields kept.)
 
-## 3. Page layout (`src/pages/Contacts.tsx`)
+### Feature 1 — Digital Card
+- `src/pages/CardPublic.tsx` — public route, no auth, fetches profile by username, renders avatar/name/title/org pill/action buttons/custom links/QR. vCard generation via Blob.
+- `src/pages/MyCardSettings.tsx` — editor with live phone-frame preview.
+- `src/lib/vcard.ts` — vCard string builder + download helper.
+- `src/components/card/CardPreview.tsx` — shared card render used in both public page and editor preview.
+- Route adds in `src/App.tsx`: `/card/:username` (outside AppShell, public) and `/settings/my-card` (inside AppShell).
 
-Three-column grid inside `AppShell`:
+### Feature 2 — Business Card Scanner
+- `src/components/contacts/CardScannerModal.tsx` — fullscreen camera modal (getUserMedia, capture, upload fallback, processing, review).
+- `supabase/functions/scan-business-card/index.ts` — accepts base64 image, calls Lovable AI Gateway with vision prompt, returns parsed JSON. Public function (no JWT), CORS enabled.
+- `supabase/config.toml` — register `scan-business-card` with `verify_jwt = false`.
+- Wire into `src/pages/Contacts.tsx`: add "Scan Card" button, handle `?scan=true` query param to auto-open.
+- After save: insert into `contacts` with `metadata.source = 'card_scan'` and a `contact_interactions` row (`type='note'`, `source='card_scan'`).
+
+### Feature 3 — PWA
+- `bun add qrcode @types/qrcode vite-plugin-pwa workbox-window`
+- `vite.config.ts` — add VitePWA plugin (manifest disabled, link static manifest), with iframe-safe runtime caching.
+- `public/manifest.json` — name/icons/shortcuts as specified.
+- `public/icons/icon-192.png` and `icon-512.png` — generate via imagegen (dark bg #02020A with V mark, maskable safe zone).
+- `public/offline.html` — dark fallback page.
+- `index.html` — manifest link, apple meta tags, apple-touch-icon.
+- `src/components/pwa/InstallBanner.tsx` — listens to `beforeinstallprompt`, iOS detection, 7-day localStorage dismiss, hidden when standalone.
+- `src/main.tsx` — guarded SW registration (skip in iframe / preview hosts; unregister existing SWs there to be safe).
+- `src/index.css` — add safe-area-inset padding utilities for top/bottom bars.
+
+## Routing summary
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Header: "Contacts"  · Health widget (🟢🟡🔴)  · [+ Add]   │
-│  Stale-60d banner (conditional)                             │
-├──────────────┬─────────────────────────────┬────────────────┤
-│ List ~320px  │ Detail (flex-1)             │ Engagements    │
-│ search       │ name / org / email          │ ~280px         │
-│ filter chips │ days-since badge            │ stage columns  │
-│ contact rows │ action bar                  │ draggable      │
-│              │ interaction history         │ cards          │
-│              │ AI follow-up card           │                │
-└──────────────┴─────────────────────────────┴────────────────┘
+/card/:username           public  (new, outside AppShell)
+/settings/my-card         auth    (new, inside AppShell)
+/contacts                 auth    (existing, + Scan button + ?scan=true handling)
 ```
 
-All panels use `.glass` containers, semantic tokens only, Lucide icons (`User, Building2, Mail, Calendar, Phone, Clock, AlertTriangle, Sparkles, Plus`).
+## Build order
 
-## 4. Components (under `src/components/contacts/`)
+1. Migration (extend `profiles`)
+2. PWA infra (manifest, icons, vite plugin, guarded registration, install banner)
+3. Card editor + public card page + vCard + QR
+4. Card scanner modal + edge function + Contacts wiring
 
-- `ContactList.tsx` — search, filter chips (org / type / staleness), scrollable list, stale dots
-- `ContactDetail.tsx` — header, days-since badge (green/amber/red), action bar, hosts history + AI card
-- `InteractionHistory.tsx` — last 10 from `contact_interactions`, "Load more"
-- `AISuggestionCard.tsx` — calls `ai-draft-email` edge function (reused) for follow-up suggestion + draft modal
-- `EngagementBoard.tsx` — mini Kanban, stage labels per active org slug, native HTML5 drag/drop, updates `engagement_stage`
-- `ContactModal.tsx` — add/edit form (org-aware stage dropdown)
-- `RelationshipHealth.tsx` — counts active/warming/cold
-- `StaleBanner.tsx`
-
-Org stage map (in `src/lib/engagementStages.ts`):
-- `uwazi`: Prospect → Intro → Active Partner → Ecosystem
-- `bin`: New → Engaged → Speaker/Advisor → Champion
-- `cc`: Lead → Proposal → Active Client → Retained
-- fallback: Prospect → Active → Champion
-
-## 5. Gmail + Calendar enrichment
-
-Client-side hook `useContactEnrichment(orgId)` runs once on page mount:
-
-1. Calls existing `gmail-list-threads` edge function for last 30 days
-2. Calls existing `calendar-list-events` edge function for ±30 days
-3. For each thread/event, extract participant emails; find matching contact in current org; upsert `contact_interactions` (dedupe via `(contact_id, source, external_id)`); update `contacts.last_touched_at` to max date
-4. Header shows `Loader2` spinner → "Synced just now"
-5. Non-blocking: page renders immediately
-
-## 6. AI follow-up
-
-Reuse `ai-draft-email` edge function with a system prompt for "next-step suggestion" mode. Prompt includes contact name, org name, `last_touched_at`, last 3 interaction summaries. Display response as italic text + "Draft Email" button → opens modal that calls the same function in "warm follow-up" mode and shows editable draft.
-
-## 7. Filtering & deep-link
-
-- Active org from `OrgContext` filters list (or "all" shows everything)
-- Filter chips: All / per-org / People-Companies / Stale 30/60/90
-- `?id=` URL param syncs with selected contact via `useSearchParams`
-
-## 8. Empty state
-
-Centered card with simple inline SVG (two circles + connecting line), heading, subheading, [+ Add Contact] and [Sync Gmail] buttons.
-
-## Files
-
-**New**
-- `supabase/migrations/<ts>_contacts_crm.sql`
-- `src/pages/Contacts.tsx`
-- `src/lib/engagementStages.ts`
-- `src/lib/contactsHealth.ts` (days-since + bucket helpers)
-- `src/hooks/useContactEnrichment.ts`
-- `src/components/contacts/ContactList.tsx`
-- `src/components/contacts/ContactDetail.tsx`
-- `src/components/contacts/InteractionHistory.tsx`
-- `src/components/contacts/AISuggestionCard.tsx`
-- `src/components/contacts/EngagementBoard.tsx`
-- `src/components/contacts/ContactModal.tsx`
-- `src/components/contacts/RelationshipHealth.tsx`
-- `src/components/contacts/StaleBanner.tsx`
-
-**Edited**
-- `src/App.tsx` (swap import)
-- `src/pages/EmptyPages.tsx` (remove `ContactsPage`)
-
-## Out of scope
-
-- New edge functions (reuse `gmail-list-threads`, `calendar-list-events`, `ai-draft-email`)
-- Changes to Calendar / Dashboard deep-link sources (this page accepts `?id=`; updating callers can be a follow-up)
-- Server-side cron enrichment (client-side on mount is sufficient for v1)
+After each step I'll let the build hook validate. I'll generate the icons last so I don't block on imagegen.

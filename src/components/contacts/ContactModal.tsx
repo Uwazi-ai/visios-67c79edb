@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { stagesForOrg } from "@/lib/engagementStages";
 import type { ContactRow } from "@/pages/Contacts";
 
+interface Prefill {
+  name?: string | null;
+  email?: string | null;
+  company?: string | null;
+  role?: string | null;
+  linkedin_url?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -11,9 +21,11 @@ interface Props {
   orgs: Array<{ id: string; slug: string; name: string }>;
   defaultOrgId?: string | null;
   contact?: ContactRow | null; // edit mode if provided
+  prefill?: Prefill | null;
+  source?: string; // e.g. 'card_scan'
 }
 
-export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, contact }: Props) => {
+export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, contact, prefill, source }: Props) => {
   const editing = !!contact;
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -41,20 +53,23 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
       setNotes(contact.notes ?? "");
       setStage(contact.engagement_stage ?? "prospect");
     } else {
-      setName("");
-      setEmail("");
-      setCompany("");
-      setRole("");
+      setName(prefill?.name ?? "");
+      setEmail(prefill?.email ?? "");
+      setCompany(prefill?.company ?? "");
+      setRole(prefill?.role ?? "");
       setOrgId(defaultOrgId ?? orgs[0]?.id ?? "");
-      setLinkedinUrl("");
-      setPhone("");
-      setNotes("");
+      setLinkedinUrl(prefill?.linkedin_url ?? "");
+      setPhone(prefill?.phone ?? "");
+      setNotes(prefill?.notes ?? "");
       setStage("prospect");
     }
     setErr(null);
-  }, [open, contact, defaultOrgId, orgs]);
+  }, [open, contact, defaultOrgId, orgs, prefill]);
 
   if (!open) return null;
+
+  // Track which fields came from a prefill so we can show "AI extracted" badges
+  const prefilled = (key: keyof Prefill) => !!prefill && prefill[key] != null && prefill[key] !== "";
 
   const orgSlug = orgs.find((o) => o.id === orgId)?.slug;
   const stages = stagesForOrg(orgSlug);
@@ -87,13 +102,32 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
         if (error) throw error;
         onSaved(contact.id);
       } else {
+        const insertPayload = {
+          ...payload,
+          last_touched_at: new Date().toISOString(),
+          metadata: source ? { source } : {},
+        };
         const { data, error } = await supabase
           .from("contacts")
-          .insert({ ...payload, last_touched_at: new Date().toISOString() })
+          .insert(insertPayload)
           .select("id")
           .single();
         if (error) throw error;
-        if (data) onSaved(data.id);
+        if (data) {
+          // Log a card-scan interaction so it shows in the timeline
+          if (source === "card_scan") {
+            await supabase.from("contact_interactions").insert({
+              contact_id: data.id,
+              org_id: orgId,
+              type: "note",
+              source: "card_scan",
+              title: "Business card scanned",
+              summary: "Contact created from a scanned business card.",
+              occurred_at: new Date().toISOString(),
+            });
+          }
+          onSaved(data.id);
+        }
       }
       onClose();
     } catch (e) {
@@ -115,31 +149,38 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="t-section">{editing ? "Edit Contact" : "Add Contact"}</h3>
+          <div>
+            <h3 className="t-section">{editing ? "Edit Contact" : source === "card_scan" ? "Review Scanned Card" : "Add Contact"}</h3>
+            {source === "card_scan" && (
+              <div className="t-mono mt-1" style={{ fontSize: 10, color: "var(--text-accent)" }}>
+                ✨ AI extracted — please verify before saving
+              </div>
+            )}
+          </div>
           <button onClick={onClose} className="btn-icon"><X size={14} /></button>
         </div>
 
         <div className="space-y-3">
-          <Field label="Name *">
+          <Field label="Name *" extracted={prefilled("name")}>
             <input className="input-glass" value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Email">
+            <Field label="Email" extracted={prefilled("email")}>
               <input className="input-glass" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="jane@example.com" />
             </Field>
-            <Field label="Phone">
+            <Field label="Phone" extracted={prefilled("phone")}>
               <input className="input-glass" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555…" />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Company">
+            <Field label="Company" extracted={prefilled("company")}>
               <input className="input-glass" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Acme Inc." />
             </Field>
-            <Field label="Role / Title">
+            <Field label="Role / Title" extracted={prefilled("role")}>
               <input className="input-glass" value={role} onChange={(e) => setRole(e.target.value)} placeholder="CEO" />
             </Field>
           </div>
-          <Field label="LinkedIn URL">
+          <Field label="LinkedIn URL" extracted={prefilled("linkedin_url")}>
             <input className="input-glass" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} placeholder="https://linkedin.com/in/…" />
           </Field>
           <div className="grid grid-cols-2 gap-3">
@@ -184,9 +225,18 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
   );
 };
 
-const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
+const Field = ({ label, children, extracted }: { label: string; children: React.ReactNode; extracted?: boolean }) => (
   <div>
-    <label className="t-mono block mb-1.5" style={{ fontSize: 10 }}>{label}</label>
+    <label className="t-mono mb-1.5 flex items-center gap-1.5" style={{ fontSize: 10 }}>
+      <span>{label}</span>
+      {extracted && (
+        <span style={{
+          padding: "1px 5px", borderRadius: 4, fontSize: 8, fontWeight: 600,
+          background: "var(--accent-soft, rgba(99,102,241,0.15))", color: "var(--text-accent)",
+          border: "1px solid rgba(99,102,241,0.3)",
+        }}>AI</span>
+      )}
+    </label>
     {children}
   </div>
 );

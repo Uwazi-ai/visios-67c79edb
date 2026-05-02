@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, RefreshCw, Loader2, Users } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Users, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -8,10 +8,12 @@ import { ContactList } from "@/components/contacts/ContactList";
 import { ContactDetail } from "@/components/contacts/ContactDetail";
 import { EngagementBoard } from "@/components/contacts/EngagementBoard";
 import { ContactModal } from "@/components/contacts/ContactModal";
+import { CardScannerModal, type ScannedCard } from "@/components/contacts/CardScannerModal";
 import { RelationshipHealth } from "@/components/contacts/RelationshipHealth";
 import { StaleBanner } from "@/components/contacts/StaleBanner";
 import { useContactEnrichment } from "@/hooks/useContactEnrichment";
 import { bucket } from "@/lib/contactsHealth";
+import { toast } from "sonner";
 
 export interface ContactRow {
   id: string;
@@ -40,6 +42,13 @@ const Contacts = () => {
   const [editing, setEditing] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [forceStale, setForceStale] = useState<60 | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanPrefill, setScanPrefill] = useState<{
+    name?: string | null; email?: string | null; company?: string | null;
+    role?: string | null; linkedin_url?: string | null; phone?: string | null;
+    notes?: string | null;
+  } | null>(null);
+  const [scanSource, setScanSource] = useState<string | undefined>(undefined);
 
   const activeOrg = useMemo(() => {
     if (!activeOrgId || activeOrgId === "all") return null;
@@ -63,10 +72,18 @@ const Contacts = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Sync URL param
+  // Sync URL param + ?scan=true shortcut from PWA
   useEffect(() => {
     const id = params.get("id");
     if (id !== selectedId) setSelectedId(id);
+    if (params.get("scan") === "true") {
+      setScannerOpen(true);
+      setParams((p) => {
+        const next = new URLSearchParams(p);
+        next.delete("scan");
+        return next;
+      }, { replace: true });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
@@ -77,6 +94,27 @@ const Contacts = () => {
       next.set("id", id);
       return next;
     }, { replace: true });
+  };
+
+  const handleScanned = (card: ScannedCard) => {
+    // Map scanner result → ContactModal prefill shape
+    const noteParts: string[] = [];
+    if (card.address) noteParts.push(`Address: ${card.address}`);
+    if (card.website) noteParts.push(`Website: ${card.website}`);
+    if (card.notes) noteParts.push(card.notes);
+    setScanPrefill({
+      name: card.name,
+      email: card.email,
+      company: card.company,
+      role: card.title,
+      linkedin_url: card.linkedin,
+      phone: card.phone,
+      notes: noteParts.join("\n") || null,
+    });
+    setScanSource("card_scan");
+    setEditing(false);
+    setScannerOpen(false);
+    setModalOpen(true);
   };
 
   // Background enrichment
@@ -135,7 +173,10 @@ const Contacts = () => {
         </div>
         <div className="flex items-center gap-3">
           <RelationshipHealth contacts={filteredForActiveOrg} />
-          <button onClick={() => { setEditing(false); setModalOpen(true); }} className="btn-primary">
+          <button onClick={() => setScannerOpen(true)} className="btn-ghost" title="Scan a business card">
+            <Camera size={12} /> Scan Card
+          </button>
+          <button onClick={() => { setScanPrefill(null); setScanSource(undefined); setEditing(false); setModalOpen(true); }} className="btn-primary">
             <Plus size={12} /> Add Contact
           </button>
         </div>
@@ -189,11 +230,28 @@ const Contacts = () => {
 
       <ContactModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSaved={(id) => { handleSelect(id); loadContacts(); }}
+        onClose={() => { setModalOpen(false); setScanPrefill(null); setScanSource(undefined); }}
+        onSaved={(id) => {
+          handleSelect(id);
+          loadContacts();
+          if (scanSource === "card_scan") {
+            const orgName = orgs.find((o) => o.id === activeOrg?.id)?.name ?? "your CRM";
+            toast.success(`Contact saved — added to ${orgName}`);
+          }
+          setScanPrefill(null);
+          setScanSource(undefined);
+        }}
         orgs={orgsForList}
         defaultOrgId={activeOrg?.id ?? null}
         contact={editing ? selected : null}
+        prefill={scanPrefill}
+        source={scanSource}
+      />
+
+      <CardScannerModal
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onExtracted={handleScanned}
       />
     </div>
   );

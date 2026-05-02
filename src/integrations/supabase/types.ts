@@ -645,58 +645,93 @@ export type Database = {
         Row: {
           ai_prefs: Json
           avatar_url: string | null
+          card_theme: string
+          company: string | null
           created_at: string
+          custom_links: Json
           display_name: string | null
           email: string
           google_access_token: string | null
           google_granted_scopes: string | null
           google_refresh_token: string | null
           id: string
+          linkedin_url: string | null
           notification_prefs: Json
+          phone: string | null
           preferred_name: string | null
+          primary_org_id: string | null
           scheduling_prefs: Json
+          tagline: string | null
           timezone: string | null
+          title: string | null
           updated_at: string
           username: string | null
           voice_profile: string | null
+          website_url: string | null
         }
         Insert: {
           ai_prefs?: Json
           avatar_url?: string | null
+          card_theme?: string
+          company?: string | null
           created_at?: string
+          custom_links?: Json
           display_name?: string | null
           email: string
           google_access_token?: string | null
           google_granted_scopes?: string | null
           google_refresh_token?: string | null
           id: string
+          linkedin_url?: string | null
           notification_prefs?: Json
+          phone?: string | null
           preferred_name?: string | null
+          primary_org_id?: string | null
           scheduling_prefs?: Json
+          tagline?: string | null
           timezone?: string | null
+          title?: string | null
           updated_at?: string
           username?: string | null
           voice_profile?: string | null
+          website_url?: string | null
         }
         Update: {
           ai_prefs?: Json
           avatar_url?: string | null
+          card_theme?: string
+          company?: string | null
           created_at?: string
+          custom_links?: Json
           display_name?: string | null
           email?: string
           google_access_token?: string | null
           google_granted_scopes?: string | null
           google_refresh_token?: string | null
           id?: string
+          linkedin_url?: string | null
           notification_prefs?: Json
+          phone?: string | null
           preferred_name?: string | null
+          primary_org_id?: string | null
           scheduling_prefs?: Json
+          tagline?: string | null
           timezone?: string | null
+          title?: string | null
           updated_at?: string
           username?: string | null
           voice_profile?: string | null
+          website_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_primary_org_id_fkey"
+            columns: ["primary_org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {
