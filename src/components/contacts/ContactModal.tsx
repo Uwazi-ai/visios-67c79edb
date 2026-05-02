@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { stagesForOrg } from "@/lib/engagementStages";
 import type { ContactRow } from "@/pages/Contacts";
 
+interface Prefill {
+  name?: string | null;
+  email?: string | null;
+  company?: string | null;
+  role?: string | null;
+  linkedin_url?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -11,9 +21,11 @@ interface Props {
   orgs: Array<{ id: string; slug: string; name: string }>;
   defaultOrgId?: string | null;
   contact?: ContactRow | null; // edit mode if provided
+  prefill?: Prefill | null;
+  source?: string; // e.g. 'card_scan'
 }
 
-export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, contact }: Props) => {
+export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, contact, prefill, source }: Props) => {
   const editing = !!contact;
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -41,20 +53,23 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
       setNotes(contact.notes ?? "");
       setStage(contact.engagement_stage ?? "prospect");
     } else {
-      setName("");
-      setEmail("");
-      setCompany("");
-      setRole("");
+      setName(prefill?.name ?? "");
+      setEmail(prefill?.email ?? "");
+      setCompany(prefill?.company ?? "");
+      setRole(prefill?.role ?? "");
       setOrgId(defaultOrgId ?? orgs[0]?.id ?? "");
-      setLinkedinUrl("");
-      setPhone("");
-      setNotes("");
+      setLinkedinUrl(prefill?.linkedin_url ?? "");
+      setPhone(prefill?.phone ?? "");
+      setNotes(prefill?.notes ?? "");
       setStage("prospect");
     }
     setErr(null);
-  }, [open, contact, defaultOrgId, orgs]);
+  }, [open, contact, defaultOrgId, orgs, prefill]);
 
   if (!open) return null;
+
+  // Track which fields came from a prefill so we can show "AI extracted" badges
+  const prefilled = (key: keyof Prefill) => !!prefill && prefill[key] != null && prefill[key] !== "";
 
   const orgSlug = orgs.find((o) => o.id === orgId)?.slug;
   const stages = stagesForOrg(orgSlug);
