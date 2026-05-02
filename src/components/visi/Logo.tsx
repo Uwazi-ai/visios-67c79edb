@@ -8,23 +8,12 @@ interface LogoProps {
 }
 
 export const VisiLogo = ({ size = 28, showWordmark = false }: LogoProps) => {
-  if (showWordmark) {
-    return (
-      <img
-        src={logoSrc}
-        alt="Visi OS"
-        height={size}
-        style={{ height: size, width: "auto", objectFit: "contain", display: "block" }}
-      />
-    );
-  }
-
-  // Compact: V mark + /OS wordmark image
+  void logoSrc;
   const wordmarkHeight = (size > 30 ? 20 : 15) * 5;
   return (
     <div className="flex items-center">
       <img
-        src={wordmarkSrc}
+        src={`${wordmarkSrc}?v=3`}
         alt="Visi OS"
         style={{ height: wordmarkHeight, width: "auto", objectFit: "contain", display: "block" }}
       />
