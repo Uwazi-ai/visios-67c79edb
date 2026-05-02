@@ -432,7 +432,10 @@ export default function Vision() {
   const personaObj = PERSONA_MAP[persona];
 
   return (
-    <div className="flex w-full" style={{ height: "calc(100vh - 56px)", minHeight: 0, background: "#0b0b14" }}>
+    <div
+      className="flex w-full -m-4 md:-m-6 -mb-24 md:-mb-6"
+      style={{ height: "calc(100vh - 64px)", minHeight: 600, background: "#0b0b14" }}
+    >
       {/* Sidebar */}
       <aside
         className={`${sidebarOpen ? "fixed inset-y-0 left-0 z-50 flex" : "hidden"} md:relative md:flex md:z-auto flex-col`}
