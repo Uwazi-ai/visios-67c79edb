@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export async function saveProfile(userId: string, patch: Record<string, any>, opts?: { silent?: boolean }) {
-  const { error } = await supabase.from("profiles").update(patch).eq("id", userId);
+  const { error } = await supabase.from("profiles").update(patch as never).eq("id", userId);
   if (error) {
     toast.error(error.message);
     return false;
