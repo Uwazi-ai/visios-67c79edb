@@ -22,6 +22,9 @@ import {
   NotificationsPage, FinancePage,
 } from "./pages/EmptyPages";
 import ContactsPage from "./pages/Contacts";
+import CardPublic from "./pages/CardPublic";
+import MyCardSettings from "./pages/MyCardSettings";
+import { InstallBanner } from "@/components/pwa/InstallBanner";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +41,7 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
+              <Route path="/card/:username" element={<CardPublic />} />
               <Route element={<AppShell />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/inbox" element={<InboxPage />} />
@@ -50,10 +54,12 @@ const App = () => (
                 <Route path="/meetings" element={<MeetingsPage />} />
                 <Route path="/finance" element={<FinancePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/settings/my-card" element={<MyCardSettings />} />
                 <Route path="/settings/token-health" element={<TokenHealthPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <InstallBanner />
             </TimezoneProvider>
           </OrgProvider>
         </AuthProvider>

@@ -61,7 +61,7 @@ const CardPublic = () => {
         orgSlug = (org?.slug as string | undefined) ?? null;
       }
 
-      const links = Array.isArray(p.custom_links) ? p.custom_links as Array<{ label: string; url: string }> : [];
+      const links = Array.isArray(p.custom_links) ? (p.custom_links as unknown as Array<{ label: string; url: string }>) : [];
 
       setData({
         username: p.username,
