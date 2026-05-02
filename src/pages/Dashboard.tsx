@@ -1,6 +1,7 @@
 import { Clock, Inbox, CheckSquare, Activity, Zap, GitBranch, Lock } from "lucide-react";
 import { MorningBrief } from "@/components/dashboard/MorningBrief";
 import { DashCard, EmptyHint } from "@/components/dashboard/DashCard";
+import { ScheduleToday } from "@/components/dashboard/ScheduleToday";
 
 const Dashboard = () => {
   return (
@@ -10,10 +11,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* SCHEDULE */}
         <DashCard title="Schedule" icon={Clock} delay={60}>
-          <ScheduleRow time="09:30" title="UWAZI standup" org="uwazi" attendees={4} />
-          <ScheduleRow time="11:00" title="Investor brief — BIN" org="bin" attendees={2} live />
-          <ScheduleRow time="14:00" title="Culture Club planning" org="cc" attendees={6} />
-          <ScheduleRow time="16:30" title="1:1 with Maya" org="uwazi" attendees={2} />
+          <ScheduleToday />
         </DashCard>
 
         {/* INBOX */}
