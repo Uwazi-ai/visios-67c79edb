@@ -58,7 +58,7 @@ Always has a specific next action.`;
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const [tab, setTab] = useState<TabKey>("integrations");
+  const [tab, setTab] = useState<TabKey>("connections");
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
 
