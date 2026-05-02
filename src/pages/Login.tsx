@@ -88,8 +88,8 @@ const Login = () => {
             className="t-hero mt-8"
             style={{ fontSize: "clamp(28px, 4vw, 40px)" }}
           >
-            Your companies.<br />
-            <span className="slash" style={{ margin: 0 }}>/</span> One OS.
+            YOUR TECH STACK<br />
+            <span className="slash" style={{ margin: 0 }}>/</span> ONE OS.
           </h1>
           <p
             className="mt-4 max-w-sm"
@@ -101,7 +101,7 @@ const Login = () => {
               lineHeight: 1.5,
             }}
           >
-            The operating system for the multi-venture builder. Email, tasks, calendar, decisions — unified.
+            The operating system for your entire organizations tech stack Email, tasks, calendar, decisions, team comms&nbsp;&nbsp;all unified.
           </p>
 
           <button
