@@ -1,6 +1,7 @@
 import { Clock, Inbox, CheckSquare, Activity, Zap, GitBranch, Lock } from "lucide-react";
 import { MorningBrief } from "@/components/dashboard/MorningBrief";
 import { DashCard, EmptyHint } from "@/components/dashboard/DashCard";
+import { ScheduleToday } from "@/components/dashboard/ScheduleToday";
 
 const Dashboard = () => {
   return (
@@ -10,10 +11,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* SCHEDULE */}
         <DashCard title="Schedule" icon={Clock} delay={60}>
-          <ScheduleRow time="09:30" title="UWAZI standup" org="uwazi" attendees={4} />
-          <ScheduleRow time="11:00" title="Investor brief — BIN" org="bin" attendees={2} live />
-          <ScheduleRow time="14:00" title="Culture Club planning" org="cc" attendees={6} />
-          <ScheduleRow time="16:30" title="1:1 with Maya" org="uwazi" attendees={2} />
+          <ScheduleToday />
         </DashCard>
 
         {/* INBOX */}
@@ -59,20 +57,6 @@ const Dashboard = () => {
 };
 
 /* ============ Row components ============ */
-
-const orgColor = (slug: string) => ({ uwazi: "#2563EB", bin: "#EF4444", cc: "#22C55E" } as Record<string, string>)[slug] ?? "#2563EB";
-
-const ScheduleRow = ({ time, title, org, attendees, live }: { time: string; title: string; org: string; attendees: number; live?: boolean }) => (
-  <div
-    className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] transition-colors hover:bg-white/[0.04]"
-    style={{ borderLeft: `2px solid ${orgColor(org)}`, background: "var(--bg-glass-1)" }}
-  >
-    <span className="t-mono" style={{ color: "var(--text-primary)", fontSize: 12 }}>{time}</span>
-    <span className="flex-1 truncate" style={{ fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>{title}</span>
-    <span className="badge badge-muted">{attendees}</span>
-    {live && <button className="btn-ghost" style={{ height: 26, padding: "0 10px", fontSize: 10 }}>Join</button>}
-  </div>
-);
 
 const EmailRow = ({ initials, name, subject, badge }: { initials: string; name: string; subject: string; badge: "urgent" | "warn" | "info" }) => (
   <div className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] transition-colors hover:bg-white/[0.04]" style={{ background: "var(--bg-glass-1)" }}>

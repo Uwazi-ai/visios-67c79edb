@@ -7,6 +7,7 @@ import { useTime } from "@/contexts/TimezoneContext";
 import { supabase } from "@/integrations/supabase/client";
 import { FunctionsHttpError } from "@supabase/supabase-js";
 import { ORG_COLORS } from "@/lib/orgs";
+import { detectOrgSlugFromEmails } from "@/lib/orgDetect";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
@@ -70,14 +71,6 @@ const fmtTimeShort = (d: Date, tz: string) => d.toLocaleTimeString("en-US", { ho
 const fmtRange = (s: Date, e: Date, tz: string) => `${fmtTime(s, tz)} – ${fmtTime(e, tz)}`;
 const fmtDateLong = (d: Date, tz: string, opts: Intl.DateTimeFormatOptions) => d.toLocaleDateString("en-US", { ...opts, timeZone: tz });
 
-// keyword → org slug
-function detectOrgSlug(title: string, description: string): string | null {
-  const t = `${title} ${description}`.toLowerCase();
-  if (t.includes("uwazi")) return "uwazi";
-  if (t.includes("culture club") || /\bcc\b/.test(t)) return "cc";
-  if (t.includes("bin")) return "bin";
-  return null;
-}
 
 export default function Calendar() {
   const isMobile = useIsMobile();
@@ -138,7 +131,7 @@ export default function Calendar() {
       if (data?.error) throw new Error(data.error);
       setNeedsReconnect(false);
       const mapped: CalEvent[] = (data.events ?? []).map((e: { id: string; summary: string; description: string; start: string; end: string; allDay: boolean; attendees: string[]; hangoutLink: string | null; htmlLink: string | null }) => {
-        const slug = detectOrgSlug(e.summary, e.description);
+        const slug = detectOrgSlugFromEmails(e.attendees ?? []);
         const orgInfo = slug ? orgBySlug.get(slug) : null;
         return {
           ...e,
