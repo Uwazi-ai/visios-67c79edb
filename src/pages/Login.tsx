@@ -30,6 +30,24 @@ const Login = () => {
   const navigate = useNavigate();
   const [signing, setSigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleDevLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSigning(true);
+    setError(null);
+    // Try sign in, fall back to sign up (auto-confirm is on)
+    let { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error && /invalid login|invalid credentials/i.test(error.message)) {
+      const r = await supabase.auth.signUp({ email, password });
+      error = r.error;
+    }
+    if (error) {
+      setError(error.message);
+      setSigning(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && session) navigate("/", { replace: true });
@@ -97,6 +115,42 @@ const Login = () => {
               {signing ? "Connecting…" : "Continue with Google"}
             </span>
           </button>
+
+          <div className="mt-6 flex w-full items-center gap-3" style={{ color: "var(--text-tertiary)", fontSize: 11 }}>
+            <div style={{ flex: 1, height: 1, background: "var(--border-subtle)" }} />
+            <span className="t-mono">DEV BYPASS</span>
+            <div style={{ flex: 1, height: 1, background: "var(--border-subtle)" }} />
+          </div>
+
+          <form onSubmit={handleDevLogin} className="mt-4 flex w-full flex-col gap-2">
+            <input
+              type="email"
+              required
+              placeholder="email@dev.local"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="input-glass"
+              style={{ height: 40, padding: "0 12px", fontSize: 13 }}
+            />
+            <input
+              type="password"
+              required
+              minLength={6}
+              placeholder="password (min 6 chars)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="input-glass"
+              style={{ height: 40, padding: "0 12px", fontSize: 13 }}
+            />
+            <button
+              type="submit"
+              disabled={signing}
+              className="btn-primary mt-1 w-full justify-center"
+              style={{ height: 44, fontSize: 13 }}
+            >
+              {signing ? "Signing in…" : "Sign in / Sign up"}
+            </button>
+          </form>
 
           {error && <p className="mt-4 text-xs" style={{ color: "var(--sev-critical)" }}>{error}</p>}
 
