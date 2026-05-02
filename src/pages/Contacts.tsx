@@ -282,6 +282,15 @@ const Contacts = () => {
         onClose={() => setScannerOpen(false)}
         onExtracted={handleScanned}
       />
+
+      <GmailAgentDrawer
+        open={agentOpen}
+        onClose={() => setAgentOpen(false)}
+        orgs={orgsForList}
+        onContactsChanged={loadContacts}
+        onPendingChanged={refreshPending}
+        initialPhase={agentInitialPhase}
+      />
     </div>
   );
 };
