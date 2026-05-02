@@ -102,13 +102,32 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
         if (error) throw error;
         onSaved(contact.id);
       } else {
+        const insertPayload = {
+          ...payload,
+          last_touched_at: new Date().toISOString(),
+          metadata: source ? { source } : {},
+        };
         const { data, error } = await supabase
           .from("contacts")
-          .insert({ ...payload, last_touched_at: new Date().toISOString() })
+          .insert(insertPayload)
           .select("id")
           .single();
         if (error) throw error;
-        if (data) onSaved(data.id);
+        if (data) {
+          // Log a card-scan interaction so it shows in the timeline
+          if (source === "card_scan") {
+            await supabase.from("contact_interactions").insert({
+              contact_id: data.id,
+              org_id: orgId,
+              type: "note",
+              source: "card_scan",
+              title: "Business card scanned",
+              summary: "Contact created from a scanned business card.",
+              occurred_at: new Date().toISOString(),
+            });
+          }
+          onSaved(data.id);
+        }
       }
       onClose();
     } catch (e) {
