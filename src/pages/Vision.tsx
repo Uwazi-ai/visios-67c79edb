@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, Send, Trash2, Settings, MoreHorizontal, Pencil, Check, X,
   Copy, RefreshCw, ThumbsUp, ThumbsDown, Menu, ChevronDown, Sparkles,
-  Target, Pencil as PencilIcon, FlaskConical, BarChart3, Compass, Palette,
+  Target, Pencil as PencilIcon, FlaskConical, BarChart3, Compass, Palette, Eye,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { PERSONAS, PERSONA_MAP, DEFAULT_PERSONA, type PersonaKey } from "@/lib/aiPersonas";
-import { buildSystemPrompt, type AIContextSnapshot } from "@/lib/aiPrompt";
+import { buildVisionSystemPrompt, type VisionContext } from "@/lib/visionPrompt";
 import { callClaude } from "@/lib/claudeStream";
 import { toast } from "@/hooks/use-toast";
 import { VisionCircle } from "@/components/vision/VisionCircle";
@@ -97,6 +97,8 @@ export default function Vision() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);
+  const [lastSources, setLastSources] = useState<{ sources: Record<string, boolean>; counts: Record<string, number> } | null>(null);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -196,25 +198,35 @@ export default function Vision() {
       conversation_id: convId, user_id: user.id, role: "user", content: text, persona,
     }).then(() => {});
 
-    // Build context (best effort, optional)
-    let ctx: AIContextSnapshot = {
-      today: new Date().toISOString(),
-      active_org_name: activeOrg?.name ?? null,
-      profile: { display_name: (user.user_metadata?.full_name as string) ?? null, email: user.email ?? null },
-    };
+    // Fetch live context from Vision Context Engine
+    let visionCtx: VisionContext = {};
     try {
-      const { data: ctxData } = await supabase.functions.invoke("ai-build-context", {
-        body: { org_id: activeOrgId ?? null, query: text, use_kb: true },
+      const { data: ctxData } = await supabase.functions.invoke("vision-context", {
+        body: { org_id: activeOrgId ?? null, message: text },
       });
       if (ctxData) {
-        ctx = { ...ctxData, today: ctxData.today ?? new Date().toISOString(), active_org_name: activeOrg?.name ?? null };
+        visionCtx = ctxData as VisionContext;
+        setLastSources({
+          sources: (ctxData as any).sources ?? {},
+          counts: {
+            emails: (ctxData as any).emails?.length ?? 0,
+            calendar: (ctxData as any).calendar?.length ?? 0,
+            drive: (ctxData as any).drive?.length ?? 0,
+            contacts: (ctxData as any).contacts?.length ?? 0,
+            tasks: (ctxData as any).tasks?.length ?? 0,
+            kb: (ctxData as any).kb?.length ?? 0,
+          },
+        });
       }
-    } catch { /* ignore */ }
+    } catch (e) {
+      console.warn("vision-context failed", e);
+    }
 
-    let system = buildSystemPrompt(persona, ctx, { surface: "/vision" });
-    // Re-brand: this is Vision, not Visi.
-    system = system.replace(/You are Visi,/g, "You are Vision,");
-    system += "\n\nIMPORTANT: You are Vision. Never refer to yourself as Claude, Anthropic, or Visi. Be warm, direct, and founder-aware.";
+    const system = buildVisionSystemPrompt(persona, visionCtx, {
+      display_name: (user.user_metadata?.full_name as string) ?? null,
+      email: user.email ?? null,
+      active_org_name: activeOrg?.name ?? null,
+    });
 
     const history = [...messages, userMsg]
       .filter((m) => m.content && !m.streaming)
@@ -531,11 +543,38 @@ export default function Vision() {
 
       {/* Main column */}
       <div className="flex-1 flex flex-col min-w-0" style={{ background: "#0b0b14" }}>
-        {/* Mobile top bar */}
-        <div className="md:hidden flex items-center px-3 py-2" style={{ borderBottom: "1px solid #1f1f2e" }}>
-          <button onClick={() => setSidebarOpen(true)} className="text-gray-300"><Menu size={20} /></button>
-          <div className="flex-1 text-center text-white font-display font-bold">Vision</div>
-          <button onClick={newChat} className="text-gray-300"><Plus size={18} /></button>
+        {/* Top bar */}
+        <div className="flex items-center px-3 py-2 gap-2" style={{ borderBottom: "1px solid #1f1f2e" }}>
+          <button onClick={() => setSidebarOpen(true)} className="text-gray-300 md:hidden"><Menu size={20} /></button>
+          <div className="flex-1 text-center md:text-left text-white font-display font-bold md:pl-2">Vision</div>
+          <div className="relative">
+            <button
+              onClick={() => setSourcesOpen((v) => !v)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-gray-300 hover:text-white hover:bg-[#1f2937]"
+              title="What Vision can see"
+            >
+              <Eye size={14} /> <span className="hidden sm:inline">Sources</span>
+            </button>
+            {sourcesOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setSourcesOpen(false)} />
+                <div
+                  className="absolute right-0 top-full mt-2 z-50 rounded-xl p-3 w-72"
+                  style={{ background: "#111827", border: "1px solid #374151" }}
+                >
+                  <div className="text-xs uppercase tracking-wider text-gray-500 mb-2">Vision can see</div>
+                  <SourceList sources={lastSources?.sources ?? null} counts={lastSources?.counts ?? null} />
+                  <button
+                    onClick={() => { setSourcesOpen(false); navigate("/settings"); }}
+                    className="mt-3 w-full text-xs text-[#a78bfa] hover:text-white text-left"
+                  >
+                    Manage Connections →
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+          <button onClick={newChat} className="text-gray-300 md:hidden"><Plus size={18} /></button>
         </div>
 
         {/* Messages or welcome */}
@@ -796,6 +835,45 @@ const MessageRow = ({
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+const SOURCE_LABELS: { key: string; icon: string; label: string }[] = [
+  { key: "gmail", icon: "📧", label: "Gmail" },
+  { key: "calendar", icon: "📅", label: "Calendar" },
+  { key: "drive", icon: "📁", label: "Drive" },
+  { key: "contacts", icon: "👥", label: "Contacts" },
+  { key: "tasks", icon: "✅", label: "Tasks" },
+  { key: "kb", icon: "📚", label: "Knowledge" },
+  { key: "slack", icon: "💬", label: "Slack" },
+];
+
+const COUNT_KEY: Record<string, string> = {
+  gmail: "emails", calendar: "calendar", drive: "drive",
+  contacts: "contacts", tasks: "tasks", kb: "kb", slack: "slack",
+};
+
+const SourceList = ({ sources, counts }: { sources: Record<string, boolean> | null; counts: Record<string, number> | null }) => {
+  if (!sources) {
+    return <div className="text-xs text-gray-500">Send a message to populate context.</div>;
+  }
+  return (
+    <div className="space-y-1.5">
+      {SOURCE_LABELS.map((s) => {
+        const on = sources[s.key];
+        const count = counts?.[COUNT_KEY[s.key]] ?? 0;
+        return (
+          <div key={s.key} className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 text-gray-200">
+              <span>{s.icon}</span> {s.label}
+            </span>
+            <span className={`text-xs ${on ? "text-emerald-400" : "text-gray-500"}`}>
+              {on ? (count > 0 ? `✓ ${count}` : "✓") : "—"}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 };

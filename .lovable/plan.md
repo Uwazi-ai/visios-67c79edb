@@ -1,61 +1,98 @@
-## Overview
+# Vision Context Engine — Implementation Plan
 
-Add three features to Visi OS, matching the existing dark glass design system:
+A large multi-system build. Shipping in phases so each part is verifiable. This plan covers scope, schema, edge functions, UI, and ordering.
 
-1. **My Digital Card** — public shareable profile at `/card/:username` + editor at `/settings/my-card`
-2. **Business Card Scanner** — camera capture on Contacts page that uses AI vision to auto-create contacts
-3. **PWA Setup** — make Visi OS installable on mobile/desktop
+## Scope summary
 
-## Important deviations from spec (and why)
+Build the data layer that lets Vision see, in every conversation:
+Gmail, Google Calendar, Google Drive, Contacts, Tasks, Slack, Jira, Confluence, Knowledge Base — each user sees only their own data, org-scoped, with per-source toggles.
 
-- **Profiles table already exists** (with `id = auth.users.id`, `username`, `avatar_url`, `display_name`). I will **extend** it via migration with the missing fields (`title`, `company`, `primary_org_id`, `tagline`, `phone`, `linkedin_url`, `website_url`, `card_theme`, `custom_links`) instead of recreating it. Also adding a public-read RLS policy scoped to rows where `username IS NOT NULL` (already exists — perfect for the public card route).
-- **AI vision** for card scanning will use the **Lovable AI Gateway** (`google/gemini-2.5-flash` with image input) via a new edge function `scan-business-card`. We don't have an Anthropic key, and Lovable AI is the project standard.
-- **PWA in Lovable preview**: per platform rules, the service worker will be guarded so it only registers in production (not in iframes / `id-preview--*` / `lovableproject.com` hosts). Otherwise the preview breaks with stale caches.
-- **Contacts table** — already has `metadata jsonb`; I'll store the `source: 'card_scan'` flag inside `metadata` rather than adding a new column to keep the schema lean. (Spec asks for a column, but metadata avoids another migration and keeps types stable.)
+## Schema changes (one migration)
 
-## File plan
+There is no `integrations` table today. Create one:
 
-### Database (one migration)
-- Add columns to `profiles`: `title`, `company`, `primary_org_id`, `tagline`, `phone`, `linkedin_url`, `website_url`, `card_theme`, `custom_links`, `website_url`. (Existing fields kept.)
-
-### Feature 1 — Digital Card
-- `src/pages/CardPublic.tsx` — public route, no auth, fetches profile by username, renders avatar/name/title/org pill/action buttons/custom links/QR. vCard generation via Blob.
-- `src/pages/MyCardSettings.tsx` — editor with live phone-frame preview.
-- `src/lib/vcard.ts` — vCard string builder + download helper.
-- `src/components/card/CardPreview.tsx` — shared card render used in both public page and editor preview.
-- Route adds in `src/App.tsx`: `/card/:username` (outside AppShell, public) and `/settings/my-card` (inside AppShell).
-
-### Feature 2 — Business Card Scanner
-- `src/components/contacts/CardScannerModal.tsx` — fullscreen camera modal (getUserMedia, capture, upload fallback, processing, review).
-- `supabase/functions/scan-business-card/index.ts` — accepts base64 image, calls Lovable AI Gateway with vision prompt, returns parsed JSON. Public function (no JWT), CORS enabled.
-- `supabase/config.toml` — register `scan-business-card` with `verify_jwt = false`.
-- Wire into `src/pages/Contacts.tsx`: add "Scan Card" button, handle `?scan=true` query param to auto-open.
-- After save: insert into `contacts` with `metadata.source = 'card_scan'` and a `contact_interactions` row (`type='note'`, `source='card_scan'`).
-
-### Feature 3 — PWA
-- `bun add qrcode @types/qrcode vite-plugin-pwa workbox-window`
-- `vite.config.ts` — add VitePWA plugin (manifest disabled, link static manifest), with iframe-safe runtime caching.
-- `public/manifest.json` — name/icons/shortcuts as specified.
-- `public/icons/icon-192.png` and `icon-512.png` — generate via imagegen (dark bg #02020A with V mark, maskable safe zone).
-- `public/offline.html` — dark fallback page.
-- `index.html` — manifest link, apple meta tags, apple-touch-icon.
-- `src/components/pwa/InstallBanner.tsx` — listens to `beforeinstallprompt`, iOS detection, 7-day localStorage dismiss, hidden when standalone.
-- `src/main.tsx` — guarded SW registration (skip in iframe / preview hosts; unregister existing SWs there to be safe).
-- `src/index.css` — add safe-area-inset padding utilities for top/bottom bars.
-
-## Routing summary
-
-```text
-/card/:username           public  (new, outside AppShell)
-/settings/my-card         auth    (new, inside AppShell)
-/contacts                 auth    (existing, + Scan button + ?scan=true handling)
+```sql
+create table public.integrations (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  org_id uuid,
+  provider text not null,            -- 'google'|'slack'|'jira'|'confluence'
+  status text not null default 'connected',
+  vision_enabled boolean not null default true,
+  metadata jsonb not null default '{}'::jsonb,
+  -- google: { gmail_enabled, calendar_enabled, drive_enabled, drive_folder_ids[] }
+  -- slack: { team_id, channels[], bot_token_ref }
+  -- jira/confluence: { domain, email }
+  last_synced_at timestamptz,
+  last_kb_sync_at timestamptz,
+  kb_doc_count integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(user_id, provider, org_id)
+);
+-- RLS: self-only read/write
 ```
 
-## Build order
+Extend `kb_documents`:
+```sql
+alter table kb_documents
+  add column if not exists external_id text,
+  add column if not exists full_text text,
+  add column if not exists source_integration text;
+create unique index if not exists kb_docs_external_id_idx
+  on kb_documents(user_id, external_id) where external_id is not null;
+```
 
-1. Migration (extend `profiles`)
-2. PWA infra (manifest, icons, vite plugin, guarded registration, install banner)
-3. Card editor + public card page + vCard + QR
-4. Card scanner modal + edge function + Contacts wiring
+Secrets stored server-side (never in metadata): per-user Slack/Jira/Confluence tokens go in a `user_integration_secrets` table with RLS self-only, columns `(user_id, provider, token, refresh_token)`.
 
-After each step I'll let the build hook validate. I'll generate the icons last so I don't block on imagegen.
+## Edge functions
+
+New:
+- `vision-context` — intent classifier (Lovable AI: openai/gpt-5-mini, JSON mode) + parallel fetchers; returns `{ emails, calendar, drive, contacts, tasks, slack, kb }`. Called from Vision before each message.
+- `slack-oauth-callback` + `slack-sync` (every 30 min via pg_cron)
+- `jira-sync` (every 2h)
+- `confluence-sync` (every 6h)
+
+Extend:
+- `_shared/google.ts` already has `getFreshGoogleAccessToken` — reuse for Gmail/Calendar/Drive fetchers inside `vision-context` (no separate google-proxy needed; we already have gmail/calendar functions to model after).
+- `Vision.tsx` send flow → call `vision-context` first, pass result into system prompt builder, then stream Claude.
+
+Scheduled jobs registered via `supabase--insert` (pg_cron + pg_net), not migration.
+
+## System prompt
+
+New `src/lib/visionPrompt.ts` exporting `buildVisionSystemPrompt(persona, context, profile)` matching the spec format with sections for emails/calendar/tasks/contacts/drive/slack/kb. Vision rule: never say "Claude".
+
+## UI
+
+1. **Settings → Connections tab** (`src/pages/Settings.tsx` + new `src/components/settings/ConnectionsPanel.tsx`):
+   - 3-col grid of tiles: Gmail, Calendar, Drive, Contacts, Tasks, Slack, KB, Jira, Confluence
+   - Each tile: status dot, last synced, vision toggle, manage button
+   - Google tile group has 3 sub-toggles
+   - Drive tile has org-folder ID inputs
+   - Slack/Jira/Confluence tiles have connect modals (token inputs)
+2. **Vision header "What I Can See"** button (`Eye` icon) → popover listing connected sources with counts.
+3. **Citation chips** in Vision messages: parse `[gmail:THREADID|label]`, `[drive:FILEID|label]`, `[kb:DOCID|label]`, `[jira:KEY|label]`, `[slack:CHANNEL|label]` and render as clickable chips. Tell Vision in the system prompt to emit these tokens.
+
+## Implementation order (multi-message — start with foundation)
+
+This message ships **Phase 1** so the rest has something to build on:
+
+1. Migration: `integrations`, `user_integration_secrets`, `kb_documents` columns + RLS
+2. `vision-context` edge function with intent classifier + parallel fetchers (Gmail, Calendar, Contacts, Tasks, KB; Drive/Slack/Jira return null until configured)
+3. `src/lib/visionPrompt.ts` system prompt builder
+4. Wire `Vision.tsx` to call `vision-context` and use the new prompt
+5. Settings → Connections tab with Google sub-toggles, Vision toggles, KB tile (read-only counts). Slack/Jira/Confluence tiles show "Coming soon" connect buttons that will be activated in Phase 2.
+6. "What I Can See" popover in Vision header
+7. Basic citation chip rendering
+
+**Phase 2 (next message after you confirm Phase 1 works):** Slack OAuth, Jira sync, Confluence sync, pg_cron jobs, Drive folder content extraction, full citation routing.
+
+## Notes / decisions
+
+- Use Lovable AI (`openai/gpt-5-mini`, response_format json) for intent classification — no Anthropic Haiku call needed, no extra key.
+- Drive/Gmail/Calendar fetchers call Google APIs directly inside `vision-context` using the existing `getFreshGoogleAccessToken` helper — avoids adding a new proxy.
+- All fetches wrapped in `Promise.allSettled` so one failing source never blocks Vision.
+- Vision keeps working exactly as today if `vision-context` fails — we fall back to the existing prompt.
+
+Ready to ship Phase 1 on approval.

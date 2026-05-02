@@ -7,10 +7,11 @@ import { toast } from "sonner";
 import {
   Plug, User as UserIcon, Building2, Sparkles, Clock, Bell,
   Check, Loader2, RefreshCw, Copy, ExternalLink, Eye, EyeOff,
-  AlertTriangle, Lock, Camera,
+  AlertTriangle, Lock, Camera, Zap,
 } from "lucide-react";
+import ConnectionsPanel from "@/components/settings/ConnectionsPanel";
 
-type TabKey = "integrations" | "profile" | "orgs" | "ai" | "scheduling" | "notifications";
+type TabKey = "connections" | "integrations" | "profile" | "orgs" | "ai" | "scheduling" | "notifications";
 
 const GOOGLE_SCOPES = [
   "openid",
@@ -25,6 +26,7 @@ const GOOGLE_SCOPES = [
 ].join(" ");
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
+  { key: "connections", label: "Connections", icon: Zap },
   { key: "integrations", label: "Integrations", icon: Plug },
   { key: "profile", label: "Profile", icon: UserIcon },
   { key: "orgs", label: "Orgs", icon: Building2 },
@@ -56,7 +58,7 @@ Always has a specific next action.`;
 
 export default function SettingsPage() {
   const { user } = useAuth();
-  const [tab, setTab] = useState<TabKey>("integrations");
+  const [tab, setTab] = useState<TabKey>("connections");
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(true);
 

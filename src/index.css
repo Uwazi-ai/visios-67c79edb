@@ -486,3 +486,6 @@
 .vision-prose table { border-collapse: collapse; margin: 0.7em 0; width: 100%; font-size: 0.9em; }
 .vision-prose th, .vision-prose td { border: 1px solid #1f2937; padding: 6px 10px; text-align: left; }
 .vision-prose th { background: #111827; color: #fff; }
+
+.vision-citation-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; margin: 0 2px; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.35); border-radius: 999px; color: #c7d2fe !important; text-decoration: none !important; font-size: 0.88em; font-weight: 500; transition: background 0.15s; }
+.vision-citation-chip:hover { background: rgba(99,102,241,0.22); }
