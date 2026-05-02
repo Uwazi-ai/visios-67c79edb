@@ -58,20 +58,6 @@ const Dashboard = () => {
 
 /* ============ Row components ============ */
 
-const orgColor = (slug: string) => ({ uwazi: "#2563EB", bin: "#EF4444", cc: "#22C55E" } as Record<string, string>)[slug] ?? "#2563EB";
-
-const ScheduleRow = ({ time, title, org, attendees, live }: { time: string; title: string; org: string; attendees: number; live?: boolean }) => (
-  <div
-    className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] transition-colors hover:bg-white/[0.04]"
-    style={{ borderLeft: `2px solid ${orgColor(org)}`, background: "var(--bg-glass-1)" }}
-  >
-    <span className="t-mono" style={{ color: "var(--text-primary)", fontSize: 12 }}>{time}</span>
-    <span className="flex-1 truncate" style={{ fontFamily: "var(--font-body)", fontSize: 13, fontWeight: 500, color: "var(--text-primary)" }}>{title}</span>
-    <span className="badge badge-muted">{attendees}</span>
-    {live && <button className="btn-ghost" style={{ height: 26, padding: "0 10px", fontSize: 10 }}>Join</button>}
-  </div>
-);
-
 const EmailRow = ({ initials, name, subject, badge }: { initials: string; name: string; subject: string; badge: "urgent" | "warn" | "info" }) => (
   <div className="flex items-center gap-3 px-3 py-2.5 rounded-[10px] transition-colors hover:bg-white/[0.04]" style={{ background: "var(--bg-glass-1)" }}>
     <div
