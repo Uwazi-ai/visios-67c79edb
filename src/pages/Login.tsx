@@ -30,6 +30,24 @@ const Login = () => {
   const navigate = useNavigate();
   const [signing, setSigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleDevLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSigning(true);
+    setError(null);
+    // Try sign in, fall back to sign up (auto-confirm is on)
+    let { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error && /invalid login|invalid credentials/i.test(error.message)) {
+      const r = await supabase.auth.signUp({ email, password });
+      error = r.error;
+    }
+    if (error) {
+      setError(error.message);
+      setSigning(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && session) navigate("/", { replace: true });
