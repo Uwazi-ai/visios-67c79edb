@@ -7,8 +7,9 @@ import { toast } from "sonner";
 import {
   Plug, User as UserIcon, Building2, Sparkles, Clock, Bell,
   Check, Loader2, RefreshCw, Copy, ExternalLink, Eye, EyeOff,
-  AlertTriangle, Lock, Camera,
+  AlertTriangle, Lock, Camera, Zap,
 } from "lucide-react";
+import ConnectionsPanel from "@/components/settings/ConnectionsPanel";
 
 type TabKey = "connections" | "integrations" | "profile" | "orgs" | "ai" | "scheduling" | "notifications";
 
