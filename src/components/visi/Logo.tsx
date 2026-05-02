@@ -1,5 +1,6 @@
 import logoSrc from "@/assets/visi-logo.png";
 import wordmarkSrc from "@/assets/visi-wordmark.png";
+import { withVersion } from "@/lib/assetVersion";
 
 interface LogoProps {
   size?: number;
