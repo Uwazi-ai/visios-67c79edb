@@ -97,6 +97,8 @@ export default function Vision() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [confirmClear, setConfirmClear] = useState(false);
+  const [lastSources, setLastSources] = useState<{ sources: Record<string, boolean>; counts: Record<string, number> } | null>(null);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
