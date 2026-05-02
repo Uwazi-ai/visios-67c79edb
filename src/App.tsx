@@ -24,6 +24,8 @@ import {
 import ContactsPage from "./pages/Contacts";
 import CardPublic from "./pages/CardPublic";
 import MyCardSettings from "./pages/MyCardSettings";
+import KnowledgePage from "./pages/Knowledge";
+import AISettings from "./pages/AISettings";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import NotFound from "./pages/NotFound";
 
@@ -51,10 +53,12 @@ const App = () => (
                 <Route path="/chat" element={<ChatPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/contacts" element={<ContactsPage />} />
+                <Route path="/knowledge" element={<KnowledgePage />} />
                 <Route path="/meetings" element={<MeetingsPage />} />
                 <Route path="/finance" element={<FinancePage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/my-card" element={<MyCardSettings />} />
+                <Route path="/settings/ai" element={<AISettings />} />
                 <Route path="/settings/token-health" element={<TokenHealthPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />
