@@ -838,3 +838,42 @@ const MessageRow = ({
     </div>
   );
 };
+
+const SOURCE_LABELS: { key: string; icon: string; label: string }[] = [
+  { key: "gmail", icon: "📧", label: "Gmail" },
+  { key: "calendar", icon: "📅", label: "Calendar" },
+  { key: "drive", icon: "📁", label: "Drive" },
+  { key: "contacts", icon: "👥", label: "Contacts" },
+  { key: "tasks", icon: "✅", label: "Tasks" },
+  { key: "kb", icon: "📚", label: "Knowledge" },
+  { key: "slack", icon: "💬", label: "Slack" },
+];
+
+const COUNT_KEY: Record<string, string> = {
+  gmail: "emails", calendar: "calendar", drive: "drive",
+  contacts: "contacts", tasks: "tasks", kb: "kb", slack: "slack",
+};
+
+const SourceList = ({ sources, counts }: { sources: Record<string, boolean> | null; counts: Record<string, number> | null }) => {
+  if (!sources) {
+    return <div className="text-xs text-gray-500">Send a message to populate context.</div>;
+  }
+  return (
+    <div className="space-y-1.5">
+      {SOURCE_LABELS.map((s) => {
+        const on = sources[s.key];
+        const count = counts?.[COUNT_KEY[s.key]] ?? 0;
+        return (
+          <div key={s.key} className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-2 text-gray-200">
+              <span>{s.icon}</span> {s.label}
+            </span>
+            <span className={`text-xs ${on ? "text-emerald-400" : "text-gray-500"}`}>
+              {on ? (count > 0 ? `✓ ${count}` : "✓") : "—"}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
