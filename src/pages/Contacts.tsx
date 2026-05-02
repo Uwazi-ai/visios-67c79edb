@@ -173,7 +173,10 @@ const Contacts = () => {
         </div>
         <div className="flex items-center gap-3">
           <RelationshipHealth contacts={filteredForActiveOrg} />
-          <button onClick={() => { setEditing(false); setModalOpen(true); }} className="btn-primary">
+          <button onClick={() => setScannerOpen(true)} className="btn-ghost" title="Scan a business card">
+            <Camera size={12} /> Scan Card
+          </button>
+          <button onClick={() => { setScanPrefill(null); setScanSource(undefined); setEditing(false); setModalOpen(true); }} className="btn-primary">
             <Plus size={12} /> Add Contact
           </button>
         </div>
@@ -227,11 +230,28 @@ const Contacts = () => {
 
       <ContactModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onSaved={(id) => { handleSelect(id); loadContacts(); }}
+        onClose={() => { setModalOpen(false); setScanPrefill(null); setScanSource(undefined); }}
+        onSaved={(id) => {
+          handleSelect(id);
+          loadContacts();
+          if (scanSource === "card_scan") {
+            const orgName = orgs.find((o) => o.id === activeOrg?.id)?.name ?? "your CRM";
+            toast.success(`Contact saved — added to ${orgName}`);
+          }
+          setScanPrefill(null);
+          setScanSource(undefined);
+        }}
         orgs={orgsForList}
         defaultOrgId={activeOrg?.id ?? null}
         contact={editing ? selected : null}
+        prefill={scanPrefill}
+        source={scanSource}
+      />
+
+      <CardScannerModal
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onExtracted={handleScanned}
       />
     </div>
   );
