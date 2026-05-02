@@ -10,7 +10,7 @@ import {
   AlertTriangle, Lock, Camera,
 } from "lucide-react";
 
-type TabKey = "integrations" | "profile" | "orgs" | "ai" | "scheduling" | "notifications";
+type TabKey = "connections" | "integrations" | "profile" | "orgs" | "ai" | "scheduling" | "notifications";
 
 const GOOGLE_SCOPES = [
   "openid",
