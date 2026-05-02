@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, RefreshCw, Loader2, Users } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Users, Camera } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -8,10 +8,12 @@ import { ContactList } from "@/components/contacts/ContactList";
 import { ContactDetail } from "@/components/contacts/ContactDetail";
 import { EngagementBoard } from "@/components/contacts/EngagementBoard";
 import { ContactModal } from "@/components/contacts/ContactModal";
+import { CardScannerModal, type ScannedCard } from "@/components/contacts/CardScannerModal";
 import { RelationshipHealth } from "@/components/contacts/RelationshipHealth";
 import { StaleBanner } from "@/components/contacts/StaleBanner";
 import { useContactEnrichment } from "@/hooks/useContactEnrichment";
 import { bucket } from "@/lib/contactsHealth";
+import { toast } from "sonner";
 
 export interface ContactRow {
   id: string;
@@ -40,6 +42,13 @@ const Contacts = () => {
   const [editing, setEditing] = useState(false);
   const [refreshTick, setRefreshTick] = useState(0);
   const [forceStale, setForceStale] = useState<60 | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanPrefill, setScanPrefill] = useState<{
+    name?: string | null; email?: string | null; company?: string | null;
+    role?: string | null; linkedin_url?: string | null; phone?: string | null;
+    notes?: string | null;
+  } | null>(null);
+  const [scanSource, setScanSource] = useState<string | undefined>(undefined);
 
   const activeOrg = useMemo(() => {
     if (!activeOrgId || activeOrgId === "all") return null;
