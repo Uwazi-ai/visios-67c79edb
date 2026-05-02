@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, RefreshCw, Loader2, Users, Camera } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Users, Camera, Sparkles, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -11,7 +11,10 @@ import { ContactModal } from "@/components/contacts/ContactModal";
 import { CardScannerModal, type ScannedCard } from "@/components/contacts/CardScannerModal";
 import { RelationshipHealth } from "@/components/contacts/RelationshipHealth";
 import { StaleBanner } from "@/components/contacts/StaleBanner";
+import { GmailAgentDrawer } from "@/components/contacts/GmailAgentDrawer";
+import { AgentStatusBar } from "@/components/contacts/AgentStatusBar";
 import { useContactEnrichment } from "@/hooks/useContactEnrichment";
+import { usePendingReviewCount, useAgentSettings } from "@/hooks/useGmailAgent";
 import { bucket } from "@/lib/contactsHealth";
 import { toast } from "sonner";
 
