@@ -66,7 +66,7 @@ export const ScheduleToday = () => {
         const mapped: Row[] = (data.events as ApiEvent[])
           .filter((e) => !e.allDay && e.start)
           .map((e) => {
-            const slug = detectOrgSlugFromEmails(e.attendees ?? []);
+            const slug = detectOrgSlugFromEmails(e.attendees ?? [], orgs);
             const startD = new Date(e.start);
             const endD = new Date(e.end);
             return {

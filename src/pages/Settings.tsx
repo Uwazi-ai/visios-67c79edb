@@ -850,7 +850,7 @@ function LabeledInput({
 
 // ===================== ORGS =====================
 function OrgsTab() {
-  const { orgs, memberships } = useOrg();
+  const { orgs, memberships, refreshOrgs } = useOrg();
   const [counts, setCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -870,35 +870,37 @@ function OrgsTab() {
   return (
     <>
       <SectionLabel>YOUR ORGANIZATIONS</SectionLabel>
-      <div className="space-y-2">
+      <div className="space-y-3">
         {orgs.map((o) => {
           const role = memberships.find((m) => m.org_id === o.id)?.role ?? "—";
           const color = ORG_COLORS[o.slug] ?? o.color ?? "#60A5FA";
           const isPilot = o.slug === "uwazi";
+          const canEdit = role === "owner";
           return (
             <section
               key={o.id}
-              className="p-4 rounded-[10px] flex items-center gap-3 flex-wrap"
+              className="p-4 rounded-[10px]"
               style={{
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.08)",
               }}
             >
-              <span style={{ width: 10, height: 10, borderRadius: 999, background: color, boxShadow: `0 0 12px ${color}66` }} />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div className="t-card-title">{o.name}</div>
-                  {isPilot && <span className="badge badge-info">Pilot org</span>}
-                </div>
-                <div className="t-body" style={{ fontSize: 11 }}>
-                  <span className="t-mono" style={{ textTransform: "uppercase" }}>{role}</span>
-                  {" · "}
-                  {counts[o.id] ?? "…"} member{counts[o.id] === 1 ? "" : "s"}
+              <div className="flex items-center gap-3 flex-wrap">
+                <span style={{ width: 10, height: 10, borderRadius: 999, background: color, boxShadow: `0 0 12px ${color}66` }} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="t-card-title">{o.name}</div>
+                    {isPilot && <span className="badge badge-info">Pilot org</span>}
+                  </div>
+                  <div className="t-body" style={{ fontSize: 11 }}>
+                    <span className="t-mono" style={{ textTransform: "uppercase" }}>{role}</span>
+                    {" · "}
+                    {counts[o.id] ?? "…"} member{counts[o.id] === 1 ? "" : "s"}
+                  </div>
                 </div>
               </div>
-              <button className="btn-ghost" onClick={() => toast.info("Org editing — owner-only, coming soon")}>
-                Edit
-              </button>
+
+              <DomainsEditor org={o} canEdit={canEdit} onSaved={refreshOrgs} />
             </section>
           );
         })}
@@ -907,6 +909,140 @@ function OrgsTab() {
         + Add Organization
       </button>
     </>
+  );
+}
+
+// ---- Domain editor (per-org email-domain → color mapping) ----
+import { DEFAULT_ORG_DOMAINS } from "@/lib/orgDetect";
+import type { Org } from "@/lib/orgs";
+import { Plus as PlusIcon, X as XIcon } from "lucide-react";
+
+function DomainsEditor({ org, canEdit, onSaved }: { org: Org; canEdit: boolean; onSaved: () => Promise<void> }) {
+  const initial = (org.metadata?.domains as string[] | undefined) ?? DEFAULT_ORG_DOMAINS[org.slug] ?? [];
+  const [domains, setDomains] = useState<string[]>(initial);
+  const [input, setInput] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const dirty = JSON.stringify([...domains].sort()) !== JSON.stringify([...initial].sort());
+
+  const normalize = (v: string) =>
+    v.toLowerCase().trim().replace(/^@/, "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+
+  const isValid = (v: string) => /^([a-z0-9-]+\.)+[a-z]{2,}$/i.test(v);
+
+  const addDomain = () => {
+    const norm = normalize(input);
+    if (!norm) return;
+    if (!isValid(norm)) {
+      toast.error("That doesn't look like a valid domain");
+      return;
+    }
+    if (domains.includes(norm)) {
+      toast.info("Already added");
+      return;
+    }
+    setDomains([...domains, norm]);
+    setInput("");
+  };
+
+  const remove = (d: string) => setDomains(domains.filter((x) => x !== d));
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase
+      .from("orgs")
+      .update({ metadata: { ...(org.metadata ?? {}), domains } })
+      .eq("id", org.id);
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Domains saved");
+    await onSaved();
+  };
+
+  const reset = () => setDomains(initial);
+
+  return (
+    <div className="mt-4 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="t-mono" style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.08 }}>
+          EMAIL DOMAINS — events with attendees from these domains get this org's color
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {domains.length === 0 && (
+          <span className="t-body" style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            No domains set — events won't auto-color for this org.
+          </span>
+        )}
+        {domains.map((d) => (
+          <span
+            key={d}
+            className="flex items-center gap-1 px-2 py-1 rounded-md t-mono"
+            style={{
+              background: "var(--bg-glass-1)",
+              border: "1px solid var(--border-glass)",
+              fontSize: 11,
+              color: "var(--text-primary)",
+            }}
+          >
+            {d}
+            {canEdit && (
+              <button
+                onClick={() => remove(d)}
+                aria-label={`Remove ${d}`}
+                className="ml-0.5 opacity-60 hover:opacity-100"
+                style={{ color: "var(--text-muted)" }}
+              >
+                <XIcon size={11} />
+              </button>
+            )}
+          </span>
+        ))}
+      </div>
+
+      {canEdit ? (
+        <>
+          <div className="flex gap-2">
+            <input
+              className="input-glass flex-1"
+              placeholder="example.com"
+              value={input}
+              maxLength={253}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addDomain();
+                }
+              }}
+              style={{ height: 34, fontSize: 12 }}
+            />
+            <button onClick={addDomain} className="btn-ghost flex items-center gap-1" style={{ height: 34 }}>
+              <PlusIcon size={12} /> Add
+            </button>
+          </div>
+          {dirty && (
+            <div className="flex gap-2 mt-3">
+              <button onClick={save} disabled={saving} className="btn-primary flex items-center gap-1.5" style={{ height: 32 }}>
+                {saving ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />}
+                Save changes
+              </button>
+              <button onClick={reset} disabled={saving} className="btn-ghost" style={{ height: 32 }}>
+                Reset
+              </button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="t-body" style={{ fontSize: 11, color: "var(--text-muted)" }}>
+          Only owners can edit this org's domains.
+        </div>
+      )}
+    </div>
   );
 }
 

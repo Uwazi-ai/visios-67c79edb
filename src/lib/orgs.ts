@@ -5,6 +5,7 @@ export interface Org {
   name: string;
   slug: string;
   color: string;
+  metadata?: { domains?: string[] } & Record<string, unknown>;
 }
 
 export const ORG_COLORS: Record<string, string> = {
