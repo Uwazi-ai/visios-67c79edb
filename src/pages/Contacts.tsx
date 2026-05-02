@@ -72,10 +72,18 @@ const Contacts = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  // Sync URL param
+  // Sync URL param + ?scan=true shortcut from PWA
   useEffect(() => {
     const id = params.get("id");
     if (id !== selectedId) setSelectedId(id);
+    if (params.get("scan") === "true") {
+      setScannerOpen(true);
+      setParams((p) => {
+        const next = new URLSearchParams(p);
+        next.delete("scan");
+        return next;
+      }, { replace: true });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
 
@@ -86,6 +94,27 @@ const Contacts = () => {
       next.set("id", id);
       return next;
     }, { replace: true });
+  };
+
+  const handleScanned = (card: ScannedCard) => {
+    // Map scanner result → ContactModal prefill shape
+    const noteParts: string[] = [];
+    if (card.address) noteParts.push(`Address: ${card.address}`);
+    if (card.website) noteParts.push(`Website: ${card.website}`);
+    if (card.notes) noteParts.push(card.notes);
+    setScanPrefill({
+      name: card.name,
+      email: card.email,
+      company: card.company,
+      role: card.title,
+      linkedin_url: card.linkedin,
+      phone: card.phone,
+      notes: noteParts.join("\n") || null,
+    });
+    setScanSource("card_scan");
+    setEditing(false);
+    setScannerOpen(false);
+    setModalOpen(true);
   };
 
   // Background enrichment
