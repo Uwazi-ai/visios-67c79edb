@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Plus, RefreshCw, Loader2, Users, Camera } from "lucide-react";
+import { Plus, RefreshCw, Loader2, Users, Camera, Sparkles, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -11,7 +11,10 @@ import { ContactModal } from "@/components/contacts/ContactModal";
 import { CardScannerModal, type ScannedCard } from "@/components/contacts/CardScannerModal";
 import { RelationshipHealth } from "@/components/contacts/RelationshipHealth";
 import { StaleBanner } from "@/components/contacts/StaleBanner";
+import { GmailAgentDrawer } from "@/components/contacts/GmailAgentDrawer";
+import { AgentStatusBar } from "@/components/contacts/AgentStatusBar";
 import { useContactEnrichment } from "@/hooks/useContactEnrichment";
+import { usePendingReviewCount, useAgentSettings } from "@/hooks/useGmailAgent";
 import { bucket } from "@/lib/contactsHealth";
 import { toast } from "sonner";
 
@@ -49,6 +52,11 @@ const Contacts = () => {
     notes?: string | null;
   } | null>(null);
   const [scanSource, setScanSource] = useState<string | undefined>(undefined);
+
+  const [agentOpen, setAgentOpen] = useState(false);
+  const [agentInitialPhase, setAgentInitialPhase] = useState<"config" | "review">("config");
+  const { count: pendingCount, refresh: refreshPending } = usePendingReviewCount();
+  const { settings: agentSettings } = useAgentSettings();
 
   const activeOrg = useMemo(() => {
     if (!activeOrgId || activeOrgId === "all") return null;
@@ -173,6 +181,16 @@ const Contacts = () => {
         </div>
         <div className="flex items-center gap-3">
           <RelationshipHealth contacts={filteredForActiveOrg} />
+          <button
+            onClick={() => { setAgentInitialPhase("config"); setAgentOpen(true); }}
+            className="btn-ghost"
+            title="Find contacts from Gmail"
+          >
+            <Sparkles size={12} /> <Mail size={12} /> Find Contacts
+            {pendingCount > 0 && (
+              <span className="badge" style={{ marginLeft: 6 }}>{pendingCount}</span>
+            )}
+          </button>
           <button onClick={() => setScannerOpen(true)} className="btn-ghost" title="Scan a business card">
             <Camera size={12} /> Scan Card
           </button>
@@ -181,6 +199,17 @@ const Contacts = () => {
           </button>
         </div>
       </div>
+
+      {/* Agent status bar */}
+      <AgentStatusBar
+        syncEnabled={agentSettings.gmail_contact_sync_enabled}
+        syncing={false}
+        lastSyncedAt={agentSettings.gmail_last_synced_at}
+        pendingCount={pendingCount}
+        onScanNow={() => { setAgentInitialPhase("config"); setAgentOpen(true); }}
+        onReview={() => { setAgentInitialPhase("review"); setAgentOpen(true); }}
+        onConfigureSync={() => { window.location.href = "/settings"; }}
+      />
 
       {/* Stale banner */}
       <StaleBanner count={staleCount} onView={() => setForceStale(60)} />
@@ -252,6 +281,15 @@ const Contacts = () => {
         open={scannerOpen}
         onClose={() => setScannerOpen(false)}
         onExtracted={handleScanned}
+      />
+
+      <GmailAgentDrawer
+        open={agentOpen}
+        onClose={() => setAgentOpen(false)}
+        orgs={orgsForList}
+        onContactsChanged={loadContacts}
+        onPendingChanged={refreshPending}
+        initialPhase={agentInitialPhase}
       />
     </div>
   );

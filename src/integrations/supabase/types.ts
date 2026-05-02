@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_settings: {
+        Row: {
+          created_at: string
+          gmail_auto_approve_known_domains: boolean
+          gmail_contact_sync_enabled: boolean
+          gmail_last_synced_at: string | null
+          gmail_min_email_count: number
+          gmail_sync_frequency_hours: number
+          gmail_sync_lookback_days: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          gmail_auto_approve_known_domains?: boolean
+          gmail_contact_sync_enabled?: boolean
+          gmail_last_synced_at?: string | null
+          gmail_min_email_count?: number
+          gmail_sync_frequency_hours?: number
+          gmail_sync_lookback_days?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          gmail_auto_approve_known_domains?: boolean
+          gmail_contact_sync_enabled?: boolean
+          gmail_last_synced_at?: string | null
+          gmail_min_email_count?: number
+          gmail_sync_frequency_hours?: number
+          gmail_sync_lookback_days?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string
@@ -166,6 +205,77 @@ export type Database = {
           {
             foreignKeyName: "contact_interactions_org_id_fkey"
             columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_review_queue: {
+        Row: {
+          company: string | null
+          confidence: string
+          created_at: string
+          email: string
+          email_count: number
+          id: string
+          last_email_date: string | null
+          linkedin_url: string | null
+          name: string | null
+          phone: string | null
+          raw_signature: string | null
+          sample_subject: string | null
+          source: string
+          status: string
+          suggested_org_id: string | null
+          thread_refs: Json
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          company?: string | null
+          confidence?: string
+          created_at?: string
+          email: string
+          email_count?: number
+          id?: string
+          last_email_date?: string | null
+          linkedin_url?: string | null
+          name?: string | null
+          phone?: string | null
+          raw_signature?: string | null
+          sample_subject?: string | null
+          source?: string
+          status?: string
+          suggested_org_id?: string | null
+          thread_refs?: Json
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          company?: string | null
+          confidence?: string
+          created_at?: string
+          email?: string
+          email_count?: number
+          id?: string
+          last_email_date?: string | null
+          linkedin_url?: string | null
+          name?: string | null
+          phone?: string | null
+          raw_signature?: string | null
+          sample_subject?: string | null
+          source?: string
+          status?: string
+          suggested_org_id?: string | null
+          thread_refs?: Json
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_review_queue_suggested_org_id_fkey"
+            columns: ["suggested_org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
             referencedColumns: ["id"]
