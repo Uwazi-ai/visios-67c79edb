@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { PERSONAS, PERSONA_MAP, DEFAULT_PERSONA, type PersonaKey } from "@/lib/aiPersonas";
-import { buildSystemPrompt, type AIContextSnapshot } from "@/lib/aiPrompt";
+import { buildVisionSystemPrompt, type VisionContext } from "@/lib/visionPrompt";
 import { callClaude } from "@/lib/claudeStream";
 import { toast } from "@/hooks/use-toast";
 import { VisionCircle } from "@/components/vision/VisionCircle";
