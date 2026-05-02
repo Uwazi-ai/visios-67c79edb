@@ -181,6 +181,16 @@ const Contacts = () => {
         </div>
         <div className="flex items-center gap-3">
           <RelationshipHealth contacts={filteredForActiveOrg} />
+          <button
+            onClick={() => { setAgentInitialPhase("config"); setAgentOpen(true); }}
+            className="btn-ghost"
+            title="Find contacts from Gmail"
+          >
+            <Sparkles size={12} /> <Mail size={12} /> Find Contacts
+            {pendingCount > 0 && (
+              <span className="badge" style={{ marginLeft: 6 }}>{pendingCount}</span>
+            )}
+          </button>
           <button onClick={() => setScannerOpen(true)} className="btn-ghost" title="Scan a business card">
             <Camera size={12} /> Scan Card
           </button>
@@ -189,6 +199,17 @@ const Contacts = () => {
           </button>
         </div>
       </div>
+
+      {/* Agent status bar */}
+      <AgentStatusBar
+        syncEnabled={agentSettings.gmail_contact_sync_enabled}
+        syncing={false}
+        lastSyncedAt={agentSettings.gmail_last_synced_at}
+        pendingCount={pendingCount}
+        onScanNow={() => { setAgentInitialPhase("config"); setAgentOpen(true); }}
+        onReview={() => { setAgentInitialPhase("review"); setAgentOpen(true); }}
+        onConfigureSync={() => { window.location.href = "/settings"; }}
+      />
 
       {/* Stale banner */}
       <StaleBanner count={staleCount} onView={() => setForceStale(60)} />
