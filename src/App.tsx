@@ -19,8 +19,9 @@ import ChatPage from "./pages/Chat";
 import MeetingsPage from "./pages/Meetings";
 import TokenHealthPage from "./pages/TokenHealth";
 import {
-  NotificationsPage, ContactsPage, FinancePage,
+  NotificationsPage, FinancePage,
 } from "./pages/EmptyPages";
+import ContactsPage from "./pages/Contacts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();

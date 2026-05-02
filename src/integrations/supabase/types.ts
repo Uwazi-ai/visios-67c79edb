@@ -118,41 +118,104 @@ export type Database = {
           },
         ]
       }
+      contact_interactions: {
+        Row: {
+          contact_id: string
+          created_at: string
+          external_id: string | null
+          id: string
+          occurred_at: string
+          org_id: string | null
+          source: string
+          summary: string | null
+          title: string | null
+          type: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          occurred_at?: string
+          org_id?: string | null
+          source?: string
+          summary?: string | null
+          title?: string | null
+          type: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          occurred_at?: string
+          org_id?: string | null
+          source?: string
+          summary?: string | null
+          title?: string | null
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_interactions_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_interactions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           company: string | null
           created_at: string
           email: string | null
+          engagement_stage: string
           id: string
           last_touched_at: string | null
+          linkedin_url: string | null
           metadata: Json
           name: string
           notes: string | null
           org_id: string | null
+          phone: string | null
           role: string | null
         }
         Insert: {
           company?: string | null
           created_at?: string
           email?: string | null
+          engagement_stage?: string
           id?: string
           last_touched_at?: string | null
+          linkedin_url?: string | null
           metadata?: Json
           name: string
           notes?: string | null
           org_id?: string | null
+          phone?: string | null
           role?: string | null
         }
         Update: {
           company?: string | null
           created_at?: string
           email?: string | null
+          engagement_stage?: string
           id?: string
           last_touched_at?: string | null
+          linkedin_url?: string | null
           metadata?: Json
           name?: string
           notes?: string | null
           org_id?: string | null
+          phone?: string | null
           role?: string | null
         }
         Relationships: [
