@@ -224,7 +224,18 @@ function scoreConfidence(c: { name?: string | null; company?: string | null; tit
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
-    const user = await getAuthedUserFromReq(req);
+    // Allow service-role impersonation via x-cron-user-id header (used by gmail-discover-cron).
+    const auth = req.headers.get("Authorization") ?? "";
+    const bearer = auth.replace(/^Bearer\s+/i, "");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const cronUserId = req.headers.get("x-cron-user-id");
+    let user: { id: string; email?: string | null } | null = null;
+    if (cronUserId && bearer && bearer === serviceKey) {
+      const { data } = await adminClient().auth.admin.getUserById(cronUserId);
+      if (data?.user) user = { id: data.user.id, email: data.user.email ?? null };
+    } else {
+      user = await getAuthedUserFromReq(req);
+    }
     if (!user) return jsonResponse({ error: "Unauthorized" }, 401);
 
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
