@@ -4,6 +4,7 @@ import { Topbar } from "./Topbar";
 import { MobileTabbar } from "./MobileTabbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { QuickCaptureModal } from "@/components/tasks/QuickCaptureModal";
+import { AIAssistantFAB } from "@/components/ai/AIAssistantPanel";
 
 export const AppShell = () => {
   const { session, loading } = useAuth();
@@ -29,6 +30,7 @@ export const AppShell = () => {
       </div>
       <MobileTabbar />
       <QuickCaptureModal />
+      <AIAssistantFAB />
     </div>
   );
 };

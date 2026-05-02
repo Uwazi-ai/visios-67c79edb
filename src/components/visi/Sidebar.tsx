@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, CheckSquare, Calendar, Link2, MessageSquare,
-  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut,
+  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen,
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
@@ -18,6 +18,7 @@ const NAV = [
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/contacts", label: "Contacts", icon: Users },
+  { to: "/knowledge", label: "Knowledge", icon: BookOpen },
   { to: "/meetings", label: "Meetings", icon: Video },
   { to: "/finance", label: "Finance", icon: BarChart3 },
 ];
