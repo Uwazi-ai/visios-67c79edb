@@ -204,7 +204,20 @@ export default function Vision() {
       const { data: ctxData } = await supabase.functions.invoke("vision-context", {
         body: { org_id: activeOrgId ?? null, message: text },
       });
-      if (ctxData) visionCtx = ctxData as VisionContext;
+      if (ctxData) {
+        visionCtx = ctxData as VisionContext;
+        setLastSources({
+          sources: (ctxData as any).sources ?? {},
+          counts: {
+            emails: (ctxData as any).emails?.length ?? 0,
+            calendar: (ctxData as any).calendar?.length ?? 0,
+            drive: (ctxData as any).drive?.length ?? 0,
+            contacts: (ctxData as any).contacts?.length ?? 0,
+            tasks: (ctxData as any).tasks?.length ?? 0,
+            kb: (ctxData as any).kb?.length ?? 0,
+          },
+        });
+      }
     } catch (e) {
       console.warn("vision-context failed", e);
     }
