@@ -26,6 +26,7 @@ const GOOGLE_SCOPES = [
 ].join(" ");
 
 const TABS: { key: TabKey; label: string; icon: any }[] = [
+  { key: "connections", label: "Connections", icon: Zap },
   { key: "integrations", label: "Integrations", icon: Plug },
   { key: "profile", label: "Profile", icon: UserIcon },
   { key: "orgs", label: "Orgs", icon: Building2 },
