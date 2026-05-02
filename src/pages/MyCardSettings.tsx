@@ -49,7 +49,7 @@ const MyCardSettings = () => {
         .eq("id", user.id)
         .maybeSingle();
       if (data) {
-        const links = Array.isArray(data.custom_links) ? data.custom_links as CustomLink[] : [];
+        const links = Array.isArray(data.custom_links) ? (data.custom_links as unknown as CustomLink[]) : [];
         setForm({
           username: data.username || "",
           display_name: data.display_name || "",
@@ -126,7 +126,7 @@ const MyCardSettings = () => {
       custom_links: form.custom_links.filter((l) => l.url.trim()).slice(0, 5),
       primary_org_id: form.primary_org_id || null,
     };
-    const { error } = await supabase.from("profiles").upsert(payload, { onConflict: "id" });
+    const { error } = await supabase.from("profiles").upsert(payload as never, { onConflict: "id" });
     setSaving(false);
     if (error) {
       toast.error(error.message.includes("duplicate") ? "That username is taken" : error.message);
