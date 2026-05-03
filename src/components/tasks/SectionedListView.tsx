@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
-import { ChevronDown, ChevronRight, Plus, MoreHorizontal, Trash2, GripVertical } from "lucide-react";
+import { motion, type PanInfo } from "framer-motion";
+import { ChevronDown, ChevronRight, Plus, MoreHorizontal, Trash2 } from "lucide-react";
 import { format, isPast, isToday } from "date-fns";
 import type { Task, Project, TaskSection } from "@/hooks/useTasks";
 import type { Org } from "@/lib/orgs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   tasks: Task[];
@@ -47,12 +49,22 @@ const TaskRow = ({
   onAddSubtask: () => void;
   onDelete: () => void;
 }) => {
+  const isMobile = useIsMobile();
   const done = task.status === "done";
   const pri = task.priority ?? "normal";
-  return (
+
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    if (info.offset.x < -120) {
+      if (confirm("Delete this task?")) onDelete();
+    } else if (info.offset.x > 120) {
+      onUpdate({ status: done ? "todo" : "done" });
+    }
+  };
+
+  const Row = (
     <div
       className="group flex items-center gap-2 px-2 py-1.5 hover:bg-white/[0.04] cursor-pointer border-b"
-      style={{ borderColor: "var(--border-glass)", paddingLeft: 8 + depth * 24 }}
+      style={{ borderColor: "var(--border-glass)", paddingLeft: 8 + depth * 24, background: "var(--background)" }}
       onClick={onClick}
     >
       <input
@@ -140,6 +152,22 @@ const TaskRow = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+    </div>
+  );
+
+  if (!isMobile) return Row;
+
+  return (
+    <div className="relative overflow-hidden" style={{ background: "linear-gradient(90deg, rgba(34,197,94,0.25), transparent 50%, rgba(239,68,68,0.25))" }}>
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={handleDragEnd}
+        className="touch-pan-y"
+      >
+        {Row}
+      </motion.div>
     </div>
   );
 };

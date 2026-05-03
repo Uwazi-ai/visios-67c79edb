@@ -1,5 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { CheckSquare, Plus, List as ListIcon, LayoutGrid, GanttChart, Calendar as CalIcon, Sparkles, Search } from "lucide-react";
+import { useTasksKeyboard } from "@/hooks/useTasksKeyboard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useTasks, type Task } from "@/hooks/useTasks";
 import { useOrg } from "@/contexts/OrgContext";
 import { ProjectsSidebar, type QuickFilter } from "@/components/tasks/ProjectsSidebar";
@@ -28,6 +30,8 @@ const Tasks = () => {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [search, setSearch] = useState("");
   const [showGen, setShowGen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
 
   // Re-sync openTask when tasks reload
   useEffect(() => {
@@ -36,6 +40,24 @@ const Tasks = () => {
       if (fresh && fresh !== openTask) setOpenTask(fresh);
     }
   }, [tasks, openTask]);
+
+  const newTaskOrgIdRef = useRef<string | undefined>(undefined);
+  const createNew = async () => {
+    const oid = newTaskOrgIdRef.current;
+    if (!oid) return;
+    const t = await createTask({ title: "New task", org_id: oid, project_id: activeProjectId });
+    if (t) setOpenTask(t);
+  };
+  const cycleView = () => {
+    const order: View[] = ["list", "board", "timeline", "calendar"];
+    setView(order[(order.indexOf(view) + 1) % order.length]);
+  };
+  useTasksKeyboard({
+    onNew: createNew,
+    onSearch: () => searchRef.current?.focus(),
+    onCycleView: cycleView,
+    onClose: () => setOpenTask(null),
+  });
 
   // Apply project / quick filter / search
   const filtered = useMemo(() => {
@@ -82,6 +104,7 @@ const Tasks = () => {
   ];
 
   const newTaskOrgId = activeProject?.org_id ?? (activeOrgId && activeOrgId !== "all" ? activeOrgId : orgs[0]?.id);
+  newTaskOrgIdRef.current = newTaskOrgId;
 
   return (
     <div className="space-y-4">
@@ -133,7 +156,8 @@ const Tasks = () => {
       <div className="relative max-w-md">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
         <Input
-          placeholder="Search tasks…"
+          ref={searchRef}
+          placeholder="Search tasks…  (press / to focus, n = new, v = cycle view)"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9 input-glass"
@@ -158,20 +182,22 @@ const Tasks = () => {
 
       {/* Body */}
       <div className="flex gap-6">
-        <ProjectsSidebar
-          projects={projects}
-          sections={sections}
-          tasks={tasks}
-          orgs={orgs}
-          selectedProjectId={activeProjectId}
-          quickFilter={quickFilter}
-          onSelectProject={setActiveProjectId}
-          onSelectQuickFilter={setQuickFilter}
-          onCreateProject={createProject}
-          onArchiveProject={archiveProject}
-          onDeleteProject={deleteProject}
-          onUpdateProject={updateProject}
-        />
+        {!isMobile && (
+          <ProjectsSidebar
+            projects={projects}
+            sections={sections}
+            tasks={tasks}
+            orgs={orgs}
+            selectedProjectId={activeProjectId}
+            quickFilter={quickFilter}
+            onSelectProject={setActiveProjectId}
+            onSelectQuickFilter={setQuickFilter}
+            onCreateProject={createProject}
+            onArchiveProject={archiveProject}
+            onDeleteProject={deleteProject}
+            onUpdateProject={updateProject}
+          />
+        )}
 
         <div className="flex-1 min-w-0">
           {loading ? (
@@ -244,6 +270,23 @@ const Tasks = () => {
         defaultProjectId={activeProjectId}
         onCreate={createTask}
       />
+      {/* Mobile FAB */}
+      {isMobile && newTaskOrgId && (
+        <button
+          onClick={createNew}
+          aria-label="New task"
+          className="fixed z-40 rounded-full shadow-lg flex items-center justify-center"
+          style={{
+            bottom: "calc(80px + var(--safe-bottom))",
+            right: 16,
+            width: 56, height: 56,
+            background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+            color: "white",
+          }}
+        >
+          <Plus size={24} strokeWidth={2} />
+        </button>
+      )}
     </div>
   );
 };

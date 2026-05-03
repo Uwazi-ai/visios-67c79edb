@@ -15,6 +15,7 @@ import BookingPublic from "./pages/BookingPublic";
 import SettingsPage from "./pages/Settings";
 import CalendarPage from "./pages/Calendar";
 import TasksPage from "./pages/Tasks";
+import TaskFullPage from "./pages/TaskFullPage";
 import ChatPage from "./pages/Chat";
 import MeetingsPage from "./pages/Meetings";
 import TokenHealthPage from "./pages/TokenHealth";
@@ -50,6 +51,7 @@ const App = () => (
                 <Route path="/vision" element={<Vision />} />
                 <Route path="/inbox" element={<InboxPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/tasks/:id" element={<TaskFullPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
                 <Route path="/chat" element={<ChatPage />} />
