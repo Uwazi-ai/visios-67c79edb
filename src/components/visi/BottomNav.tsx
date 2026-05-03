@@ -11,7 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 interface Tab {
   to: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
+  icon: any;
   label: string;
   matchPrefix?: boolean;
   badge?: number;
