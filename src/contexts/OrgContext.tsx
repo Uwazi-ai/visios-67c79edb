@@ -36,7 +36,11 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const refreshOrgs = useCallback(async () => {
-    const { data: orgsData } = await supabase.from("orgs").select("*").order("name");
+    const { data: orgsData } = await supabase
+      .from("orgs")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
     setOrgs(((orgsData ?? []) as unknown) as Org[]);
   }, []);
 
@@ -50,11 +54,10 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
     }
     (async () => {
       setLoading(true);
-      const { data: orgsData } = await supabase.from("orgs").select("*").order("name");
-      const { data: memData } = await supabase
-        .from("org_memberships")
-        .select("org_id, role")
-        .eq("user_id", user.id);
+      const [{ data: orgsData }, { data: memData }] = await Promise.all([
+        supabase.from("orgs").select("*").eq("is_active", true).order("display_order", { ascending: true }),
+        supabase.from("org_memberships").select("org_id, role").eq("user_id", user.id),
+      ]);
       setOrgs(((orgsData ?? []) as unknown) as Org[]);
       setMemberships((memData ?? []) as Membership[]);
 
@@ -69,6 +72,22 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     })();
   }, [user]);
+
+  // Realtime: refresh on any orgs change
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("orgs-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orgs" }, () => {
+        refreshOrgs();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "org_memberships", filter: `user_id=eq.${user.id}` }, async () => {
+        const { data } = await supabase.from("org_memberships").select("org_id, role").eq("user_id", user.id);
+        setMemberships((data ?? []) as Membership[]);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, refreshOrgs]);
 
   const setActiveOrgId = (id: string | "all") => {
     setActive(id);
