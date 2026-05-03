@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
-import { ChevronDown, ChevronRight, Plus, MoreHorizontal, Trash2, GripVertical } from "lucide-react";
+import { motion, type PanInfo } from "framer-motion";
+import { ChevronDown, ChevronRight, Plus, MoreHorizontal, Trash2 } from "lucide-react";
 import { format, isPast, isToday } from "date-fns";
 import type { Task, Project, TaskSection } from "@/hooks/useTasks";
 import type { Org } from "@/lib/orgs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Props {
   tasks: Task[];
