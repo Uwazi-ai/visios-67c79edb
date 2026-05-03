@@ -154,6 +154,22 @@ const TaskRow = ({
       </DropdownMenu>
     </div>
   );
+
+  if (!isMobile) return Row;
+
+  return (
+    <div className="relative overflow-hidden" style={{ background: "linear-gradient(90deg, rgba(34,197,94,0.25), transparent 50%, rgba(239,68,68,0.25))" }}>
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.2}
+        onDragEnd={handleDragEnd}
+        className="touch-pan-y"
+      >
+        {Row}
+      </motion.div>
+    </div>
+  );
 };
 
 export const SectionedListView = ({
