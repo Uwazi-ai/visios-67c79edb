@@ -1,5 +1,7 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { CheckSquare, Plus, List as ListIcon, LayoutGrid, GanttChart, Calendar as CalIcon, Sparkles, Search } from "lucide-react";
+import { useTasksKeyboard } from "@/hooks/useTasksKeyboard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useTasks, type Task } from "@/hooks/useTasks";
 import { useOrg } from "@/contexts/OrgContext";
 import { ProjectsSidebar, type QuickFilter } from "@/components/tasks/ProjectsSidebar";
