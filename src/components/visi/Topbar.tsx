@@ -1,6 +1,10 @@
+import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Search, Plus, Bell } from "lucide-react";
+import { Search, Plus, Bell, Menu } from "lucide-react";
 import { useOrg } from "@/contexts/OrgContext";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sidebar } from "./Sidebar";
+import { VisiLogo } from "./Logo";
 
 const titleFor = (path: string): string => {
   if (path === "/") return "Dashboard";
@@ -12,19 +16,35 @@ export const Topbar = () => {
   const { orgs, activeOrgId } = useOrg();
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
   const title = titleFor(loc.pathname);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
     <header
-      className="sticky top-0 z-40 flex items-center gap-3 px-4 md:px-5"
+      className="sticky z-40 flex items-center gap-2 px-3 md:px-5"
       style={{
-        height: 56,
+        top: 0,
+        height: `calc(56px + var(--safe-top))`,
+        paddingTop: "var(--safe-top)",
         background: "rgba(2,2,10,0.72)",
         backdropFilter: "blur(40px)",
         WebkitBackdropFilter: "blur(40px)",
         borderBottom: "1px solid var(--border-glass)",
       }}
     >
-      <div className="flex items-center min-w-0">
+      <button
+        onClick={() => setDrawerOpen(true)}
+        className="md:hidden btn-icon"
+        aria-label="Open menu"
+        style={{ minWidth: 44, minHeight: 44 }}
+      >
+        <Menu size={20} strokeWidth={1.5} />
+      </button>
+
+      <div className="md:hidden flex-1 flex items-center justify-center">
+        <VisiLogo size={24} />
+      </div>
+
+      <div className="hidden md:flex items-center min-w-0">
         <span className="t-nav truncate" style={{ color: "var(--text-secondary)" }}>
           {activeOrgId === "all" ? "All Orgs" : activeOrg?.name ?? "Visi"}
         </span>
@@ -50,14 +70,28 @@ export const Topbar = () => {
         </kbd>
       </div>
 
-      <div className="flex items-center gap-2 ml-auto">
+      <div className="flex items-center gap-1 md:gap-2 ml-auto">
+        <button className="btn-icon md:hidden" aria-label="Search" style={{ minWidth: 44, minHeight: 44 }}>
+          <Search size={18} strokeWidth={1.5} />
+        </button>
         <button className="btn-ghost hidden sm:inline-flex" style={{ height: 36, padding: "0 14px" }}>
           <Plus size={14} strokeWidth={1.5} /> Capture
         </button>
-        <button className="btn-icon relative" title="Notifications">
-          <Bell size={16} strokeWidth={1.5} />
+        <button className="btn-icon relative" title="Notifications" style={{ minWidth: 44, minHeight: 44 }}>
+          <Bell size={18} strokeWidth={1.5} />
         </button>
       </div>
+
+      <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <SheetContent
+          side="left"
+          className="p-0 w-[280px] border-r-0 [&>button]:hidden"
+          style={{ background: "transparent" }}
+          onClick={() => setDrawerOpen(false)}
+        >
+          <Sidebar variant="mobile" />
+        </SheetContent>
+      </Sheet>
     </header>
   );
 };
