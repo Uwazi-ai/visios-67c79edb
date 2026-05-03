@@ -1,59 +1,102 @@
-# Mobile-First Visi OS + Team Access
+## Tasks Page — Asana-Style Rebuild
 
-This is a large, multi-area change. I'll break it into phases so we can ship and verify each before moving on, rather than dumping everything in one untested mega-commit.
+A complete rebuild of `/tasks` into a full project management workspace with 4 view modes, projects sidebar, task detail panel, subtasks, sections, AI generation, and drag-and-drop. Existing `tasks` table stays — we'll extend it (the spec says `items`, but this project uses `tasks` already with most needed columns; switching tables would orphan all existing data).
 
-## Phase 1 — Foundations (ship first)
-1. **Global CSS & viewport**
-   - Add `--safe-top` / `--safe-bottom` vars, 16px input font-size (prevents iOS zoom), `overscroll-behavior: none`, `.page-content` bottom padding to `index.css`.
-   - Update `index.html` viewport meta to include `viewport-fit=cover`, `user-scalable=no`, and `apple-mobile-web-app-status-bar-style=black-translucent`.
-2. **Bottom tab bar (`BottomNav`)** — `md:hidden`, fixed bottom, safe-area padding, 5 tabs (Home, Vision, Inbox, Contacts, More). Live unread + review-queue badges. "More" opens a `BottomSheet`.
-3. **Reusable `BottomSheet`** component (framer-motion) — drag handle, backdrop, spring animation, optional title, full-height variant.
-4. **Mobile top bar + hamburger drawer** — refactor `Topbar` so on mobile it shows `[☰] Visi OS [🔍 ➕ 🔔]` at 56px + safe-top. `Sidebar` becomes an off-canvas drawer on mobile (uses existing `Sheet` or framer-motion).
-5. **AppShell wiring** — render `BottomNav` (mobile), keep desktop `Sidebar`; ensure `<main>` uses `.page-content` so content isn't hidden behind the tab bar. Replace existing `MobileTabbar` with new `BottomNav`.
-6. Install `framer-motion`.
+---
 
-**Verify:** test at 375×812 + 1336×900, confirm tab bar, drawer open/close, no content clipped, inputs don't trigger iOS zoom.
+### Important reconciliations with the existing codebase
 
-## Phase 2 — Page mobile layouts
-7. **Dashboard** — `grid-cols-1 md:grid-cols-2`, collapsible morning brief (3-line clamp + Read more), horizontal-scroll org pills, ➕ in topbar opens QuickCapture as BottomSheet on mobile.
-8. **Vision Chat** — full-screen on mobile, persona picker → BottomSheet, keyboard-aware input using `visualViewport`, swipe-right opens history drawer.
-9. **Contacts** — push-navigation pattern: list → tap → full-screen detail with `[← Contacts]`. Swipe-left row reveals `[Draft Email] [Mark Stale]`. Engagement board horizontally scrollable.
-10. **Inbox** — same push-navigation + swipe-left `[Draft] [Archive]`.
-11. **Settings** — iOS-style single-column list on mobile; tapping a section pushes a full-screen sub-page; back chevron returns. Desktop unchanged.
-12. **Calendar** — agenda view on mobile (horizontal date strip + event cards → BottomSheet for prep).
-13. **Knowledge** — list view on mobile, upload via BottomSheet.
+The spec was written against an `items` table, but this project already has a richer `tasks` table with `project_id`, `parent_task_id`, `assignee_id`, `status`, `priority`, `due_at`, `description`, `estimate_mins`, plus a working `task_activity` log and trigger. Reusing `tasks` preserves all current data and the Vision/Tasks integration. Only the additive columns and new tables are needed.
 
-**Verify:** walk each page at 375×812.
+Also: the existing `projects` table is minimal (`id, org_id, name, description, status`). We'll extend it rather than recreate.
 
-## Phase 3 — Gestures
-14. **`SwipeableRow`** wrapper (framer-motion drag) for Contacts/Inbox lists.
-15. **Pull-to-refresh** hook using touch events; spinning Vision circle as indicator on list pages.
-16. **Swipe-right-to-go-back** on push-navigated detail screens.
-17. **Touch target audit** — sweep buttons/inputs/nav items to `min-h-[44px]` / `h-12`.
+---
 
-## Phase 4 — Team access layer
-18. **DB migration**
-    - `team_members` table (id, user_id, org_id, role enum, invited_by, invited_at, accepted_at, status, unique(user_id, org_id)).
-    - Reuse existing `app_role` enum where possible; add `team_role` only if needed.
-    - RLS: self-read own membership; org owners manage team. Mirror existing org-membership patterns.
-    - Note: existing tables already use `is_org_member()` against `org_memberships`. To avoid a parallel access system, the simplest correct path is to **treat `team_members` as the invite/onboarding ledger** and on `accepted_at` insert into `org_memberships`. This keeps every existing RLS policy working unchanged. (Confirm before migrating — alternative is to rewrite all RLS to union both tables.)
-19. **Settings → Team tab** — list members + pending invites; `[+ Invite]` opens BottomSheet/modal with email + org checkboxes + role; on send, INSERT to `team_members` (status='pending') and send invite email via Resend (requires Resend connector — will prompt if missing).
-20. **Invite acceptance flow** — `/invite/:token` page → after auth, marks `accepted_at`, inserts `org_memberships` row, status='active'.
+### Phase 1 — Schema (one migration)
 
-**Verify:** invite an email, accept in incognito, confirm new user sees only their org's data.
+Extend `projects`:
+- `emoji TEXT DEFAULT '📋'`
+- `is_archived BOOLEAN DEFAULT false`
+- `display_order INTEGER DEFAULT 0`
+- `created_by UUID`
 
-## Technical Notes
-- Reuse existing design tokens (`var(--bg-glass-1)`, `.glass`, `.btn-primary`, `OrgPill`). No new color literals.
-- Existing `MobileTabbar` is replaced by `BottomNav` to avoid duplication.
-- `Sheet` from shadcn already exists — use it for drawer + bottom sheet where possible to avoid an extra dependency, but framer-motion is needed for swipe/drag/push gestures.
-- `freshSignIn` and version-migration logic stay intact.
-- `.page-content` class will be applied in `AppShell`'s `<main>` so every routed page benefits without per-page edits.
+Extend `tasks`:
+- `section_id UUID REFERENCES task_sections(id)`
+- `start_date TIMESTAMPTZ`
+- `sort_order INTEGER DEFAULT 0`
+- `completed_at TIMESTAMPTZ` (auto-set via trigger when status flips to/from `done`)
+- Widen status check to allow `review` (currently todo/in_progress/done/blocked)
 
-## Files (high-level)
-- **New:** `src/components/visi/BottomNav.tsx`, `src/components/visi/MobileTopbar.tsx`, `src/components/ui/bottom-sheet.tsx`, `src/components/mobile/SwipeableRow.tsx`, `src/components/mobile/PushScreen.tsx`, `src/hooks/usePullToRefresh.ts`, `src/hooks/useKeyboardInset.ts`, `src/components/settings/tabs/TeamTab.tsx`, `src/pages/InviteAccept.tsx`, plus per-page mobile detail screens as needed.
-- **Edited:** `index.html`, `src/index.css`, `src/components/visi/AppShell.tsx`, `Sidebar.tsx`, `Topbar.tsx`, `Dashboard.tsx`, `Vision.tsx`, `Contacts.tsx`, `Inbox.tsx`, `Settings.tsx`, `Calendar.tsx`, `Knowledge.tsx`, `App.tsx` (route for /invite, /more if needed), supabase migration, `MobileTabbar.tsx` (deleted/replaced).
+New tables (RLS via `is_org_member` on parent project's org):
+- `task_sections` (project_id, name, display_order, is_collapsed)
+- `task_comments` (task_id, user_id, content)
+- `task_attachments` (task_id, name, url, source, drive_file_id)
 
-## Open Questions (need your call before I start)
-1. **Team access model:** Should `team_members` write through to `org_memberships` on accept (preserves all existing RLS — recommended), or do you want me to rewrite every table's RLS to also check `team_members`? The first is dramatically less risky.
-2. **Invite emails:** Use Resend (needs the connector connected — I'll prompt for the API key) or just generate a copyable invite link for now?
-3. **Scope of v1:** Want me to ship **Phase 1 only** in this turn (foundations + tab bar + drawer + bottom sheet, working everywhere) and then do Phases 2–4 in follow-ups? That gives you something testable today instead of a 3-hour monolith. Strongly recommended.
+Skip new `task_activity` table — already exists and the trigger already logs status/priority/assignee/due changes. We'll reuse it.
+
+Realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE projects, tasks, task_sections, task_comments`.
+
+---
+
+### Phase 2 — Layout shell
+
+- New `src/pages/Tasks.tsx` (replaces existing) with 3-pane layout: ProjectsSidebar (240px) | Main | TaskDetailPanel (360px slide-in).
+- Hooks: `useProjects`, `useSections`, `useTasksV2` (extends existing `useTasks` with sections + subtasks tree), `useTaskDetail`.
+- All hooks subscribe to Supabase Realtime.
+
+### Phase 3 — Projects sidebar
+- `ProjectsSidebar.tsx`: orgs from `useOrg`, projects grouped by org with org color accent, Quick Filters (All / Due Today / Overdue / High Priority / Completed) computed from cached tasks, [+ New Project] modal with emoji picker + template seeding (Blank / Sprint / Launch / Client / Personal — templates create predefined sections).
+- Hover row → `[⋮]` menu: Edit, Duplicate, Archive, Delete.
+
+### Phase 4 — List view (default, ship first)
+- `ListView.tsx` with collapsible sections, inline-edit cells (assignee popover, date picker, priority/status dropdowns), subtask indent + collapse, checkbox complete with strikethrough animation.
+- Quick add row at bottom of each section. Enter = new task below, Tab = subtask, Space = toggle complete, Esc = close panel.
+- Row hover `[⋮]`: Edit / Duplicate / Add subtask / Move section / Delete.
+
+### Phase 5 — Task detail panel
+- `TaskDetailPanel.tsx` (slide-in 360px desktop, full-screen bottom sheet mobile) with inline-edit fields (auto-save), description (Tiptap), subtasks list, attachments (Drive picker stub + upload to existing `chat-attachments` bucket initially), Vision suggestion (calls existing `claude-proxy` with task context), activity feed merging `task_activity` + `task_comments`, comment composer.
+
+### Phase 6 — Board view
+- `BoardView.tsx` rebuilt with `@dnd-kit` (already installed) — columns by status, draggable cards, [+ Add column] creates a new status value (stored on project as `custom_statuses jsonb` — added in same migration if we want this, otherwise fixed 5).
+- Card: title, assignee avatar, due, priority border, subtask count.
+
+### Phase 7 — Timeline (Gantt) view
+- `TimelineView.tsx`: simple SVG/CSS grid Gantt. Sections as rows, bars span `start_date`→`due_at`. Drag bar = move dates, drag right edge = resize. Today line. Week/Month/Quarter zoom. Unscheduled tray below.
+
+### Phase 8 — Calendar view
+- `CalendarView.tsx`: monthly grid, task chips colored by priority, drag chip → update `due_at`, click empty day → quick add.
+
+### Phase 9 — View tabs, filter/sort/group bar, progress bar
+- `ViewTabBar.tsx`, `FilterBar.tsx` (chips for active filters), `ProjectProgressBar.tsx`.
+
+### Phase 10 — AI features
+- Vision suggestion in detail panel: reuse `claude-proxy` edge function, prompt with task + recent contact interactions + KB hits.
+- New edge function `ai-extract-tasks` (Lovable AI Gateway, `openai/gpt-5-mini`, JSON output) for "Generate from Meeting Notes" modal.
+- Reuse existing `ai-suggest-subtasks` for the full Add Task form's subtask suggestions.
+
+### Phase 11 — Polish
+- Tiptap rich-text descriptions (`@tiptap/react`, `@tiptap/starter-kit`).
+- Keyboard shortcuts (global `useTasksKeyboard` hook on /tasks).
+- Mobile: hamburger drawer for sidebar, swipe-row actions (reuse `framer-motion`), FAB, bottom-sheet detail panel.
+- Task full-page route `/tasks/:id` (renders detail panel inline at full width).
+
+---
+
+### Tech notes
+- Drag-and-drop: `@dnd-kit/core` + `@dnd-kit/sortable` (`sortable` not yet installed — add).
+- Rich text: `@tiptap/react @tiptap/pm @tiptap/starter-kit` (add).
+- All colors via existing semantic tokens + `ORG_COLORS` from `src/lib/orgs.ts`. No hardcoded hex except priority indicators.
+- Realtime: subscribe per active project; debounce optimistic updates 200ms before PATCH.
+- All RLS via existing `is_org_member` helper — no new policies invented.
+
+---
+
+### Scope question
+
+This is ~25 new components, 1 migration, 1 edge function, and 4 view engines. Realistically a single turn ships **Phases 1–5 (schema + sidebar + list + detail panel)** cleanly. Board (Phase 6) is mostly already built and can come in turn 1. Timeline + Calendar + AI extras are turn 2. If you want it all in one shot, I'll ship it but each view will be functional-but-rough vs. polished.
+
+**Suggested split:**
+- **Turn 1 (this approval):** Phases 1–6 — schema, sidebar with projects/quick filters/new project modal, ListView with sections/inline edit/subtasks, TaskDetailPanel with all fields + comments + Vision suggestion + activity, refreshed BoardView, view tab bar, filter/sort/group, progress bar.
+- **Turn 2:** Phases 7–11 — Timeline, Calendar, AI meeting extraction, Tiptap, keyboard shortcuts, mobile polish, full-page route.
+
+Approve and I'll start with the migration.
