@@ -49,12 +49,22 @@ const TaskRow = ({
   onAddSubtask: () => void;
   onDelete: () => void;
 }) => {
+  const isMobile = useIsMobile();
   const done = task.status === "done";
   const pri = task.priority ?? "normal";
-  return (
+
+  const handleDragEnd = (_: unknown, info: PanInfo) => {
+    if (info.offset.x < -120) {
+      if (confirm("Delete this task?")) onDelete();
+    } else if (info.offset.x > 120) {
+      onUpdate({ status: done ? "todo" : "done" });
+    }
+  };
+
+  const Row = (
     <div
       className="group flex items-center gap-2 px-2 py-1.5 hover:bg-white/[0.04] cursor-pointer border-b"
-      style={{ borderColor: "var(--border-glass)", paddingLeft: 8 + depth * 24 }}
+      style={{ borderColor: "var(--border-glass)", paddingLeft: 8 + depth * 24, background: "var(--background)" }}
       onClick={onClick}
     >
       <input
