@@ -104,6 +104,7 @@ const Tasks = () => {
   ];
 
   const newTaskOrgId = activeProject?.org_id ?? (activeOrgId && activeOrgId !== "all" ? activeOrgId : orgs[0]?.id);
+  newTaskOrgIdRef.current = newTaskOrgId;
 
   return (
     <div className="space-y-4">
