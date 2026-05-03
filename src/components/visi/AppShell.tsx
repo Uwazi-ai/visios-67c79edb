@@ -1,7 +1,7 @@
 import { Outlet, Navigate } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
-import { MobileTabbar } from "./MobileTabbar";
+import { BottomNav } from "./BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { QuickCaptureModal } from "@/components/tasks/QuickCaptureModal";
 import { AIAssistantFAB } from "@/components/ai/AIAssistantPanel";
@@ -24,13 +24,14 @@ export const AppShell = () => {
       <Sidebar />
       <div className="flex-1 min-w-0 flex flex-col relative z-10">
         <Topbar />
-        <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6 page-enter">
+        <main className="flex-1 p-4 md:p-6 mobile-bottom-pad page-enter">
           <Outlet />
         </main>
       </div>
-      <MobileTabbar />
+      <BottomNav />
       <QuickCaptureModal />
       <AIAssistantFAB />
     </div>
   );
 };
+

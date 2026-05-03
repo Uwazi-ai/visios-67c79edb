@@ -24,7 +24,7 @@ const NAV = [
   { to: "/finance", label: "Finance", icon: BarChart3 },
 ];
 
-export const Sidebar = () => {
+export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile" } = {}) => {
   const { user, signOut } = useAuth();
   const { orgs, activeOrgId, memberships, isOwner } = useOrg();
   const loc = useLocation();
@@ -34,15 +34,18 @@ export const Sidebar = () => {
 
   const initials = (user?.user_metadata?.full_name as string | undefined)?.split(" ").map((s) => s[0]).slice(0, 2).join("") ?? user?.email?.[0]?.toUpperCase() ?? "U";
 
+  const isMobile = variant === "mobile";
+
   return (
     <aside
-      className="sticky top-0 hidden md:flex h-screen flex-col z-50"
+      className={isMobile ? "flex h-screen flex-col z-50 w-full" : "sticky top-0 hidden md:flex h-screen flex-col z-50"}
       style={{
-        width: 256,
-        background: "rgba(2,2,10,0.80)",
+        width: isMobile ? "100%" : 256,
+        background: "rgba(2,2,10,0.92)",
         backdropFilter: "var(--blur-sidebar)",
         WebkitBackdropFilter: "var(--blur-sidebar)",
         borderRight: "1px solid var(--border-glass)",
+        paddingTop: isMobile ? "var(--safe-top)" : 0,
       }}
     >
       <div className="px-5 py-5" style={{ borderBottom: "1px solid var(--border-glass)" }}>
