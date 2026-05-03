@@ -99,7 +99,7 @@ export default function AISettings() {
       if (data?.error) throw new Error(data.error);
       setKeyVerified(true);
       setAnthropicKey("");
-      toast({ title: "Anthropic key verified", description: "Visi AI is ready." });
+      toast({ title: "Anthropic key verified", description: "Vision is ready." });
     } catch (e: any) {
       toast({ title: "Key invalid", description: e.message, variant: "destructive" });
     } finally {
@@ -125,7 +125,7 @@ export default function AISettings() {
           <div className="flex-1">
             <div className="t-card-title">Anthropic API Key</div>
             <div className="text-xs mt-1" style={{ color: "var(--text-tertiary)" }}>
-              Visi AI uses Claude. Get a key at console.anthropic.com → API Keys.
+              Vision uses Claude. Get a key at console.anthropic.com → API Keys.
             </div>
             {keyVerified ? (
               <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-emerald-300">
