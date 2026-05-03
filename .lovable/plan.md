@@ -1,69 +1,112 @@
-# Visi OS Settings — Master Control Center
+# Dynamic Organizations System
 
-Scope is large (8 tabs, multiple integrations, danger zone, mobile reflow). Shipping in clear phases so the page is usable after each phase. Every save uses existing `profiles`, `orgs`, `integrations`, `ai_training`, and a new `push_subscriptions` table.
+Replace hardcoded UWAZI/BIN/CC with a fully dynamic, user-managed orgs system: create via 3-step wizard, edit, archive/restore, reorder, with real-time updates everywhere.
 
-## Architecture
+## 1. Schema Migration
 
-- New route stays at `/settings`. Replace current `Settings.tsx` with `SettingsLayout` shell that renders a left sidebar (220px) + scrollable content panel.
-- Each tab is its own component in `src/components/settings/tabs/` so the file stays maintainable: `ProfileTab`, `OrganizationsTab`, `ConnectionsTab`, `VisionAITab`, `DigitalCardTab`, `NotificationsTab`, `PrivacyTab`, `AccountTab`.
-- A single `useSettingsCompletion()` hook computes per-tab status (`complete | warning | empty` + count) and feeds the sidebar dots.
-- Save pattern helper `useAutoSave` (500ms debounce for text, immediate for toggles, manual for complex forms) writes to Supabase and emits a toast.
-- Add `Settings` link with `Gear` icon at the bottom of the main app sidebar (`src/components/visi/Sidebar.tsx`).
+Add to `orgs` table:
+- `short_name TEXT` — used in pills/nav (max 10 chars)
+- `org_type TEXT DEFAULT 'startup'`
+- `success_metric TEXT` (alongside existing `success_definition`)
+- `drive_folder_id TEXT`
+- `pipeline_stages JSONB DEFAULT '["Prospect","Intro","Active","Champion"]'` (alongside existing `stage_labels`)
+- `relationship_label TEXT DEFAULT 'Partners'`
+- `display_order INTEGER DEFAULT 0`
+- `is_active BOOLEAN DEFAULT true`
+- `created_by UUID` (no FK to auth.users per Supabase guidelines)
 
-## Database changes (one migration up front)
+Add unique index on `slug`. Backfill `short_name` and `display_order` for existing rows.
 
-```sql
-alter table profiles add column if not exists preferences jsonb not null default '{}'::jsonb;
-alter table orgs add column if not exists description text;
-alter table orgs add column if not exists priorities jsonb not null default '[]'::jsonb;
-alter table orgs add column if not exists success_definition text;
-alter table orgs add column if not exists stage_labels jsonb not null default '[]'::jsonb;
+Add INSERT policy on `orgs` so authenticated users can create orgs (currently INSERT is blocked). On insert, auto-create an `org_memberships` row with role `owner` for the creator via trigger.
 
-create table if not exists push_subscriptions (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null,
-  endpoint text not null,
-  p256dh text not null,
-  auth text not null,
-  created_at timestamptz not null default now(),
-  unique (user_id, endpoint)
-);
-alter table push_subscriptions enable row level security;
-create policy "Push: self all" on push_subscriptions for all
-  using (user_id = auth.uid()) with check (user_id = auth.uid());
-```
+Add UPDATE policy refinement so creators/owners can update `is_active` and `display_order`.
 
-Reuses existing `integrations` (one row per provider with `vision_enabled`, `metadata`, `status`) and `user_integration_secrets` (encrypted tokens for Slack / Jira / Confluence / Twilio / Fathom / Granola).
+Enable realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE public.orgs;`
 
-## Phase plan (each phase ships independently)
+## 2. New Frontend Modules
 
-1. Layout + sidebar nav + completion dots + `Settings` entry in main sidebar.
-2. Profile tab (avatar upload to `avatars` bucket, all fields, Preferences JSONB).
-3. Organizations tab (3 sub-tabs, color picker, Drive folder verify via `calendar-list-events`-style edge, stage labels).
-4. Connections tab — Google Workspace tile (reuse current ConnectionsPanel logic, expand toggles for Gmail / Calendar / Drive sub-features, Sync Now buttons).
-5. Slack tile via Lovable connector (`standard_connectors--connect slack`), channel whitelist stored in `integrations.metadata`.
-6. Jira + Confluence tiles (API token form → encrypted store in `user_integration_secrets`, project/space whitelist, new edge functions `jira-test-connection`, `confluence-test-connection`).
-7. Twilio + Fathom + Granola tiles (token forms, masked inputs, test buttons).
-8. Vision AI tab (default persona, full data-source toggle grid bound to `integrations.vision_enabled`, voice training → `ai_training`, Business Context per org, Morning Brief settings, conversation history controls + Clear All).
-9. Digital Card tab — embed existing MyCardSettings UI in two-column layout with live phone-frame preview and QR.
-10. Notifications tab (in-app/email/push toggles → `profiles.notification_prefs`; PWA push subscribe flow writing to `push_subscriptions`).
-11. Privacy tab + Export data edge function `export-user-data` returning a ZIP signed URL.
-12. Account tab (plan info, API usage from a new `usage_events` query, change password via `supabase.auth.updateUser`, Switch/Disconnect Google).
-13. Danger Zone (Reset Settings, Clear Contacts, Delete Account — typed confirmation modals; delete account via new edge function `delete-account` using service role).
-14. Test Connection buttons across all tiles + completion-indicator polish.
-15. Mobile reflow: sidebar → horizontal scroll tab strip; ensure 16px input font; verify in preview.
+**`src/lib/orgColors.ts`** — exported `ORG_PALETTE` array (10 named colors + custom hex support). Replaces hardcoded `ORG_COLORS` slug map in `src/lib/orgs.ts` (kept as legacy fallback for any pre-existing rows without color set).
 
-## Design notes
+**`src/components/orgs/OrgPill.tsx`** — small reusable pill using `org.color` (hex) + `short_name`.
 
-- All styling via existing tokens / utility classes (`.glass`, `.glass-active`, `.btn-primary`, `.input-glass`, `.nav-item`, `var(--text-primary)`). Connected tiles get a 3px green left border via `border-l-[3px] border-[hsl(var(--success))]`; disconnected gets red.
-- Completion dots: `●` green = `hsl(var(--success))`, `⚠` amber = `hsl(var(--warning))` with count.
-- Toggles use existing shadcn `Switch`. API tokens use `<Input type="password">` with eye toggle. Confirmations via shadcn `AlertDialog`.
-- All copy lives inline in each tab component — no i18n layer.
+**`src/components/orgs/OrgColorPicker.tsx`** — 10 swatches + custom hex input + live preview pill.
 
-## Out of scope for this build
+**`src/components/orgs/SlugInput.tsx`** — debounced uniqueness check via Supabase, ✓/✗ feedback, suggests `${slug}-2` if taken.
 
-- Real billing / plan management (just display placeholder plan info).
-- Real Claude usage tracking infrastructure (display zeros until usage table exists).
-- Building the Fathom/Granola sync workers (UI + token storage only; sync edge functions stubbed).
+**`src/components/orgs/AddOrgWizard.tsx`** — 3-step modal (Dialog on desktop, full-screen Sheet on mobile). Reused for Edit (pre-filled, "Save" instead of "Create").
+- Step 1: Name, Short Name (auto from first word), Slug (auto, real-time check), Color picker, Org Type radio
+- Step 2: Description, 3 priorities, success metric, Drive folder ID + Verify button (calls existing edge function or Drive gateway)
+- Step 3: Relationship label, 4 pipeline stage inputs, quick-fill template buttons
+- On create: insert org → membership trigger handles owner row → confetti (`canvas-confetti` if available, else simple CSS) → toast → switch active tab to new org
+- On edit: update only changed fields
 
-Confirm and I'll start with Phase 1 (layout + sidebar + completion dots + Settings entry in main nav) and the migration.
+**`src/components/orgs/OrgTabBar.tsx`** — dynamic horizontal tab bar with drag-to-reorder (using `@dnd-kit/core` if installed, else native HTML5 drag) on desktop. Each tab shows colored dot + name. Trailing `[+ Add Org]` tab + top-right `[+ Add Org]` button.
+
+**`src/components/orgs/ArchivedOrgsList.tsx`** — bottom-of-page list of `is_active = false` orgs with Restore button.
+
+**`src/components/orgs/ArchiveOrgPanel.tsx`** — danger-zone panel (only renders if 2+ active orgs); requires typing org name to confirm.
+
+## 3. Refactor `OrganizationsTab`
+
+Replace existing implementation:
+- Use `OrgTabBar` instead of inline pill buttons
+- Add `[+ Add Org]` button top-right + `[⚙️ Edit Org]` button per active org
+- Show priorities, success, pipeline stages as before but read from new fields (with fallback to old `priorities`/`stage_labels`)
+- Append `ArchiveOrgPanel` (when 2+ active) and `ArchivedOrgsList` at bottom
+- Empty state: if 0 active orgs, show centered "Add your first organization" CTA
+
+## 4. Global Realtime Org Context
+
+Update `src/contexts/OrgContext.tsx`:
+- Filter `orgs` to `is_active = true`, order by `display_order`
+- Subscribe to `postgres_changes` on `public.orgs` → call `refreshOrgs()`
+- Expose `archivedOrgs` separately for the settings page (one-shot fetch on demand)
+- Keep "all" pseudo-tab for owners
+
+Update `src/components/visi/OrgSwitcher.tsx`:
+- Use `org.short_name || org.name` for label
+- Use `org.color` directly (hex) — drop `ORG_COLORS[slug]` lookup as primary; keep as fallback only
+
+Update `src/lib/orgDetect.ts` references to `ORG_COLORS` if any (read-only, leave domain map intact).
+
+## 5. Reorder
+
+Desktop: drag handle (⠿) on each tab in `OrgTabBar`. On drop, batch-update `display_order` for affected orgs.
+
+Mobile: `[Reorder ↕]` toggle → vertical list with drag handles → `[Done]` saves.
+
+## 6. Mobile
+
+`AddOrgWizard` renders as full-screen Sheet on mobile (`useIsMobile`). Sticky bottom CTA with `pb-[env(safe-area-inset-bottom)]`. Header shows "Step N of 3".
+
+## 7. Confetti
+
+Add `canvas-confetti` via `bun add canvas-confetti`.
+
+## Technical Notes
+
+- Slug uniqueness: client check is advisory; DB unique index is the source of truth (catch error and show message).
+- Membership: a Postgres trigger `AFTER INSERT ON orgs` inserts `org_memberships(user_id = NEW.created_by, org_id = NEW.id, role = 'owner')`. This avoids requiring the client to do a second insert (current RLS on `org_memberships` blocks client INSERT entirely).
+- Existing `priorities` / `stage_labels` columns are kept for backwards compatibility; new code reads `pipeline_stages` first then falls back.
+- All UI uses existing semantic tokens (`var(--text-primary)`, `.glass`, `.btn-primary`, `.input-glass`) per design memory.
+- Org detection (`src/lib/orgDetect.ts` domain map) is unchanged — that's metadata-driven, not affected by this UI.
+
+## Files
+
+Created:
+- `src/lib/orgColors.ts`
+- `src/components/orgs/OrgPill.tsx`
+- `src/components/orgs/OrgColorPicker.tsx`
+- `src/components/orgs/SlugInput.tsx`
+- `src/components/orgs/AddOrgWizard.tsx`
+- `src/components/orgs/OrgTabBar.tsx`
+- `src/components/orgs/ArchiveOrgPanel.tsx`
+- `src/components/orgs/ArchivedOrgsList.tsx`
+- migration file
+
+Edited:
+- `src/components/settings/tabs/OrganizationsTab.tsx`
+- `src/contexts/OrgContext.tsx`
+- `src/components/visi/OrgSwitcher.tsx`
+
+Dependency: `canvas-confetti`

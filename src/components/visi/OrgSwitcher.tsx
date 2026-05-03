@@ -11,8 +11,10 @@ export const OrgSwitcher = () => {
         ORG CONTEXT
       </div>
       <div className="flex flex-col gap-1.5">
-        {visible.map((o) => {
+        {visible.map((o: any) => {
           const active = activeOrgId === o.id;
+          const color = o.color || ORG_COLORS[o.slug] || "#6366F1";
+          const label = o.short_name || o.name;
           return (
             <button
               key={o.id}
@@ -23,15 +25,15 @@ export const OrgSwitcher = () => {
               <span
                 className="org-dot"
                 style={{
-                  background: ORG_COLORS[o.slug] ?? o.color,
-                  boxShadow: active ? `0 0 8px ${ORG_COLORS[o.slug] ?? o.color}` : undefined,
+                  background: color,
+                  boxShadow: active ? `0 0 8px ${color}` : undefined,
                 }}
               />
-              <span className="truncate" style={{ fontSize: 12 }}>{o.name}</span>
+              <span className="truncate" style={{ fontSize: 12 }}>{label}</span>
             </button>
           );
         })}
-        {isOwner && (
+        {isOwner && visible.length > 0 && (
           <button
             onClick={() => setActiveOrgId("all")}
             className={`org-pill ${activeOrgId === "all" ? "active" : ""} w-full justify-start`}
