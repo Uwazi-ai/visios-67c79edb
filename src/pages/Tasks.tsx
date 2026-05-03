@@ -30,6 +30,8 @@ const Tasks = () => {
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const [search, setSearch] = useState("");
   const [showGen, setShowGen] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const isMobile = useIsMobile();
 
   // Re-sync openTask when tasks reload
   useEffect(() => {
@@ -38,6 +40,24 @@ const Tasks = () => {
       if (fresh && fresh !== openTask) setOpenTask(fresh);
     }
   }, [tasks, openTask]);
+
+  const newTaskOrgIdRef = useRef<string | undefined>(undefined);
+  const createNew = async () => {
+    const oid = newTaskOrgIdRef.current;
+    if (!oid) return;
+    const t = await createTask({ title: "New task", org_id: oid, project_id: activeProjectId });
+    if (t) setOpenTask(t);
+  };
+  const cycleView = () => {
+    const order: View[] = ["list", "board", "timeline", "calendar"];
+    setView(order[(order.indexOf(view) + 1) % order.length]);
+  };
+  useTasksKeyboard({
+    onNew: createNew,
+    onSearch: () => searchRef.current?.focus(),
+    onCycleView: cycleView,
+    onClose: () => setOpenTask(null),
+  });
 
   // Apply project / quick filter / search
   const filtered = useMemo(() => {
