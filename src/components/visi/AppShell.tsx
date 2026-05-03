@@ -4,7 +4,7 @@ import { Topbar } from "./Topbar";
 import { BottomNav } from "./BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
 import { QuickCaptureModal } from "@/components/tasks/QuickCaptureModal";
-import { AIAssistantFAB } from "@/components/ai/AIAssistantPanel";
+// AIAssistantFAB removed — unified into Vision (single AI surface)
 
 export const AppShell = () => {
   const { session, loading } = useAuth();
@@ -30,7 +30,7 @@ export const AppShell = () => {
       </div>
       <BottomNav />
       <QuickCaptureModal />
-      <AIAssistantFAB />
+      {/* AI lives at /vision — no floating duplicate */}
     </div>
   );
 };
