@@ -270,6 +270,23 @@ const Tasks = () => {
         defaultProjectId={activeProjectId}
         onCreate={createTask}
       />
+      {/* Mobile FAB */}
+      {isMobile && newTaskOrgId && (
+        <button
+          onClick={createNew}
+          aria-label="New task"
+          className="fixed z-40 rounded-full shadow-lg flex items-center justify-center"
+          style={{
+            bottom: "calc(80px + var(--safe-bottom))",
+            right: 16,
+            width: 56, height: 56,
+            background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+            color: "white",
+          }}
+        >
+          <Plus size={24} strokeWidth={2} />
+        </button>
+      )}
     </div>
   );
 };
