@@ -182,20 +182,22 @@ const Tasks = () => {
 
       {/* Body */}
       <div className="flex gap-6">
-        <ProjectsSidebar
-          projects={projects}
-          sections={sections}
-          tasks={tasks}
-          orgs={orgs}
-          selectedProjectId={activeProjectId}
-          quickFilter={quickFilter}
-          onSelectProject={setActiveProjectId}
-          onSelectQuickFilter={setQuickFilter}
-          onCreateProject={createProject}
-          onArchiveProject={archiveProject}
-          onDeleteProject={deleteProject}
-          onUpdateProject={updateProject}
-        />
+        {!isMobile && (
+          <ProjectsSidebar
+            projects={projects}
+            sections={sections}
+            tasks={tasks}
+            orgs={orgs}
+            selectedProjectId={activeProjectId}
+            quickFilter={quickFilter}
+            onSelectProject={setActiveProjectId}
+            onSelectQuickFilter={setQuickFilter}
+            onCreateProject={createProject}
+            onArchiveProject={archiveProject}
+            onDeleteProject={deleteProject}
+            onUpdateProject={updateProject}
+          />
+        )}
 
         <div className="flex-1 min-w-0">
           {loading ? (
