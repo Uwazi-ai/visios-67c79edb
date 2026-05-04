@@ -43,7 +43,7 @@ export const EngagementBoard = ({ contacts, orgs, activeOrgSlug, onChanged, onSe
   };
 
   return (
-    <div className="glass flex flex-col" style={{ width: 280, minWidth: 280, height: "100%" }}>
+    <div className="glass hidden lg:flex flex-col" style={{ width: 280, minWidth: 280, height: "100%" }}>
       <div className="px-4 py-3 border-b" style={{ borderColor: "var(--border-glass)" }}>
         <div className="t-card-title">Engagements</div>
         <div className="t-mono mt-1" style={{ fontSize: 9 }}>

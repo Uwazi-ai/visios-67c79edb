@@ -157,7 +157,7 @@ const Contacts = () => {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="t-hero" style={{ fontSize: 36 }}>Contacts</h1>
+          <h1 className="t-hero text-2xl md:text-4xl">Contacts</h1>
           <div className="flex items-center gap-3 mt-1">
             <span className="t-mono">
               {filteredForActiveOrg.length} contact{filteredForActiveOrg.length === 1 ? "" : "s"}
@@ -179,23 +179,23 @@ const Contacts = () => {
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 flex-wrap">
           <RelationshipHealth contacts={filteredForActiveOrg} />
           <button
             onClick={() => { setAgentInitialPhase("config"); setAgentOpen(true); }}
             className="btn-ghost"
             title="Find contacts from Gmail"
           >
-            <Sparkles size={12} /> <Mail size={12} /> Find Contacts
+            <Sparkles size={12} /> <Mail size={12} /> <span className="hidden sm:inline">Find Contacts</span><span className="sm:hidden">Find</span>
             {pendingCount > 0 && (
               <span className="badge" style={{ marginLeft: 6 }}>{pendingCount}</span>
             )}
           </button>
           <button onClick={() => setScannerOpen(true)} className="btn-ghost" title="Scan a business card">
-            <Camera size={12} /> Scan Card
+            <Camera size={12} /> <span className="hidden sm:inline">Scan Card</span><span className="sm:hidden">Scan</span>
           </button>
           <button onClick={() => { setScanPrefill(null); setScanSource(undefined); setEditing(false); setModalOpen(true); }} className="btn-primary">
-            <Plus size={12} /> Add Contact
+            <Plus size={12} /> <span className="hidden sm:inline">Add Contact</span><span className="sm:hidden">Add</span>
           </button>
         </div>
       </div>
@@ -223,23 +223,34 @@ const Contacts = () => {
         <EmptyState onAdd={() => { setEditing(false); setModalOpen(true); }} />
       ) : (
         <div className="flex gap-4 flex-1 min-h-0">
-          <ContactList
-            contacts={contacts}
-            orgs={orgsForList}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-            initialStale={forceStale}
-            key={`list-${forceStale}-${refreshTick}`}
-          />
-          <div className="flex-1 min-w-0 flex">
+          <div className={`${selectedId ? "hidden md:flex" : "flex"} flex-1 md:flex-initial min-h-0`}>
+            <ContactList
+              contacts={contacts}
+              orgs={orgsForList}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              initialStale={forceStale}
+              key={`list-${forceStale}-${refreshTick}`}
+            />
+          </div>
+          <div className={`${selectedId ? "flex" : "hidden md:flex"} flex-1 min-w-0`}>
             {selected ? (
-              <ContactDetail
-                contact={selected}
-                org={selectedOrg ? { id: selectedOrg.id, slug: selectedOrg.slug, name: selectedOrg.name } : null}
-                onEdit={() => { setEditing(true); setModalOpen(true); }}
-                onChanged={loadContacts}
-                refreshKey={refreshTick}
-              />
+              <div className="flex-1 min-w-0 flex flex-col">
+                <button
+                  onClick={() => { setSelectedId(null); setParams((p) => { const n = new URLSearchParams(p); n.delete("id"); return n; }, { replace: true }); }}
+                  className="btn-ghost md:hidden mb-2 self-start"
+                  style={{ fontSize: 11 }}
+                >
+                  ← Back
+                </button>
+                <ContactDetail
+                  contact={selected}
+                  org={selectedOrg ? { id: selectedOrg.id, slug: selectedOrg.slug, name: selectedOrg.name } : null}
+                  onEdit={() => { setEditing(true); setModalOpen(true); }}
+                  onChanged={loadContacts}
+                  refreshKey={refreshTick}
+                />
+              </div>
             ) : (
               <div className="glass flex-1 flex flex-col items-center justify-center gap-2" style={{ color: "var(--text-muted)" }}>
                 <Users size={28} />
