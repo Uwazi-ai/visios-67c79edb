@@ -25,8 +25,8 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
-        globPatterns: ["**/*.{css,html,ico,png,svg,woff2}", "assets/index-*.js"],
-        globIgnores: ["**/node_modules/**/*", "sw.js", "workbox-*.js"],
+        globPatterns: ["**/*.{css,html,ico,png,svg,woff2}", "assets/*.js"],
+        globIgnores: ["**/node_modules/**/*"],
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         runtimeCaching: [
           {
