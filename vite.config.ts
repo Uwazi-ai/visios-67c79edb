@@ -25,8 +25,10 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        globPatterns: ["**/*.{css,html,ico,png,svg,woff2}", "assets/*.js"],
+        // Skip oversized chunks (e.g. main index bundle) so precache stays under the 2 MiB Workbox limit.
+        globIgnores: ["**/node_modules/**/*", "**/index-*.js", "**/vendor-*.js"],
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",
