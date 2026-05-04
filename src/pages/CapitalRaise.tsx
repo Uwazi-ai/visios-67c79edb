@@ -117,12 +117,26 @@ export default function CapitalRaise() {
               opp={o}
               onUpdate={(patch) => handleStatusChange(o, patch)}
               onAddTask={() => handleAddTask(o)}
+              onDelete={() => deleteOpportunity(o.id)}
             />
           ))}
         </div>
       )}
 
       <TasksPanel tasks={tasks} opps={opportunities} onUpdate={updateTask} onDelete={deleteTask} />
+
+      {creating && (
+        <NewOpportunityModal
+          onClose={() => setCreating(false)}
+          onCreate={async (input) => {
+            const created = await createOpportunity(input);
+            if (created) {
+              setCreating(false);
+              toast({ title: "Opportunity added", description: created.name });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
