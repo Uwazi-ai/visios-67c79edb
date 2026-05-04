@@ -10,8 +10,9 @@ import { toast } from "@/hooks/use-toast";
 const ACTIVE_SET = new Set(["researching", "drafting", "applied", "in review"]);
 
 export default function CapitalRaise() {
-  const { opportunities, tasks, loading, updateOpportunity, createTask, updateTask, deleteTask } = useFundraising();
+  const { opportunities, tasks, loading, updateOpportunity, createOpportunity, deleteOpportunity, createTask, updateTask, deleteTask } = useFundraising();
   const [filters, setFilters] = useState<FilterState>({ type: "all", phase: "all", entity: "all", status: "all", sort: "order" });
+  const [creating, setCreating] = useState(false);
 
   const entities = useMemo(() => Array.from(new Set(opportunities.map((o) => o.entity))), [opportunities]);
 
