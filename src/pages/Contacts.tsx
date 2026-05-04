@@ -15,6 +15,8 @@ import { GmailAgentDrawer } from "@/components/contacts/GmailAgentDrawer";
 import { AgentStatusBar } from "@/components/contacts/AgentStatusBar";
 import { useContactEnrichment } from "@/hooks/useContactEnrichment";
 import { usePendingReviewCount, useAgentSettings } from "@/hooks/useGmailAgent";
+import { useSwipe } from "@/hooks/useSwipe";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { bucket } from "@/lib/contactsHealth";
 import { toast } from "sonner";
 
@@ -222,7 +224,10 @@ const Contacts = () => {
       ) : contacts.length === 0 ? (
         <EmptyState onAdd={() => { setEditing(false); setModalOpen(true); }} />
       ) : (
-        <div className="flex gap-4 flex-1 min-h-0">
+        <SwipeableContacts
+          selectedId={selectedId}
+          onBack={() => { setSelectedId(null); setParams((p) => { const n = new URLSearchParams(p); n.delete("id"); return n; }, { replace: true }); }}
+        >
           <div className={`${selectedId ? "hidden md:flex" : "flex"} flex-1 md:flex-initial min-h-0`}>
             <ContactList
               contacts={contacts}
@@ -265,7 +270,7 @@ const Contacts = () => {
             onChanged={loadContacts}
             onSelect={handleSelect}
           />
-        </div>
+        </SwipeableContacts>
       )}
 
       <ContactModal
@@ -302,6 +307,26 @@ const Contacts = () => {
         onPendingChanged={refreshPending}
         initialPhase={agentInitialPhase}
       />
+    </div>
+  );
+};
+
+const SwipeableContacts = ({
+  selectedId,
+  onBack,
+  children,
+}: {
+  selectedId: string | null;
+  onBack: () => void;
+  children: React.ReactNode;
+}) => {
+  const isMobile = useIsMobile();
+  const swipe = useSwipe({
+    onSwipeRight: () => { if (isMobile && selectedId) onBack(); },
+  });
+  return (
+    <div className="flex gap-4 flex-1 min-h-0" {...(isMobile ? swipe : {})}>
+      {children}
     </div>
   );
 };
