@@ -5,6 +5,7 @@ import { TimelineStrip } from "@/components/fundraising/TimelineStrip";
 import { FilterBar, type FilterState } from "@/components/fundraising/FilterBar";
 import { OpportunityCard } from "@/components/fundraising/OpportunityCard";
 import { TasksPanel } from "@/components/fundraising/TasksPanel";
+import { NewOpportunityModal } from "@/components/fundraising/NewOpportunityModal";
 import { toast } from "@/hooks/use-toast";
 
 const ACTIVE_SET = new Set(["researching", "drafting", "applied", "in review"]);
