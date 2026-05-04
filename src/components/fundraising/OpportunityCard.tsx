@@ -43,7 +43,7 @@ function EditableText({
   );
 }
 
-export function OpportunityCard({ opp, onUpdate, onAddTask }: Props) {
+export function OpportunityCard({ opp, onUpdate, onAddTask, onDelete }: Props) {
   const declined = opp.status === "declined";
   return (
     <div
