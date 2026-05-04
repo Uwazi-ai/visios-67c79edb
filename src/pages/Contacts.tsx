@@ -270,7 +270,7 @@ const Contacts = () => {
             onChanged={loadContacts}
             onSelect={handleSelect}
           />
-        </div>
+        </SwipeableContacts>
       )}
 
       <ContactModal
