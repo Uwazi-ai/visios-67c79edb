@@ -61,6 +61,24 @@ Deno.serve(async (req) => {
       }));
     }
 
+    // Fundraising context (lightweight summary, included when query mentions raise/capital/fundraising/etc.)
+    let fundraising: any = null;
+    const q = typeof query === "string" ? query.toLowerCase() : "";
+    if (/fundrais|raise|capital|investor|grant|accelerator|vc|pipeline|opportunit/.test(q)) {
+      const [{ data: opps }, { data: ftasks }] = await Promise.all([
+        admin.from("fundraising_opportunities").select("name,organization,type,entity,phase,urgency,status,deadline,target_amount,assigned_to,next_action,committed_amount").order("order_num"),
+        admin.from("fundraising_tasks").select("title,due_at,assigned_to,status,opportunity_id").neq("status", "done"),
+      ]);
+      const O = opps ?? [];
+      fundraising = {
+        target: 2_750_000,
+        committed: O.reduce((s: number, o: any) => s + Number(o.committed_amount ?? 0), 0),
+        pipeline_count: O.length,
+        opportunities: O,
+        open_tasks: ftasks ?? [],
+      };
+    }
+
     return jsonResponse({
       profile: profileRes.data ?? null,
       training: trainingRes.data ?? null,
@@ -68,6 +86,7 @@ Deno.serve(async (req) => {
       tasks: tasks ?? [],
       contacts: contacts ?? [],
       citations,
+      fundraising,
       today: today.toISOString(),
     });
   } catch (e) {
