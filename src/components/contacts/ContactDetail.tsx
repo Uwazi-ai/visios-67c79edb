@@ -42,7 +42,7 @@ export const ContactDetail = ({ contact, org, onEdit, onChanged, refreshKey }: P
   return (
     <div className="glass flex flex-col flex-1 overflow-hidden" key={refreshKey}>
       {/* Header */}
-      <div className="p-5 border-b" style={{ borderColor: "var(--border-glass)" }}>
+      <div className="p-3 md:p-5 border-b" style={{ borderColor: "var(--border-glass)" }}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div
