@@ -80,6 +80,42 @@ export function useFundraising() {
     }
   };
 
+  const createOpportunity = async (input: Partial<Opportunity> & { name: string; organization: string }) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const nextOrder = (opportunities.reduce((m, o) => Math.max(m, o.order_num), 0) || 0) + 1;
+    const { error, data } = await supabase.from("fundraising_opportunities").insert({
+      name: input.name,
+      organization: input.organization,
+      type: input.type ?? "vc",
+      entity: input.entity ?? "UWAZI.AI",
+      target_amount: input.target_amount ?? null,
+      deadline: input.deadline ?? null,
+      phase: input.phase ?? 1,
+      urgency: input.urgency ?? "soon",
+      status: input.status ?? "not started",
+      notes: input.notes ?? null,
+      assigned_to: input.assigned_to ?? null,
+      next_action: input.next_action ?? null,
+      committed_amount: input.committed_amount ?? 0,
+      order_num: input.order_num ?? nextOrder,
+      created_by: user?.id ?? null,
+    }).select().single();
+    if (error) {
+      toast({ title: "Create failed", description: error.message, variant: "destructive" });
+      return null;
+    }
+    return data as Opportunity;
+  };
+
+  const deleteOpportunity = async (id: string) => {
+    setOpportunities((prev) => prev.filter((o) => o.id !== id));
+    const { error } = await supabase.from("fundraising_opportunities").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      void load();
+    }
+  };
+
   const createTask = async (input: Omit<FundraisingTask, "id" | "created_at" | "status"> & { status?: string }) => {
     const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from("fundraising_tasks").insert({
