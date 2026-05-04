@@ -25,8 +25,9 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        globPatterns: ["**/*.{css,html,ico,png,svg,woff2}", "assets/index-*.js"],
+        globIgnores: ["**/node_modules/**/*", "sw.js", "workbox-*.js"],
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: ({ request }) => request.mode === "navigate",
