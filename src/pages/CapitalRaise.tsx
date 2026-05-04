@@ -93,6 +93,13 @@ export default function CapitalRaise() {
             Capital Raise
           </h1>
         </div>
+        <button
+          onClick={() => setCreating(true)}
+          className="rounded-lg px-3 py-2 font-semibold"
+          style={{ background: "#9bd34b", color: "#0a0a0a", fontSize: 13 }}
+        >
+          + New Opportunity
+        </button>
       </header>
 
       <StatsBar opps={opportunities} />
