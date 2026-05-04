@@ -224,7 +224,10 @@ const Contacts = () => {
       ) : contacts.length === 0 ? (
         <EmptyState onAdd={() => { setEditing(false); setModalOpen(true); }} />
       ) : (
-        <div className="flex gap-4 flex-1 min-h-0">
+        <SwipeableContacts
+          selectedId={selectedId}
+          onBack={() => { setSelectedId(null); setParams((p) => { const n = new URLSearchParams(p); n.delete("id"); return n; }, { replace: true }); }}
+        >
           <div className={`${selectedId ? "hidden md:flex" : "flex"} flex-1 md:flex-initial min-h-0`}>
             <ContactList
               contacts={contacts}
