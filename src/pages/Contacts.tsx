@@ -182,7 +182,7 @@ const Contacts = () => {
           </div>
         </div>
         <div className="flex items-center gap-2 md:gap-3 flex-wrap">
-          <RelationshipHealth contacts={filteredForActiveOrg} />
+          <div className="hidden md:block"><RelationshipHealth contacts={filteredForActiveOrg} /></div>
           <button
             onClick={() => { setAgentInitialPhase("config"); setAgentOpen(true); }}
             className="btn-ghost"
