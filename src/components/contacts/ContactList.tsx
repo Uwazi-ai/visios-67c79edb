@@ -62,7 +62,7 @@ export const ContactList = ({ contacts, orgs, selectedId, onSelect, initialStale
   );
 
   return (
-    <div className="glass flex flex-col" style={{ width: 320, minWidth: 320, height: "100%" }}>
+    <div className="glass flex flex-col w-full md:w-[320px] md:min-w-[320px]" style={{ height: "100%" }}>
       {/* Search */}
       <div className="p-3 border-b" style={{ borderColor: "var(--border-glass)" }}>
         <div className="relative">
