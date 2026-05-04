@@ -5,13 +5,15 @@ import { TimelineStrip } from "@/components/fundraising/TimelineStrip";
 import { FilterBar, type FilterState } from "@/components/fundraising/FilterBar";
 import { OpportunityCard } from "@/components/fundraising/OpportunityCard";
 import { TasksPanel } from "@/components/fundraising/TasksPanel";
+import { NewOpportunityModal } from "@/components/fundraising/NewOpportunityModal";
 import { toast } from "@/hooks/use-toast";
 
 const ACTIVE_SET = new Set(["researching", "drafting", "applied", "in review"]);
 
 export default function CapitalRaise() {
-  const { opportunities, tasks, loading, updateOpportunity, createTask, updateTask, deleteTask } = useFundraising();
+  const { opportunities, tasks, loading, updateOpportunity, createOpportunity, deleteOpportunity, createTask, updateTask, deleteTask } = useFundraising();
   const [filters, setFilters] = useState<FilterState>({ type: "all", phase: "all", entity: "all", status: "all", sort: "order" });
+  const [creating, setCreating] = useState(false);
 
   const entities = useMemo(() => Array.from(new Set(opportunities.map((o) => o.entity))), [opportunities]);
 
@@ -92,6 +94,13 @@ export default function CapitalRaise() {
             Capital Raise
           </h1>
         </div>
+        <button
+          onClick={() => setCreating(true)}
+          className="rounded-lg px-3 py-2 font-semibold"
+          style={{ background: "#9bd34b", color: "#0a0a0a", fontSize: 13 }}
+        >
+          + New Opportunity
+        </button>
       </header>
 
       <StatsBar opps={opportunities} />
@@ -109,12 +118,26 @@ export default function CapitalRaise() {
               opp={o}
               onUpdate={(patch) => handleStatusChange(o, patch)}
               onAddTask={() => handleAddTask(o)}
+              onDelete={() => deleteOpportunity(o.id)}
             />
           ))}
         </div>
       )}
 
       <TasksPanel tasks={tasks} opps={opportunities} onUpdate={updateTask} onDelete={deleteTask} />
+
+      {creating && (
+        <NewOpportunityModal
+          onClose={() => setCreating(false)}
+          onCreate={async (input) => {
+            const created = await createOpportunity(input);
+            if (created) {
+              setCreating(false);
+              toast({ title: "Opportunity added", description: created.name });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

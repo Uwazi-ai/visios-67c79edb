@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Opportunity } from "@/hooks/useFundraising";
 import { STATUS_COLOR, STATUS_OPTIONS, TYPE_COLOR, URGENCY_COLOR, URGENCY_OPTIONS } from "./constants";
 
@@ -7,6 +7,7 @@ interface Props {
   opp: Opportunity;
   onUpdate: (patch: Partial<Opportunity>) => void;
   onAddTask: () => void;
+  onDelete?: () => void;
 }
 
 function EditableText({
@@ -42,7 +43,7 @@ function EditableText({
   );
 }
 
-export function OpportunityCard({ opp, onUpdate, onAddTask }: Props) {
+export function OpportunityCard({ opp, onUpdate, onAddTask, onDelete }: Props) {
   const declined = opp.status === "declined";
   return (
     <div
@@ -69,54 +70,80 @@ export function OpportunityCard({ opp, onUpdate, onAddTask }: Props) {
           >
             {opp.type}
           </span>
-          <span
-            className="rounded-full px-2 py-0.5"
-            style={{ background: "#1a1a1a", color: "#fff", fontSize: 10, fontWeight: 500 }}
+          <select
+            value={opp.phase}
+            onChange={(e) => onUpdate({ phase: Number(e.target.value) })}
+            className="rounded-full px-2 py-0.5 cursor-pointer"
+            style={{ background: "#1a1a1a", color: "#fff", fontSize: 10, fontWeight: 500, border: "1px solid #2a2a2a" }}
           >
-            P{opp.phase}
-          </span>
-          <span
-            className="rounded-full px-2 py-0.5"
+            {[1, 2, 3, 4].map((p) => <option key={p} value={p} style={{ background: "#0e0e0e" }}>P{p}</option>)}
+          </select>
+          <select
+            value={opp.type}
+            onChange={(e) => onUpdate({ type: e.target.value })}
+            className="rounded-full px-2 py-0.5 cursor-pointer uppercase"
             style={{
-              background: `${URGENCY_COLOR[opp.urgency]}22`,
-              color: URGENCY_COLOR[opp.urgency],
+              background: `${TYPE_COLOR[opp.type]}22`,
+              color: TYPE_COLOR[opp.type],
               fontSize: 10,
               fontWeight: 600,
-              textTransform: "uppercase",
               letterSpacing: "0.05em",
+              border: `1px solid ${TYPE_COLOR[opp.type]}55`,
             }}
           >
-            {opp.urgency}
-          </span>
+            {["accelerator", "vc", "grant"].map((t) => <option key={t} value={t} style={{ background: "#0e0e0e", color: "#fff" }}>{t}</option>)}
+          </select>
         </div>
-        <button
-          onClick={onAddTask}
-          className="rounded px-2 py-1 flex items-center gap-1"
-          style={{ background: "#9bd34b22", color: "#9bd34b", fontSize: 11, fontWeight: 600 }}
-        >
-          <Plus size={12} /> Task
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={onAddTask}
+            className="rounded px-2 py-1 flex items-center gap-1"
+            style={{ background: "#9bd34b22", color: "#9bd34b", fontSize: 11, fontWeight: 600 }}
+          >
+            <Plus size={12} /> Task
+          </button>
+          {onDelete && (
+            <button
+              onClick={() => { if (confirm(`Delete "${opp.name}"?`)) onDelete(); }}
+              className="rounded px-1.5 py-1 hover:bg-white/5"
+              style={{ color: "#e05252" }}
+              title="Delete opportunity"
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
       </div>
 
       <div>
         <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>
-          {opp.name}
+          <EditableText value={opp.name} onSave={(v) => onUpdate({ name: v })} placeholder="Name…" />
         </div>
-        <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{opp.organization}</div>
+        <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+          <EditableText value={opp.organization} onSave={(v) => onUpdate({ organization: v })} placeholder="Organization…" />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 text-xs">
         <div>
           <div className="t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)" }}>Entity</div>
-          <div style={{ color: "#fff" }}>{opp.entity}</div>
+          <EditableText value={opp.entity} onSave={(v) => onUpdate({ entity: v })} placeholder="Entity…" />
         </div>
         <div>
           <div className="t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)" }}>Target</div>
-          <div style={{ color: "#fff" }}>{opp.target_amount}</div>
+          <EditableText value={opp.target_amount} onSave={(v) => onUpdate({ target_amount: v })} placeholder="$…" />
         </div>
         <div className="col-span-2">
           <div className="t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)" }}>Deadline</div>
-          <div style={{ color: "#fff" }}>{opp.deadline}</div>
+          <EditableText value={opp.deadline} onSave={(v) => onUpdate({ deadline: v })} placeholder="e.g. Jun 15 or Q3 2026" />
+        </div>
+        <div className="col-span-2">
+          <div className="t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)" }}>Committed ($)</div>
+          <EditableText
+            value={opp.committed_amount ? String(opp.committed_amount) : ""}
+            onSave={(v) => onUpdate({ committed_amount: Number(v.replace(/[^0-9.]/g, "")) || 0 })}
+            placeholder="0"
+          />
         </div>
       </div>
 
