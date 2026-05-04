@@ -15,6 +15,8 @@ import { GmailAgentDrawer } from "@/components/contacts/GmailAgentDrawer";
 import { AgentStatusBar } from "@/components/contacts/AgentStatusBar";
 import { useContactEnrichment } from "@/hooks/useContactEnrichment";
 import { usePendingReviewCount, useAgentSettings } from "@/hooks/useGmailAgent";
+import { useSwipe } from "@/hooks/useSwipe";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { bucket } from "@/lib/contactsHealth";
 import { toast } from "sonner";
 
