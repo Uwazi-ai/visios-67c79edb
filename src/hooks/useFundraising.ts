@@ -140,5 +140,5 @@ export function useFundraising() {
     await supabase.from("fundraising_tasks").delete().eq("id", id);
   };
 
-  return { opportunities, tasks, loading, updateOpportunity, createTask, updateTask, deleteTask, reload: load };
+  return { opportunities, tasks, loading, updateOpportunity, createOpportunity, deleteOpportunity, createTask, updateTask, deleteTask, reload: load };
 }
