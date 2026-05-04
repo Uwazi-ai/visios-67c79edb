@@ -311,6 +311,26 @@ const Contacts = () => {
   );
 };
 
+const SwipeableContacts = ({
+  selectedId,
+  onBack,
+  children,
+}: {
+  selectedId: string | null;
+  onBack: () => void;
+  children: React.ReactNode;
+}) => {
+  const isMobile = useIsMobile();
+  const swipe = useSwipe({
+    onSwipeRight: () => { if (isMobile && selectedId) onBack(); },
+  });
+  return (
+    <div className="flex gap-4 flex-1 min-h-0" {...(isMobile ? swipe : {})}>
+      {children}
+    </div>
+  );
+};
+
 const EmptyState = ({ onAdd }: { onAdd: () => void }) => (
   <div className="glass flex-1 flex items-center justify-center p-10">
     <div className="text-center max-w-sm">
