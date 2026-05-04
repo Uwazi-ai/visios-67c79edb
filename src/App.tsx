@@ -28,6 +28,7 @@ import MyCardSettings from "./pages/MyCardSettings";
 import KnowledgePage from "./pages/Knowledge";
 import AISettings from "./pages/AISettings";
 import Vision from "./pages/Vision";
+import CapitalRaise from "./pages/CapitalRaise";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import NotFound from "./pages/NotFound";
 
