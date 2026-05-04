@@ -7,6 +7,7 @@ interface Props {
   opp: Opportunity;
   onUpdate: (patch: Partial<Opportunity>) => void;
   onAddTask: () => void;
+  onDelete?: () => void;
 }
 
 function EditableText({
