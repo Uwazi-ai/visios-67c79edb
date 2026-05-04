@@ -622,6 +622,113 @@ export type Database = {
           },
         ]
       }
+      fundraising_opportunities: {
+        Row: {
+          assigned_to: string | null
+          committed_amount: number
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          entity: string
+          id: string
+          name: string
+          next_action: string | null
+          notes: string | null
+          order_num: number
+          organization: string
+          phase: number
+          status: string
+          target_amount: string | null
+          type: string
+          updated_at: string
+          urgency: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          committed_amount?: number
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          entity?: string
+          id?: string
+          name: string
+          next_action?: string | null
+          notes?: string | null
+          order_num: number
+          organization: string
+          phase?: number
+          status?: string
+          target_amount?: string | null
+          type?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          committed_amount?: number
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          entity?: string
+          id?: string
+          name?: string
+          next_action?: string | null
+          notes?: string | null
+          order_num?: number
+          organization?: string
+          phase?: number
+          status?: string
+          target_amount?: string | null
+          type?: string
+          updated_at?: string
+          urgency?: string
+        }
+        Relationships: []
+      }
+      fundraising_tasks: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          created_by: string | null
+          due_at: string | null
+          id: string
+          opportunity_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          id?: string
+          opportunity_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_at?: string | null
+          id?: string
+          opportunity_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fundraising_tasks_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "fundraising_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           created_at: string
