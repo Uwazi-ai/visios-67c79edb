@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { Opportunity } from "@/hooks/useFundraising";
 import { STATUS_COLOR, STATUS_OPTIONS, TYPE_COLOR, URGENCY_COLOR, URGENCY_OPTIONS } from "./constants";
 
