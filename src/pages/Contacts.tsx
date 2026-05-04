@@ -223,23 +223,34 @@ const Contacts = () => {
         <EmptyState onAdd={() => { setEditing(false); setModalOpen(true); }} />
       ) : (
         <div className="flex gap-4 flex-1 min-h-0">
-          <ContactList
-            contacts={contacts}
-            orgs={orgsForList}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-            initialStale={forceStale}
-            key={`list-${forceStale}-${refreshTick}`}
-          />
-          <div className="flex-1 min-w-0 flex">
+          <div className={`${selectedId ? "hidden md:flex" : "flex"} flex-1 md:flex-initial min-h-0`}>
+            <ContactList
+              contacts={contacts}
+              orgs={orgsForList}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              initialStale={forceStale}
+              key={`list-${forceStale}-${refreshTick}`}
+            />
+          </div>
+          <div className={`${selectedId ? "flex" : "hidden md:flex"} flex-1 min-w-0`}>
             {selected ? (
-              <ContactDetail
-                contact={selected}
-                org={selectedOrg ? { id: selectedOrg.id, slug: selectedOrg.slug, name: selectedOrg.name } : null}
-                onEdit={() => { setEditing(true); setModalOpen(true); }}
-                onChanged={loadContacts}
-                refreshKey={refreshTick}
-              />
+              <div className="flex-1 min-w-0 flex flex-col">
+                <button
+                  onClick={() => { setSelectedId(null); setParams((p) => { const n = new URLSearchParams(p); n.delete("id"); return n; }, { replace: true }); }}
+                  className="btn-ghost md:hidden mb-2 self-start"
+                  style={{ fontSize: 11 }}
+                >
+                  ← Back
+                </button>
+                <ContactDetail
+                  contact={selected}
+                  org={selectedOrg ? { id: selectedOrg.id, slug: selectedOrg.slug, name: selectedOrg.name } : null}
+                  onEdit={() => { setEditing(true); setModalOpen(true); }}
+                  onChanged={loadContacts}
+                  refreshKey={refreshTick}
+                />
+              </div>
             ) : (
               <div className="glass flex-1 flex flex-col items-center justify-center gap-2" style={{ color: "var(--text-muted)" }}>
                 <Users size={28} />
