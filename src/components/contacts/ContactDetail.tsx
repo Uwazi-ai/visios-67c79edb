@@ -42,7 +42,7 @@ export const ContactDetail = ({ contact, org, onEdit, onChanged, refreshKey }: P
   return (
     <div className="glass flex flex-col flex-1 overflow-hidden" key={refreshKey}>
       {/* Header */}
-      <div className="p-5 border-b" style={{ borderColor: "var(--border-glass)" }}>
+      <div className="p-3 md:p-5 border-b" style={{ borderColor: "var(--border-glass)" }}>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <div
@@ -147,7 +147,7 @@ export const ContactDetail = ({ contact, org, onEdit, onChanged, refreshKey }: P
       </div>
 
       {/* Body — scrollable */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-5">
+      <div className="flex-1 overflow-y-auto p-3 md:p-5 space-y-4 md:space-y-5">
         {contact.notes && (
           <div className="glass p-3" style={{ background: "var(--bg-glass-1)" }}>
             <div className="t-card-title mb-1.5" style={{ fontSize: 10 }}>NOTES</div>

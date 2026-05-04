@@ -64,7 +64,7 @@ export const ContactList = ({ contacts, orgs, selectedId, onSelect, initialStale
   return (
     <div className="glass flex flex-col w-full md:w-[320px] md:min-w-[320px]" style={{ height: "100%" }}>
       {/* Search */}
-      <div className="p-3 border-b" style={{ borderColor: "var(--border-glass)" }}>
+      <div className="p-2.5 md:p-3 border-b" style={{ borderColor: "var(--border-glass)" }}>
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
           <input
@@ -76,8 +76,8 @@ export const ContactList = ({ contacts, orgs, selectedId, onSelect, initialStale
           />
         </div>
 
-        {/* Filter chips */}
-        <div className="flex flex-wrap gap-1.5 mt-3">
+        {/* Filter chips — single horizontally scrollable row on mobile */}
+        <div className="flex gap-1.5 mt-2.5 overflow-x-auto md:flex-wrap no-scrollbar -mx-0.5 px-0.5" style={{ scrollbarWidth: "none" }}>
           <Chip active={orgFilter === "all"} onClick={() => setOrgFilter("all")}>All</Chip>
           {orgs.map((o) => (
             <Chip key={o.id} active={orgFilter === o.slug} onClick={() => setOrgFilter(o.slug)}>
@@ -85,17 +85,15 @@ export const ContactList = ({ contacts, orgs, selectedId, onSelect, initialStale
               {o.slug.toUpperCase()}
             </Chip>
           ))}
-        </div>
-        <div className="flex flex-wrap gap-1.5 mt-2">
+          <span className="hidden md:inline" style={{ width: 1, background: "var(--border-glass)", margin: "0 4px" }} />
           <Chip active={typeFilter === "all"} onClick={() => setTypeFilter("all")}>All</Chip>
           <Chip active={typeFilter === "people"} onClick={() => setTypeFilter("people")}>People</Chip>
-          <Chip active={typeFilter === "companies"} onClick={() => setTypeFilter("companies")}>Companies</Chip>
-        </div>
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          <Chip active={stale === null} onClick={() => setStale(null)}>Any age</Chip>
-          <Chip active={stale === 30} onClick={() => setStale(30)}>Stale 30d</Chip>
-          <Chip active={stale === 60} onClick={() => setStale(60)}>Stale 60d</Chip>
-          <Chip active={stale === 90} onClick={() => setStale(90)}>Stale 90d+</Chip>
+          <Chip active={typeFilter === "companies"} onClick={() => setTypeFilter("companies")}>Cos</Chip>
+          <span className="hidden md:inline" style={{ width: 1, background: "var(--border-glass)", margin: "0 4px" }} />
+          <Chip active={stale === null} onClick={() => setStale(null)}>Any</Chip>
+          <Chip active={stale === 30} onClick={() => setStale(30)}>30d+</Chip>
+          <Chip active={stale === 60} onClick={() => setStale(60)}>60d+</Chip>
+          <Chip active={stale === 90} onClick={() => setStale(90)}>90d+</Chip>
         </div>
       </div>
 
