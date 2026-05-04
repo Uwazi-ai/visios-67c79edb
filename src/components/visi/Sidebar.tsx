@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, CheckSquare, Calendar, Link2, MessageSquare,
-  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles,
+  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp,
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
@@ -67,6 +67,15 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
             </NavLink>
           );
         })}
+
+        <div className="mx-3 my-3" style={{ height: 1, background: "var(--border-glass)" }} />
+        <div className="px-5 pb-1.5 t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+          Fundraising
+        </div>
+        <NavLink to="/capital-raise" className={`nav-item ${loc.pathname.startsWith("/capital-raise") ? "active" : ""}`}>
+          <TrendingUp size={16} strokeWidth={1.5} />
+          <span>Capital Raise</span>
+        </NavLink>
 
         <div className="mx-3 my-3" style={{ height: 1, background: "var(--border-glass)" }} />
         <NavLink to="/settings" className={`nav-item ${loc.pathname.startsWith("/settings") ? "active" : ""}`}>
