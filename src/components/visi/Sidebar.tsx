@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, CheckSquare, Calendar, Link2, MessageSquare,
-  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles,
+  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp,
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
