@@ -37,6 +37,8 @@ export const BottomNav = () => {
   const [moreOpen, setMoreOpen] = useState(false);
   const { count: reviewCount } = usePendingReviewCount();
   const { signOut } = useAuth();
+  const { isRestricted } = useOrg();
+  const MORE_LINKS = MORE_LINKS_ALL.filter((l) => !isRestricted || !l.restricted);
 
   const tabs: Tab[] = [
     { to: "/", icon: Home, label: "Home" },
