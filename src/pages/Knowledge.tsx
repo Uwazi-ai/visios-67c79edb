@@ -211,8 +211,8 @@ const UploadModal = ({ onClose, onDone }: { onClose: () => void; onDone: () => v
 
   const handleUpload = async () => {
     if (!file || !user) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 10MB.", variant: "destructive" });
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 50MB.", variant: "destructive" });
       return;
     }
     setBusy(true);
