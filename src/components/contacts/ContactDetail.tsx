@@ -84,6 +84,11 @@ export const ContactDetail = ({ contact, org, onEdit, onChanged, refreshKey }: P
                     {org.slug.toUpperCase()}
                   </span>
                 )}
+                {contact.visibility === "private" ? (
+                  <span className="badge" title="Only visible to you" style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.4)", color: "#A5B4FC" }}>🔒 PRIVATE</span>
+                ) : (
+                  <span className="badge" title="Visible to your team" style={{ background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.35)", color: "#86EFAC" }}>👥 TEAM</span>
+                )}
               </div>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
                 {contact.email && (
