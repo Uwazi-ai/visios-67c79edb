@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Loader2, Plus, Trash2, Mail, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import SectionCard from "../SectionCard";
+import SectionCard from "./SectionCard";
 import { toast } from "sonner";
 
 interface Invite {
