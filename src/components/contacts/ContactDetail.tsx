@@ -158,6 +158,8 @@ export const ContactDetail = ({ contact, org, onEdit, onChanged, refreshKey }: P
           </div>
         )}
 
+        <MyAvailabilityShare contactEmail={contact.email} contactName={contact.name} />
+
         <div>
           <div className="t-card-title mb-3">Interaction History</div>
           <InteractionHistory contactId={contact.id} key={`hist-${contact.id}-${refreshKey}`} />
