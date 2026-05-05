@@ -30,6 +30,7 @@ import AISettings from "./pages/AISettings";
 import Vision from "./pages/Vision";
 import CapitalRaise from "./pages/CapitalRaise";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
+import { RestrictedGuard } from "@/components/RestrictedGuard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
