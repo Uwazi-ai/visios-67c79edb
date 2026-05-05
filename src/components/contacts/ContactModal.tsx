@@ -39,6 +39,7 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [stage, setStage] = useState("prospect");
+  const [visibility, setVisibility] = useState<"team" | "private">("team");
 
   useEffect(() => {
     if (!open) return;
@@ -52,6 +53,7 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
       setPhone(contact.phone ?? "");
       setNotes(contact.notes ?? "");
       setStage(contact.engagement_stage ?? "prospect");
+      setVisibility((contact as any).visibility === "private" ? "private" : "team");
     } else {
       setName(prefill?.name ?? "");
       setEmail(prefill?.email ?? "");
@@ -62,6 +64,7 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
       setPhone(prefill?.phone ?? "");
       setNotes(prefill?.notes ?? "");
       setStage("prospect");
+      setVisibility("team");
     }
     setErr(null);
   }, [open, contact, defaultOrgId, orgs, prefill]);
@@ -96,16 +99,19 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
         phone: phone.trim() || null,
         notes: notes.trim() || null,
         engagement_stage: stage,
+        visibility,
       };
       if (editing && contact) {
         const { error } = await supabase.from("contacts").update(payload).eq("id", contact.id);
         if (error) throw error;
         onSaved(contact.id);
       } else {
+        const { data: { user } } = await supabase.auth.getUser();
         const insertPayload = {
           ...payload,
           last_touched_at: new Date().toISOString(),
           metadata: source ? { source } : {},
+          created_by: user?.id ?? null,
         };
         const { data, error } = await supabase
           .from("contacts")
@@ -200,6 +206,40 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
               </select>
             </Field>
           </div>
+          <Field label="Visibility">
+            <div className="flex gap-2">
+              {(["team", "private"] as const).map((v) => {
+                const active = visibility === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setVisibility(v)}
+                    className="flex-1"
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 500,
+                      textAlign: "left",
+                      background: active ? "var(--bg-glass-active)" : "var(--bg-glass-1)",
+                      border: `1px solid ${active ? "var(--primary-bright, #60A5FA)" : "var(--border-glass)"}`,
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>
+                      {v === "team" ? "👥 Team contact" : "🔒 Private to me"}
+                    </div>
+                    <div className="t-mono mt-0.5" style={{ fontSize: 9, color: "var(--text-muted)" }}>
+                      {v === "team"
+                        ? "Everyone in this org can see and edit"
+                        : "Only you can see this contact"}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
           <Field label="Notes">
             <textarea
               className="input-glass"
