@@ -211,8 +211,8 @@ const UploadModal = ({ onClose, onDone }: { onClose: () => void; onDone: () => v
 
   const handleUpload = async () => {
     if (!file || !user) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Max 10MB.", variant: "destructive" });
+    if (file.size > 50 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Max 50MB.", variant: "destructive" });
       return;
     }
     setBusy(true);
@@ -259,7 +259,7 @@ const UploadModal = ({ onClose, onDone }: { onClose: () => void; onDone: () => v
     <ModalShell title="Upload Document" onClose={onClose}>
       <div className="space-y-3">
         <label className="block">
-          <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>File (PDF, DOCX, TXT, MD — max 10MB)</span>
+          <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>File (PDF, DOCX, TXT, MD — max 50MB)</span>
           <input type="file" accept=".pdf,.docx,.txt,.md" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="block w-full mt-1 text-sm" />
         </label>
         <label className="block">
