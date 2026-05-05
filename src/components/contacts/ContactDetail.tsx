@@ -6,6 +6,7 @@ import { daysSince, relativeTime, HEALTH_COLORS, bucket } from "@/lib/contactsHe
 import { stageLabel } from "@/lib/engagementStages";
 import { InteractionHistory } from "./InteractionHistory";
 import { AISuggestionCard } from "./AISuggestionCard";
+import { MyAvailabilityShare } from "./MyAvailabilityShare";
 import type { ContactRow } from "@/pages/Contacts";
 
 interface Props {
@@ -156,6 +157,8 @@ export const ContactDetail = ({ contact, org, onEdit, onChanged, refreshKey }: P
             </p>
           </div>
         )}
+
+        <MyAvailabilityShare contactEmail={contact.email} contactName={contact.name} />
 
         <div>
           <div className="t-card-title mb-3">Interaction History</div>
