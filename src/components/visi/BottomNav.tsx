@@ -8,6 +8,7 @@ import {
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { usePendingReviewCount } from "@/hooks/useGmailAgent";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrg } from "@/contexts/OrgContext";
 
 interface Tab {
   to: string;
