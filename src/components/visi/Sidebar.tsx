@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
 
-const NAV = [
+const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/vision", label: "Vision", icon: Sparkles },
   { to: "/inbox", label: "Inbox", icon: Inbox },
@@ -17,18 +17,19 @@ const NAV = [
   { to: "/calendar", label: "Calendar", icon: Calendar },
   { to: "/bookings", label: "Bookings", icon: Link2 },
   { to: "/chat", label: "Chat", icon: MessageSquare },
-  { to: "/notifications", label: "Notifications", icon: Bell },
+  { to: "/notifications", label: "Notifications", icon: Bell, restricted: true },
   { to: "/contacts", label: "Contacts", icon: Users },
   { to: "/knowledge", label: "Knowledge", icon: BookOpen },
   { to: "/meetings", label: "Meetings", icon: Video },
-  { to: "/finance", label: "Finance", icon: BarChart3 },
+  { to: "/finance", label: "Finance", icon: BarChart3, restricted: true },
 ];
 
 export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile" } = {}) => {
   const { user, signOut } = useAuth();
-  const { orgs, activeOrgId, memberships, isOwner } = useOrg();
+  const { orgs, activeOrgId, memberships, isOwner, isRestricted } = useOrg();
   const loc = useLocation();
 
+  const NAV = NAV_ALL.filter((n) => !isRestricted || !n.restricted);
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
   const role = activeOrg ? memberships.find((m) => m.org_id === activeOrg.id)?.role : null;
 
@@ -68,14 +69,18 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
           );
         })}
 
-        <div className="mx-3 my-3" style={{ height: 1, background: "var(--border-glass)" }} />
-        <div className="px-5 pb-1.5 t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>
-          Fundraising
-        </div>
-        <NavLink to="/capital-raise" className={`nav-item ${loc.pathname.startsWith("/capital-raise") ? "active" : ""}`}>
-          <TrendingUp size={16} strokeWidth={1.5} />
-          <span>Capital Raise</span>
-        </NavLink>
+        {!isRestricted && (
+          <>
+            <div className="mx-3 my-3" style={{ height: 1, background: "var(--border-glass)" }} />
+            <div className="px-5 pb-1.5 t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+              Fundraising
+            </div>
+            <NavLink to="/capital-raise" className={`nav-item ${loc.pathname.startsWith("/capital-raise") ? "active" : ""}`}>
+              <TrendingUp size={16} strokeWidth={1.5} />
+              <span>Capital Raise</span>
+            </NavLink>
+          </>
+        )}
 
         <div className="mx-3 my-3" style={{ height: 1, background: "var(--border-glass)" }} />
         <NavLink to="/settings" className={`nav-item ${loc.pathname.startsWith("/settings") ? "active" : ""}`}>

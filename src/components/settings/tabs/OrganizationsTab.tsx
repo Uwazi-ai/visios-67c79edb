@@ -9,6 +9,7 @@ import { AddOrgWizard } from "@/components/orgs/AddOrgWizard";
 import { ArchiveOrgPanel } from "@/components/orgs/ArchiveOrgPanel";
 import { ArchivedOrgsList } from "@/components/orgs/ArchivedOrgsList";
 import { OrgPill } from "@/components/orgs/OrgPill";
+import TeamInvitesPanel from "../TeamInvitesPanel";
 
 interface OrgRow {
   id: string;
@@ -174,6 +175,8 @@ export default function OrganizationsTab() {
           </div>
         </SectionCard>
       )}
+
+      {cur && <TeamInvitesPanel orgId={cur.id} orgName={cur.name} />}
 
       {cur && orgs.length >= 2 && (
         <ArchiveOrgPanel

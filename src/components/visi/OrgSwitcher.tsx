@@ -2,8 +2,9 @@ import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
 
 export const OrgSwitcher = () => {
-  const { orgs, memberships, activeOrgId, setActiveOrgId, isOwner } = useOrg();
-  const visible = isOwner ? orgs : orgs.filter((o) => memberships.some((m) => m.org_id === o.id));
+  const { orgs, memberships, activeOrgId, setActiveOrgId, isOwner, isRestricted } = useOrg();
+  const memberOrgs = orgs.filter((o) => memberships.some((m) => m.org_id === o.id));
+  const visible = isRestricted ? memberOrgs : (isOwner ? orgs : memberOrgs);
 
   return (
     <div className="px-5 py-4">
@@ -33,7 +34,7 @@ export const OrgSwitcher = () => {
             </button>
           );
         })}
-        {isOwner && visible.length > 0 && (
+        {isOwner && !isRestricted && visible.length > 0 && (
           <button
             onClick={() => setActiveOrgId("all")}
             className={`org-pill ${activeOrgId === "all" ? "active" : ""} w-full justify-start`}

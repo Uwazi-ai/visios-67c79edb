@@ -14,6 +14,7 @@ interface OrgCtx {
   activeOrgId: string | "all" | null;
   setActiveOrgId: (id: string | "all") => void;
   isOwner: boolean;
+  isRestricted: boolean;
   loading: boolean;
   refreshOrgs: () => Promise<void>;
 }
@@ -24,6 +25,7 @@ const Ctx = createContext<OrgCtx>({
   activeOrgId: null,
   setActiveOrgId: () => {},
   isOwner: false,
+  isRestricted: false,
   loading: true,
   refreshOrgs: async () => {},
 });
@@ -34,6 +36,7 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [activeOrgId, setActive] = useState<string | "all" | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isRestricted, setIsRestricted] = useState(false);
 
   const refreshOrgs = useCallback(async () => {
     const { data: orgsData } = await supabase
@@ -54,16 +57,24 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
     }
     (async () => {
       setLoading(true);
-      const [{ data: orgsData }, { data: memData }] = await Promise.all([
+      const [{ data: orgsData }, { data: memData }, { data: profileData }] = await Promise.all([
         supabase.from("orgs").select("*").eq("is_active", true).order("display_order", { ascending: true }),
         supabase.from("org_memberships").select("org_id, role").eq("user_id", user.id),
+        supabase.from("profiles").select("is_restricted").eq("id", user.id).maybeSingle(),
       ]);
       setOrgs(((orgsData ?? []) as unknown) as Org[]);
       setMemberships((memData ?? []) as Membership[]);
+      setIsRestricted(Boolean((profileData as any)?.is_restricted));
 
+      const memberOrgIds = new Set((memData ?? []).map((m: any) => m.org_id));
       const stored = localStorage.getItem("visi:activeOrg");
-      if (stored && (stored === "all" || (orgsData ?? []).some((o) => o.id === stored))) {
+      const restricted = Boolean((profileData as any)?.is_restricted);
+      if (!restricted && stored && (stored === "all" || (orgsData ?? []).some((o) => o.id === stored))) {
         setActive(stored as string | "all");
+      } else if (restricted && (memData ?? []).length > 0) {
+        setActive(memData![0].org_id);
+      } else if (stored && stored !== "all" && memberOrgIds.has(stored)) {
+        setActive(stored);
       } else if ((memData ?? []).length > 0) {
         setActive(memData![0].org_id);
       } else if ((orgsData ?? []).length > 0) {
@@ -97,7 +108,7 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
   const isOwner = memberships.some((m) => m.role === "owner");
 
   return (
-    <Ctx.Provider value={{ orgs, memberships, activeOrgId, setActiveOrgId, isOwner, loading, refreshOrgs }}>
+    <Ctx.Provider value={{ orgs, memberships, activeOrgId, setActiveOrgId, isOwner, isRestricted, loading, refreshOrgs }}>
       {children}
     </Ctx.Provider>
   );

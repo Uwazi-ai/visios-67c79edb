@@ -4,6 +4,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrg } from "@/contexts/OrgContext";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileTab from "@/components/settings/tabs/ProfileTab";
 import OrganizationsTab from "@/components/settings/tabs/OrganizationsTab";
@@ -48,7 +49,12 @@ interface CompletionMap {
 
 export default function SettingsPage() {
   const { user } = useAuth();
+  const { isRestricted } = useOrg();
   const [tab, setTab] = useState<TabKey>("profile");
+  const NAV_VISIBLE = NAV.filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "danger"));
+  useEffect(() => {
+    if (isRestricted && (tab === "orgs" || tab === "danger")) setTab("profile");
+  }, [isRestricted, tab]);
   const [completion, setCompletion] = useState<CompletionMap | null>(null);
 
   // Compute completion indicators
@@ -109,7 +115,7 @@ export default function SettingsPage() {
           style={{ padding: 8 }}
         >
           <nav className="flex md:flex-col gap-0.5 md:gap-1 min-w-max md:min-w-0">
-            {NAV.map((item) => {
+            {NAV_VISIBLE.map((item) => {
               const Icon = item.icon;
               const isActive = tab === item.key;
               const c = completion?.[item.key as keyof CompletionMap];

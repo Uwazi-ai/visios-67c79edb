@@ -30,6 +30,7 @@ import AISettings from "./pages/AISettings";
 import Vision from "./pages/Vision";
 import CapitalRaise from "./pages/CapitalRaise";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
+import { RestrictedGuard } from "@/components/RestrictedGuard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -56,12 +57,12 @@ const App = () => (
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
                 <Route path="/chat" element={<ChatPage />} />
-                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/notifications" element={<RestrictedGuard><NotificationsPage /></RestrictedGuard>} />
                 <Route path="/contacts" element={<ContactsPage />} />
                 <Route path="/knowledge" element={<KnowledgePage />} />
                 <Route path="/meetings" element={<MeetingsPage />} />
-                <Route path="/finance" element={<FinancePage />} />
-                <Route path="/capital-raise" element={<CapitalRaise />} />
+                <Route path="/finance" element={<RestrictedGuard><FinancePage /></RestrictedGuard>} />
+                <Route path="/capital-raise" element={<RestrictedGuard><CapitalRaise /></RestrictedGuard>} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="/settings/my-card" element={<MyCardSettings />} />
                 <Route path="/settings/ai" element={<AISettings />} />

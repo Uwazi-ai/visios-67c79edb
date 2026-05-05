@@ -1057,6 +1057,42 @@ export type Database = {
           },
         ]
       }
+      org_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+          org_id: string
+          restricted: boolean
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+          org_id: string
+          restricted?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+          org_id?: string
+          restricted?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+        }
+        Relationships: []
+      }
       org_memberships: {
         Row: {
           created_at: string
@@ -1176,6 +1212,7 @@ export type Database = {
           google_granted_scopes: string | null
           google_refresh_token: string | null
           id: string
+          is_restricted: boolean
           linkedin_url: string | null
           notification_prefs: Json
           phone: string | null
@@ -1204,6 +1241,7 @@ export type Database = {
           google_granted_scopes?: string | null
           google_refresh_token?: string | null
           id: string
+          is_restricted?: boolean
           linkedin_url?: string | null
           notification_prefs?: Json
           phone?: string | null
@@ -1232,6 +1270,7 @@ export type Database = {
           google_granted_scopes?: string | null
           google_refresh_token?: string | null
           id?: string
+          is_restricted?: boolean
           linkedin_url?: string | null
           notification_prefs?: Json
           phone?: string | null
