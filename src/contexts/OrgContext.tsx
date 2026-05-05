@@ -36,6 +36,7 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [activeOrgId, setActive] = useState<string | "all" | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isRestricted, setIsRestricted] = useState(false);
 
   const refreshOrgs = useCallback(async () => {
     const { data: orgsData } = await supabase
