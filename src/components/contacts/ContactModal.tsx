@@ -39,6 +39,7 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");
   const [stage, setStage] = useState("prospect");
+  const [visibility, setVisibility] = useState<"team" | "private">("team");
 
   useEffect(() => {
     if (!open) return;
