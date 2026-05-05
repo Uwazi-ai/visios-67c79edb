@@ -4,6 +4,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrg } from "@/contexts/OrgContext";
 import { supabase } from "@/integrations/supabase/client";
 import ProfileTab from "@/components/settings/tabs/ProfileTab";
 import OrganizationsTab from "@/components/settings/tabs/OrganizationsTab";
