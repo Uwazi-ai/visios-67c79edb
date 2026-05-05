@@ -259,7 +259,7 @@ const UploadModal = ({ onClose, onDone }: { onClose: () => void; onDone: () => v
     <ModalShell title="Upload Document" onClose={onClose}>
       <div className="space-y-3">
         <label className="block">
-          <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>File (PDF, DOCX, TXT, MD — max 10MB)</span>
+          <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>File (PDF, DOCX, TXT, MD — max 50MB)</span>
           <input type="file" accept=".pdf,.docx,.txt,.md" onChange={(e) => setFile(e.target.files?.[0] ?? null)} className="block w-full mt-1 text-sm" />
         </label>
         <label className="block">
