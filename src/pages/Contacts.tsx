@@ -33,6 +33,8 @@ export interface ContactRow {
   linkedin_url: string | null;
   phone: string | null;
   engagement_stage: string | null;
+  visibility: "team" | "private";
+  created_by: string | null;
 }
 
 const Contacts = () => {
