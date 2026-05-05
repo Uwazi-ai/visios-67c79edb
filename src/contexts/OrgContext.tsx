@@ -57,16 +57,24 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
     }
     (async () => {
       setLoading(true);
-      const [{ data: orgsData }, { data: memData }] = await Promise.all([
+      const [{ data: orgsData }, { data: memData }, { data: profileData }] = await Promise.all([
         supabase.from("orgs").select("*").eq("is_active", true).order("display_order", { ascending: true }),
         supabase.from("org_memberships").select("org_id, role").eq("user_id", user.id),
+        supabase.from("profiles").select("is_restricted").eq("id", user.id).maybeSingle(),
       ]);
       setOrgs(((orgsData ?? []) as unknown) as Org[]);
       setMemberships((memData ?? []) as Membership[]);
+      setIsRestricted(Boolean((profileData as any)?.is_restricted));
 
+      const memberOrgIds = new Set((memData ?? []).map((m: any) => m.org_id));
       const stored = localStorage.getItem("visi:activeOrg");
-      if (stored && (stored === "all" || (orgsData ?? []).some((o) => o.id === stored))) {
+      const restricted = Boolean((profileData as any)?.is_restricted);
+      if (!restricted && stored && (stored === "all" || (orgsData ?? []).some((o) => o.id === stored))) {
         setActive(stored as string | "all");
+      } else if (restricted && (memData ?? []).length > 0) {
+        setActive(memData![0].org_id);
+      } else if (stored && stored !== "all" && memberOrgIds.has(stored)) {
+        setActive(stored);
       } else if ((memData ?? []).length > 0) {
         setActive(memData![0].org_id);
       } else if ((orgsData ?? []).length > 0) {
