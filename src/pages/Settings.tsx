@@ -115,7 +115,7 @@ export default function SettingsPage() {
           style={{ padding: 8 }}
         >
           <nav className="flex md:flex-col gap-0.5 md:gap-1 min-w-max md:min-w-0">
-            {NAV.map((item) => {
+            {NAV_VISIBLE.map((item) => {
               const Icon = item.icon;
               const isActive = tab === item.key;
               const c = completion?.[item.key as keyof CompletionMap];
