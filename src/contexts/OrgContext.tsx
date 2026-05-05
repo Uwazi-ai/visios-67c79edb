@@ -108,7 +108,7 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
   const isOwner = memberships.some((m) => m.role === "owner");
 
   return (
-    <Ctx.Provider value={{ orgs, memberships, activeOrgId, setActiveOrgId, isOwner, loading, refreshOrgs }}>
+    <Ctx.Provider value={{ orgs, memberships, activeOrgId, setActiveOrgId, isOwner, isRestricted, loading, refreshOrgs }}>
       {children}
     </Ctx.Provider>
   );
