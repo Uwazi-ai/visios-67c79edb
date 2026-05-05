@@ -9,6 +9,7 @@ import { AddOrgWizard } from "@/components/orgs/AddOrgWizard";
 import { ArchiveOrgPanel } from "@/components/orgs/ArchiveOrgPanel";
 import { ArchivedOrgsList } from "@/components/orgs/ArchivedOrgsList";
 import { OrgPill } from "@/components/orgs/OrgPill";
+import TeamInvitesPanel from "../TeamInvitesPanel";
 
 interface OrgRow {
   id: string;
