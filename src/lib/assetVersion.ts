@@ -7,7 +7,7 @@
  * `/public` (manifest icons, apple-touch-icon, favicon, etc.) that are
  * referenced by URL and would otherwise be cached indefinitely.
  */
-export const ASSET_VERSION = "20260502a";
+export const ASSET_VERSION = "20260505a";
 
 /** Append `?v=ASSET_VERSION` to a URL, preserving any existing query string. */
 export const withVersion = (url: string, version: string = ASSET_VERSION) =>
