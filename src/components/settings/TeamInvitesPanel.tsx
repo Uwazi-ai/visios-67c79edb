@@ -38,17 +38,38 @@ export default function TeamInvitesPanel({ orgId, orgName }: { orgId: string; or
     const value = email.trim().toLowerCase();
     if (!value || !user) return;
     setBusy(true);
-    const { error } = await supabase.from("org_invites" as any).insert({
+    const { data: inserted, error } = await supabase.from("org_invites" as any).insert({
       org_id: orgId,
       email: value,
       role: "member",
       restricted: true,
       invited_by: user.id,
-    } as any);
+    } as any).select("id").single();
+    if (error) { setBusy(false); toast.error(error.message); return; }
+
+    // Fire transactional email (best effort)
+    const inviteId = (inserted as any)?.id ?? crypto.randomUUID();
+    const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
+    const signupUrl = `${window.location.origin}/login?invited=${encodeURIComponent(value)}`;
+    const { error: emailErr } = await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "org-invite",
+        recipientEmail: value,
+        idempotencyKey: `org-invite-${inviteId}`,
+        templateData: {
+          orgName,
+          inviterName: (profile as any)?.display_name ?? user.email,
+          signupUrl,
+        },
+      },
+    });
     setBusy(false);
-    if (error) { toast.error(error.message); return; }
+    if (emailErr) {
+      toast.warning(`Invite saved, but email failed: ${emailErr.message}`);
+    } else {
+      toast.success(`Invited ${value} — email sent`);
+    }
     setEmail("");
-    toast.success(`Invited ${value} to ${orgName}`);
     load();
   };
 
