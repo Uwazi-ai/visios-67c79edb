@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import InboxPage from "./pages/Inbox";
 import BookingsPage from "./pages/Bookings";
 import BookingPublic from "./pages/BookingPublic";
+import ContactMeetPublic from "./pages/ContactMeetPublic";
 import SettingsPage from "./pages/Settings";
 import CalendarPage from "./pages/Calendar";
 import TasksPage from "./pages/Tasks";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
+              <Route path="/meet/:token" element={<ContactMeetPublic />} />
               <Route path="/card/:username" element={<CardPublic />} />
               <Route element={<AppShell />}>
                 <Route path="/" element={<Dashboard />} />
