@@ -7,6 +7,7 @@ import { stageLabel } from "@/lib/engagementStages";
 import { InteractionHistory } from "./InteractionHistory";
 import { AISuggestionCard } from "./AISuggestionCard";
 import { MyAvailabilityShare } from "./MyAvailabilityShare";
+import { ContactBookingLinks } from "./ContactBookingLinks";
 import type { ContactRow } from "@/pages/Contacts";
 
 interface Props {
@@ -164,6 +165,13 @@ export const ContactDetail = ({ contact, org, onEdit, onChanged, refreshKey }: P
         )}
 
         <MyAvailabilityShare contactEmail={contact.email} contactName={contact.name} />
+
+        <ContactBookingLinks
+          contactId={contact.id}
+          contactName={contact.name}
+          contactEmail={contact.email}
+          orgId={contact.org_id}
+        />
 
         <div>
           <div className="t-card-title mb-3">Interaction History</div>

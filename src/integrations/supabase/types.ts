@@ -273,6 +273,119 @@ export type Database = {
           },
         ]
       }
+      contact_booking_link_slots: {
+        Row: {
+          created_at: string
+          end_at: string
+          id: string
+          link_id: string
+          start_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_at: string
+          id?: string
+          link_id: string
+          start_at: string
+        }
+        Update: {
+          created_at?: string
+          end_at?: string
+          id?: string
+          link_id?: string
+          start_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_booking_link_slots_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "contact_booking_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_booking_links: {
+        Row: {
+          booked_at: string | null
+          booked_slot_id: string | null
+          contact_id: string | null
+          created_at: string
+          description: string | null
+          duration_mins: number
+          expires_at: string | null
+          google_event_id: string | null
+          host_user_id: string
+          id: string
+          invitee_email: string | null
+          invitee_name: string | null
+          location: string | null
+          meet_link: string | null
+          org_id: string | null
+          status: string
+          title: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          booked_at?: string | null
+          booked_slot_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration_mins?: number
+          expires_at?: string | null
+          google_event_id?: string | null
+          host_user_id: string
+          id?: string
+          invitee_email?: string | null
+          invitee_name?: string | null
+          location?: string | null
+          meet_link?: string | null
+          org_id?: string | null
+          status?: string
+          title?: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          booked_at?: string | null
+          booked_slot_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          description?: string | null
+          duration_mins?: number
+          expires_at?: string | null
+          google_event_id?: string | null
+          host_user_id?: string
+          id?: string
+          invitee_email?: string | null
+          invitee_name?: string | null
+          location?: string | null
+          meet_link?: string | null
+          org_id?: string | null
+          status?: string
+          title?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_booking_links_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_booking_links_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_interactions: {
         Row: {
           contact_id: string
