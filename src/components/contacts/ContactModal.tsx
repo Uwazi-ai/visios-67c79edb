@@ -106,10 +106,12 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
         if (error) throw error;
         onSaved(contact.id);
       } else {
+        const { data: { user } } = await supabase.auth.getUser();
         const insertPayload = {
           ...payload,
           last_touched_at: new Date().toISOString(),
           metadata: source ? { source } : {},
+          created_by: user?.id ?? null,
         };
         const { data, error } = await supabase
           .from("contacts")
