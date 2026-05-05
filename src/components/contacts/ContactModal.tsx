@@ -99,6 +99,7 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
         phone: phone.trim() || null,
         notes: notes.trim() || null,
         engagement_stage: stage,
+        visibility,
       };
       if (editing && contact) {
         const { error } = await supabase.from("contacts").update(payload).eq("id", contact.id);
