@@ -71,7 +71,7 @@ const Contacts = () => {
     setLoading(true);
     let q = supabase
       .from("contacts")
-      .select("id, org_id, name, email, company, role, last_touched_at, created_at, notes, linkedin_url, phone, engagement_stage")
+      .select("id, org_id, name, email, company, role, last_touched_at, created_at, notes, linkedin_url, phone, engagement_stage, visibility, created_by")
       .order("last_touched_at", { ascending: false, nullsFirst: false });
     const { data } = await q;
     setContacts((data ?? []) as ContactRow[]);
