@@ -26,9 +26,10 @@ const NAV_ALL = [
 
 export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile" } = {}) => {
   const { user, signOut } = useAuth();
-  const { orgs, activeOrgId, memberships, isOwner } = useOrg();
+  const { orgs, activeOrgId, memberships, isOwner, isRestricted } = useOrg();
   const loc = useLocation();
 
+  const NAV = NAV_ALL.filter((n) => !isRestricted || !n.restricted);
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
   const role = activeOrg ? memberships.find((m) => m.org_id === activeOrg.id)?.role : null;
 
