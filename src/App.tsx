@@ -32,6 +32,7 @@ import CapitalRaise from "./pages/CapitalRaise";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { RestrictedGuard } from "@/components/RestrictedGuard";
 import NotFound from "./pages/NotFound";
+import Unsubscribe from "./pages/Unsubscribe";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
             <TimezoneProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
               <Route path="/card/:username" element={<CardPublic />} />
               <Route element={<AppShell />}>
