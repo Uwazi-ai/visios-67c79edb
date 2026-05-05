@@ -206,6 +206,40 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
               </select>
             </Field>
           </div>
+          <Field label="Visibility">
+            <div className="flex gap-2">
+              {(["team", "private"] as const).map((v) => {
+                const active = visibility === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setVisibility(v)}
+                    className="flex-1"
+                    style={{
+                      padding: "8px 10px",
+                      borderRadius: 8,
+                      fontSize: 12,
+                      fontWeight: 500,
+                      textAlign: "left",
+                      background: active ? "var(--bg-glass-active)" : "var(--bg-glass-1)",
+                      border: `1px solid ${active ? "var(--primary-bright, #60A5FA)" : "var(--border-glass)"}`,
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    <div style={{ fontWeight: 600 }}>
+                      {v === "team" ? "👥 Team contact" : "🔒 Private to me"}
+                    </div>
+                    <div className="t-mono mt-0.5" style={{ fontSize: 9, color: "var(--text-muted)" }}>
+                      {v === "team"
+                        ? "Everyone in this org can see and edit"
+                        : "Only you can see this contact"}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
           <Field label="Notes">
             <textarea
               className="input-glass"
