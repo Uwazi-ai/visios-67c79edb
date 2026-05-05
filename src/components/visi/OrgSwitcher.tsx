@@ -2,8 +2,9 @@ import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
 
 export const OrgSwitcher = () => {
-  const { orgs, memberships, activeOrgId, setActiveOrgId, isOwner } = useOrg();
-  const visible = isOwner ? orgs : orgs.filter((o) => memberships.some((m) => m.org_id === o.id));
+  const { orgs, memberships, activeOrgId, setActiveOrgId, isOwner, isRestricted } = useOrg();
+  const memberOrgs = orgs.filter((o) => memberships.some((m) => m.org_id === o.id));
+  const visible = isRestricted ? memberOrgs : (isOwner ? orgs : memberOrgs);
 
   return (
     <div className="px-5 py-4">
