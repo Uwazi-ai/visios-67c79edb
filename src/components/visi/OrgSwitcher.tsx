@@ -34,7 +34,7 @@ export const OrgSwitcher = () => {
             </button>
           );
         })}
-        {isOwner && visible.length > 0 && (
+        {isOwner && !isRestricted && visible.length > 0 && (
           <button
             onClick={() => setActiveOrgId("all")}
             className={`org-pill ${activeOrgId === "all" ? "active" : ""} w-full justify-start`}
