@@ -53,6 +53,7 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
       setPhone(contact.phone ?? "");
       setNotes(contact.notes ?? "");
       setStage(contact.engagement_stage ?? "prospect");
+      setVisibility((contact as any).visibility === "private" ? "private" : "team");
     } else {
       setName(prefill?.name ?? "");
       setEmail(prefill?.email ?? "");
@@ -63,6 +64,7 @@ export const ContactModal = ({ open, onClose, onSaved, orgs, defaultOrgId, conta
       setPhone(prefill?.phone ?? "");
       setNotes(prefill?.notes ?? "");
       setStage("prospect");
+      setVisibility("team");
     }
     setErr(null);
   }, [open, contact, defaultOrgId, orgs, prefill]);
