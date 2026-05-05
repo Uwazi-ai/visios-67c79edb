@@ -7,6 +7,10 @@ project_id = "qzurwsqecdsgziyvnuul"
     verify_jwt = false
   [functions.booking-confirm]
     verify_jwt = false
+  [functions.contact-link-lookup]
+    verify_jwt = false
+  [functions.contact-link-confirm]
+    verify_jwt = false
   [functions.booking-lookup]
     verify_jwt = false
   [functions.calendar-freebusy]
