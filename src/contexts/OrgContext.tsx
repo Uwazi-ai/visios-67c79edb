@@ -14,6 +14,7 @@ interface OrgCtx {
   activeOrgId: string | "all" | null;
   setActiveOrgId: (id: string | "all") => void;
   isOwner: boolean;
+  isRestricted: boolean;
   loading: boolean;
   refreshOrgs: () => Promise<void>;
 }
@@ -24,6 +25,7 @@ const Ctx = createContext<OrgCtx>({
   activeOrgId: null,
   setActiveOrgId: () => {},
   isOwner: false,
+  isRestricted: false,
   loading: true,
   refreshOrgs: async () => {},
 });
