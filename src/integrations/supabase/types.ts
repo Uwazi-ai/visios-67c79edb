@@ -402,6 +402,7 @@ export type Database = {
         Row: {
           company: string | null
           created_at: string
+          created_by: string | null
           email: string | null
           engagement_stage: string
           id: string
@@ -413,10 +414,12 @@ export type Database = {
           org_id: string | null
           phone: string | null
           role: string | null
+          visibility: string
         }
         Insert: {
           company?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string | null
           engagement_stage?: string
           id?: string
@@ -428,10 +431,12 @@ export type Database = {
           org_id?: string | null
           phone?: string | null
           role?: string | null
+          visibility?: string
         }
         Update: {
           company?: string | null
           created_at?: string
+          created_by?: string | null
           email?: string | null
           engagement_stage?: string
           id?: string
@@ -443,6 +448,7 @@ export type Database = {
           org_id?: string | null
           phone?: string | null
           role?: string | null
+          visibility?: string
         }
         Relationships: [
           {
