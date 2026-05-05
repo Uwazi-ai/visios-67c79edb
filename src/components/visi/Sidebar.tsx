@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
 
-const NAV = [
+const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/vision", label: "Vision", icon: Sparkles },
   { to: "/inbox", label: "Inbox", icon: Inbox },
@@ -17,11 +17,11 @@ const NAV = [
   { to: "/calendar", label: "Calendar", icon: Calendar },
   { to: "/bookings", label: "Bookings", icon: Link2 },
   { to: "/chat", label: "Chat", icon: MessageSquare },
-  { to: "/notifications", label: "Notifications", icon: Bell },
+  { to: "/notifications", label: "Notifications", icon: Bell, restricted: true },
   { to: "/contacts", label: "Contacts", icon: Users },
   { to: "/knowledge", label: "Knowledge", icon: BookOpen },
   { to: "/meetings", label: "Meetings", icon: Video },
-  { to: "/finance", label: "Finance", icon: BarChart3 },
+  { to: "/finance", label: "Finance", icon: BarChart3, restricted: true },
 ];
 
 export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile" } = {}) => {
