@@ -1032,6 +1032,7 @@ export type Database = {
           created_at: string
           edited_at: string | null
           id: string
+          metadata: Json
           org_id: string | null
           reactions: Json
           thread_id: string | null
@@ -1043,6 +1044,7 @@ export type Database = {
           created_at?: string
           edited_at?: string | null
           id?: string
+          metadata?: Json
           org_id?: string | null
           reactions?: Json
           thread_id?: string | null
@@ -1054,6 +1056,7 @@ export type Database = {
           created_at?: string
           edited_at?: string | null
           id?: string
+          metadata?: Json
           org_id?: string | null
           reactions?: Json
           thread_id?: string | null
