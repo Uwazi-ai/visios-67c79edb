@@ -176,6 +176,8 @@ export default function OrganizationsTab() {
         </SectionCard>
       )}
 
+      {cur && <TeamInvitesPanel orgId={cur.id} orgName={cur.name} />}
+
       {cur && orgs.length >= 2 && (
         <ArchiveOrgPanel
           orgId={cur.id}
