@@ -18,15 +18,15 @@ interface Tab {
   badge?: number;
 }
 
-const MORE_LINKS: Array<{ to: string; icon: any; label: string }> = [
+const MORE_LINKS_ALL: Array<{ to: string; icon: any; label: string; restricted?: boolean }> = [
   { to: "/calendar", icon: Calendar, label: "Calendar" },
   { to: "/tasks", icon: CheckSquare, label: "Tasks" },
   { to: "/bookings", icon: Link2, label: "Bookings" },
   { to: "/chat", icon: MessageSquare, label: "Chat" },
   { to: "/meetings", icon: Video, label: "Meetings" },
   { to: "/knowledge", icon: BookOpen, label: "Knowledge" },
-  { to: "/notifications", icon: Bell, label: "Notifications" },
-  { to: "/finance", icon: BarChart3, label: "Finance" },
+  { to: "/notifications", icon: Bell, label: "Notifications", restricted: true },
+  { to: "/finance", icon: BarChart3, label: "Finance", restricted: true },
   { to: "/settings/my-card", icon: CreditCard, label: "My Digital Card" },
   { to: "/settings", icon: SettingsIcon, label: "Settings" },
 ];
