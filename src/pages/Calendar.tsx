@@ -85,16 +85,22 @@ const fmtDateLong = (d: Date, tz: string, opts: Intl.DateTimeFormatOptions) => d
 export default function Calendar() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const { orgs } = useOrg();
+  const { orgs, memberships } = useOrg();
   const { tz } = useTime();
   const [view, setView] = useState<View>(isMobile ? "day" : "week");
   const [cursor, setCursor] = useState<Date>(new Date());
-  const [events, setEvents] = useState<CalEvent[]>([]);
+  const [googleEvents, setGoogleEvents] = useState<CalEvent[]>([]);
+  const [teamEvents, setTeamEvents] = useState<CalEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalEvent | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [now, setNow] = useState(new Date());
+
+  // Team layer
+  const [teammates, setTeammates] = useState<Teammate[]>([]);
+  const [me, setMe] = useState<Teammate | null>(null);
+  const { visibleMemberIds, toggleMember, setAll, loaded: prefsLoaded } = useCalendarPreferences();
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
