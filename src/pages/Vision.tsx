@@ -79,7 +79,7 @@ const PERSONA_ICONS: Record<PersonaKey, typeof Target> = {
 
 export default function Vision() {
   const { user } = useAuth();
-  const { activeOrgId: rawActiveOrgId, orgs } = useOrg();
+  const { activeOrgId: rawActiveOrgId, orgs, memberships, isOwner, isRestricted } = useOrg();
   const activeOrgId = rawActiveOrgId && rawActiveOrgId !== "all" ? rawActiveOrgId : null;
   const navigate = useNavigate();
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
@@ -222,10 +222,24 @@ export default function Vision() {
       console.warn("vision-context failed", e);
     }
 
+    const myMemberOrgIds = new Set(memberships.map((m) => m.org_id));
+    const accessibleOrgs = orgs.filter((o) => myMemberOrgIds.has(o.id)).map((o) => o.name);
+    const myMembership = activeOrg ? memberships.find((m) => m.org_id === activeOrg.id) : undefined;
+    const roleLabel = isOwner
+      ? "Founder"
+      : myMembership?.role === "owner"
+        ? "Org Admin"
+        : isRestricted
+          ? "Read-only"
+          : "Team Member";
+
     const system = buildVisionSystemPrompt(persona, visionCtx, {
       display_name: (user.user_metadata?.full_name as string) ?? null,
       email: user.email ?? null,
       active_org_name: activeOrg?.name ?? null,
+      is_founder: isOwner,
+      role_label: roleLabel,
+      accessible_orgs: accessibleOrgs,
     });
 
     const history = [...messages, userMsg]

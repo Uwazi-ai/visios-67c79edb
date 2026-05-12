@@ -1,7 +1,8 @@
-import { Clock, Inbox, CheckSquare, Activity, Zap, GitBranch, Lock } from "lucide-react";
+import { Clock, Inbox, CheckSquare, Zap, GitBranch, Lock } from "lucide-react";
 import { MorningBrief } from "@/components/dashboard/MorningBrief";
 import { DashCard, EmptyHint } from "@/components/dashboard/DashCard";
 import { ScheduleToday } from "@/components/dashboard/ScheduleToday";
+import { TeamActivityCard } from "@/components/dashboard/TeamActivityCard";
 
 const Dashboard = () => {
   return (
@@ -29,12 +30,8 @@ const Dashboard = () => {
           <TaskRow priority="low" title="Refactor onboarding copy" project="UWAZI" due="Next week" />
         </DashCard>
 
-        {/* ACTIVITY */}
-        <DashCard title="Team Activity" icon={Activity} delay={240}>
-          <ActivityRow initials="JT" name="Jay T" action="closed deal" target="Acme — $40k" time="2h" />
-          <ActivityRow initials="RM" name="Rae M" action="merged" target="design-system / v2" time="3h" />
-          <ActivityRow initials="SO" name="Sam O" action="published" target="BIN April update" time="5h" />
-        </DashCard>
+        {/* TEAM ACTIVITY (founders only, viewing All Orgs) */}
+        <TeamActivityCard />
 
         {/* SYSTEM PULSE */}
         <DashCard title="System Pulse" icon={Zap} delay={300}>
