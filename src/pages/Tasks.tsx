@@ -3,6 +3,7 @@ import { CheckSquare, Plus, List as ListIcon, LayoutGrid, GanttChart, Calendar a
 import { useTasksKeyboard } from "@/hooks/useTasksKeyboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTasks, type Task } from "@/hooks/useTasks";
+import { useOrgMembersMap } from "@/hooks/useOrgMembersMap";
 import { useOrg } from "@/contexts/OrgContext";
 import { ProjectsSidebar, type QuickFilter } from "@/components/tasks/ProjectsSidebar";
 import { SectionedListView } from "@/components/tasks/SectionedListView";
@@ -24,6 +25,7 @@ const Tasks = () => {
     createProject, updateProject, archiveProject, deleteProject,
     createSection, updateSection, deleteSection,
   } = useTasks();
+  const members = useOrgMembersMap();
   const [view, setView] = useState<View>("list");
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
@@ -208,6 +210,7 @@ const Tasks = () => {
               sections={sections}
               projects={projects}
               orgs={orgs}
+              members={members}
               activeProjectId={activeProjectId}
               onTaskClick={setOpenTask}
               onUpdate={updateTask}
@@ -222,6 +225,7 @@ const Tasks = () => {
               tasks={filtered}
               orgs={orgs}
               projects={projects}
+              members={members}
               activeOrgId={activeOrgId}
               onTaskClick={setOpenTask}
               onUpdate={updateTask}
