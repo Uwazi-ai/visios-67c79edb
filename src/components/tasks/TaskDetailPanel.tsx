@@ -41,8 +41,18 @@ export const TaskDetailBody = ({
   const [draft, setDraft] = useState<Task>(task);
   const [subVal, setSubVal] = useState("");
   const [aiBusy, setAiBusy] = useState<"sub" | "est" | null>(null);
+  const [members, setMembers] = useState<{ user_id: string; display_name: string | null; email: string; avatar_url: string | null }[]>([]);
 
   useEffect(() => setDraft(task), [task]);
+
+  useEffect(() => {
+    if (!draft.org_id) { setMembers([]); return; }
+    let cancelled = false;
+    supabase.rpc("get_org_members" as any, { _org_id: draft.org_id }).then(({ data }) => {
+      if (!cancelled) setMembers((data ?? []) as any);
+    });
+    return () => { cancelled = true; };
+  }, [draft.org_id]);
 
   const subtasks = allTasks.filter((t) => t.parent_task_id === task.id);
   const orgProjects = projects.filter((p) => p.org_id === draft.org_id);
@@ -181,6 +191,24 @@ export const TaskDetailBody = ({
             <SelectItem value="none">No project</SelectItem>
             {orgProjects.map((p) => (
               <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="mb-4">
+        <label className="text-xs mb-1 block" style={{ color: "var(--text-muted)" }}>Assignee</label>
+        <Select
+          value={draft.assignee_id ?? "none"}
+          onValueChange={(v) => commit({ assignee_id: v === "none" ? null : v })}
+        >
+          <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Unassigned</SelectItem>
+            {members.map((m) => (
+              <SelectItem key={m.user_id} value={m.user_id}>
+                {m.display_name ?? m.email}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>

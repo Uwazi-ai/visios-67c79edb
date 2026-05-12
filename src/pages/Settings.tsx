@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   User as UserIcon, Building2, Plug, Sparkles, CreditCard, Bell, Lock, Settings as SettingsIcon,
-  Trash2,
+  Trash2, Users,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -14,8 +14,9 @@ import DigitalCardTab from "@/components/settings/tabs/DigitalCardTab";
 import NotificationsTab from "@/components/settings/tabs/NotificationsTab";
 import PrivacyTab from "@/components/settings/tabs/PrivacyTab";
 import AccountTab from "@/components/settings/tabs/AccountTab";
+import TeamTab from "@/components/settings/tabs/TeamTab";
 
-type TabKey = "profile" | "orgs" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger";
+type TabKey = "profile" | "orgs" | "team" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger";
 
 interface NavItem {
   key: TabKey;
@@ -27,6 +28,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { key: "profile", label: "Profile", icon: UserIcon },
   { key: "orgs", label: "Organizations", icon: Building2 },
+  { key: "team", label: "Team", icon: Users },
   { key: "connections", label: "Connections", icon: Plug },
   { key: "vision", label: "Vision", icon: Sparkles },
   { key: "card", label: "My Digital Card", icon: CreditCard },
@@ -51,9 +53,9 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { isRestricted } = useOrg();
   const [tab, setTab] = useState<TabKey>("profile");
-  const NAV_VISIBLE = NAV.filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "danger"));
+  const NAV_VISIBLE = NAV.filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "team" && n.key !== "danger"));
   useEffect(() => {
-    if (isRestricted && (tab === "orgs" || tab === "danger")) setTab("profile");
+    if (isRestricted && (tab === "orgs" || tab === "team" || tab === "danger")) setTab("profile");
   }, [isRestricted, tab]);
   const [completion, setCompletion] = useState<CompletionMap | null>(null);
 
@@ -90,6 +92,7 @@ export default function SettingsPage() {
     switch (tab) {
       case "profile": return <ProfileTab />;
       case "orgs": return <OrganizationsTab />;
+      case "team": return <TeamTab />;
       case "connections": return <ConnectionsTab />;
       case "vision": return <VisionAITab />;
       case "card": return <DigitalCardTab />;
