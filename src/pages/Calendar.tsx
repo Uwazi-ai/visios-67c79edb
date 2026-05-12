@@ -210,7 +210,7 @@ export default function Calendar() {
   const loadTeamEvents = useCallback(async () => {
     if (!user) return;
     const visibleIds = Array.from(new Set([user.id, ...visibleMemberIds]));
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("events")
       .select("id, title, description, start_at, end_at, attendees, meet_link, org_id, color, created_by, visibility, event_attendees(user_id, status)")
       .gte("start_at", range.from.toISOString())
