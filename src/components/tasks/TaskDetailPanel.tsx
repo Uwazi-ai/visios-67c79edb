@@ -197,6 +197,24 @@ export const TaskDetailBody = ({
       </div>
 
       <div className="mb-4">
+        <label className="text-xs mb-1 block" style={{ color: "var(--text-muted)" }}>Assignee</label>
+        <Select
+          value={draft.assignee_id ?? "none"}
+          onValueChange={(v) => commit({ assignee_id: v === "none" ? null : v })}
+        >
+          <SelectTrigger><SelectValue placeholder="Unassigned" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Unassigned</SelectItem>
+            {members.map((m) => (
+              <SelectItem key={m.user_id} value={m.user_id}>
+                {m.display_name ?? m.email}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="mb-4">
         <label className="text-xs mb-1 block" style={{ color: "var(--text-muted)" }}>Description</label>
         <RichTextEditor
           value={draft.description ?? ""}
