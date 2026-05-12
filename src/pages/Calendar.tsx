@@ -125,7 +125,7 @@ export default function Calendar() {
 
   const [needsReconnect, setNeedsReconnect] = useState(false);
 
-  const loadEvents = useCallback(async () => {
+  const loadGoogleEvents = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -135,12 +135,12 @@ export default function Calendar() {
       const errMsg = (await getFunctionErrorMessage(error)) ?? data?.error ?? null;
       if (data?.fallback) {
         setNeedsReconnect(data.error === "GOOGLE_AUTH_REQUIRED" || Boolean(errMsg && /refresh token/i.test(errMsg)));
-        setEvents([]);
+        setGoogleEvents([]);
         return;
       }
       if (errMsg && /refresh token/i.test(errMsg)) {
         setNeedsReconnect(true);
-        setEvents([]);
+        setGoogleEvents([]);
         return;
       }
       if (error) throw new Error(errMsg ?? "Failed to load calendar");
@@ -153,9 +153,11 @@ export default function Calendar() {
           ...e,
           org_id: orgInfo?.id ?? null,
           org_color: orgInfo?.color ?? PERSONAL_COLOR,
+          owner_id: user.id,
+          is_team_event: false,
         };
       });
-      setEvents(mapped);
+      setGoogleEvents(mapped);
     } catch (e) {
       console.error(e);
       toast.error(e instanceof Error ? e.message : "Failed to load calendar");
@@ -164,7 +166,114 @@ export default function Calendar() {
     }
   }, [range.from, range.to, user, orgBySlug, orgs]);
 
-  useEffect(() => { loadEvents(); }, [loadEvents]);
+  // Load teammates (other members of orgs the user belongs to) + self
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const orgIds = memberships.map((m) => m.org_id);
+      if (orgIds.length === 0) {
+        if (!cancelled) { setTeammates([]); setMe(null); }
+        return;
+      }
+      const { data: ms } = await supabase
+        .from("org_memberships")
+        .select("user_id")
+        .in("org_id", orgIds);
+      const allIds = Array.from(new Set([...((ms ?? []).map((r: any) => r.user_id) as string[]), user.id]));
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, email, avatar_url")
+        .in("id", allIds);
+      if (cancelled) return;
+      const list: Teammate[] = (profs ?? []).map((p: any) => ({
+        user_id: p.id, display_name: p.display_name, email: p.email, avatar_url: p.avatar_url,
+      }));
+      setMe(list.find((t) => t.user_id === user.id) ?? null);
+      setTeammates(
+        list.filter((t) => t.user_id !== user.id)
+          .sort((a, b) => (a.display_name ?? a.email ?? "").localeCompare(b.display_name ?? b.email ?? ""))
+      );
+    })();
+    return () => { cancelled = true; };
+  }, [user, memberships]);
+
+  // Default visible = all teammates if no pref saved yet
+  useEffect(() => {
+    if (!prefsLoaded || teammates.length === 0) return;
+    if (visibleMemberIds.length === 0) {
+      setAll(teammates.map((t) => t.user_id));
+    }
+  }, [prefsLoaded, teammates, visibleMemberIds.length, setAll]);
+
+  // Load DB team events + my own DB events for the range
+  const loadTeamEvents = useCallback(async () => {
+    if (!user) return;
+    const visibleIds = Array.from(new Set([user.id, ...visibleMemberIds]));
+    const { data, error } = await supabase
+      .from("events")
+      .select("id, title, description, start_at, end_at, attendees, meet_link, org_id, color, created_by, visibility, event_attendees(user_id, status)")
+      .gte("start_at", range.from.toISOString())
+      .lte("start_at", range.to.toISOString())
+      .in("created_by", visibleIds);
+    if (error) {
+      console.error("team events", error);
+      return;
+    }
+    const teamMap = new Map(teammates.map((t) => [t.user_id, t]));
+    if (me) teamMap.set(me.user_id, me);
+    const mapped: CalEvent[] = (data ?? []).map((e: any) => {
+      const owner = teamMap.get(e.created_by);
+      const ownerColor = colorForMember(e.created_by);
+      const orgInfo = orgs.find((o) => o.id === e.org_id);
+      const myAttendee = (e.event_attendees ?? []).find((a: any) => a.user_id === user.id);
+      return {
+        id: `db:${e.id}`,
+        db_event_id: e.id,
+        summary: e.title ?? "(no title)",
+        description: e.description ?? "",
+        start: e.start_at,
+        end: e.end_at ?? e.start_at,
+        allDay: false,
+        attendees: Array.isArray(e.attendees) ? e.attendees.map((a: any) => typeof a === "string" ? a : a?.email).filter(Boolean) : [],
+        hangoutLink: e.meet_link ?? null,
+        htmlLink: null,
+        org_id: e.org_id ?? null,
+        org_color: e.color ?? ownerColor ?? orgInfo?.color ?? PERSONAL_COLOR,
+        owner_id: e.created_by,
+        owner_name: owner?.display_name ?? owner?.email ?? null,
+        owner_avatar: owner?.avatar_url ?? null,
+        is_team_event: true,
+        my_rsvp: myAttendee?.status ?? null,
+      };
+    });
+    setTeamEvents(mapped);
+  }, [user, range.from, range.to, visibleMemberIds, teammates, me, orgs]);
+
+  const loadEvents = useCallback(async () => {
+    await Promise.all([loadGoogleEvents(), loadTeamEvents()]);
+  }, [loadGoogleEvents, loadTeamEvents]);
+
+  useEffect(() => { loadGoogleEvents(); }, [loadGoogleEvents]);
+  useEffect(() => { loadTeamEvents(); }, [loadTeamEvents]);
+
+  // Realtime: refresh team events when attendees change for me
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel(`cal-events-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => loadTeamEvents())
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_attendees" }, () => loadTeamEvents())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, loadTeamEvents]);
+
+  // Merged event list passed to views
+  const events = useMemo(() => {
+    const visible = new Set([user?.id, ...visibleMemberIds].filter(Boolean) as string[]);
+    const team = teamEvents.filter((e) => !e.owner_id || visible.has(e.owner_id));
+    return [...googleEvents, ...team];
+  }, [googleEvents, teamEvents, visibleMemberIds, user]);
 
   // ---------- nav ----------
   const goToday = () => setCursor(new Date());
