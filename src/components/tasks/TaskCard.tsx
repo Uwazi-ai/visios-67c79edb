@@ -3,6 +3,8 @@ import { CSS } from "@dnd-kit/utilities";
 import { format, isPast } from "date-fns";
 import type { Task } from "@/hooks/useTasks";
 import type { Org } from "@/lib/orgs";
+import type { MemberInfo } from "@/hooks/useOrgMembersMap";
+import { AssigneeAvatar } from "./AssigneeAvatar";
 
 const PRIORITY_STYLES: Record<string, { color: string; glow?: string }> = {
   urgent: { color: "#EF4444", glow: "0 0 8px rgba(239,68,68,0.6)" },
@@ -15,11 +17,12 @@ interface Props {
   task: Task;
   org?: Org;
   projectName?: string;
+  assignee?: MemberInfo;
   onClick: () => void;
   draggable?: boolean;
 }
 
-export const TaskCard = ({ task, org, projectName, onClick, draggable = true }: Props) => {
+export const TaskCard = ({ task, org, projectName, assignee, onClick, draggable = true }: Props) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
     disabled: !draggable,
@@ -80,14 +83,17 @@ export const TaskCard = ({ task, org, projectName, onClick, draggable = true }: 
             </span>
           )}
         </div>
-        {task.due_at && (
-          <span
-            className="t-mono text-[10px]"
-            style={{ color: overdue ? "#EF4444" : "var(--text-muted)" }}
-          >
-            {format(new Date(task.due_at), "MMM d")}
-          </span>
-        )}
+        <div className="flex items-center gap-1.5 ml-auto">
+          {task.due_at && (
+            <span
+              className="t-mono text-[10px]"
+              style={{ color: overdue ? "#EF4444" : "var(--text-muted)" }}
+            >
+              {format(new Date(task.due_at), "MMM d")}
+            </span>
+          )}
+          <AssigneeAvatar member={assignee} size={16} />
+        </div>
       </div>
 
       {org && (
