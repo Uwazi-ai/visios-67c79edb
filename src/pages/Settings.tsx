@@ -28,6 +28,7 @@ interface NavItem {
 const NAV: NavItem[] = [
   { key: "profile", label: "Profile", icon: UserIcon },
   { key: "orgs", label: "Organizations", icon: Building2 },
+  { key: "team", label: "Team", icon: Users },
   { key: "connections", label: "Connections", icon: Plug },
   { key: "vision", label: "Vision", icon: Sparkles },
   { key: "card", label: "My Digital Card", icon: CreditCard },
