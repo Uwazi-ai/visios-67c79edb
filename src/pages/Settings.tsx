@@ -92,6 +92,7 @@ export default function SettingsPage() {
     switch (tab) {
       case "profile": return <ProfileTab />;
       case "orgs": return <OrganizationsTab />;
+      case "team": return <TeamTab />;
       case "connections": return <ConnectionsTab />;
       case "vision": return <VisionAITab />;
       case "card": return <DigitalCardTab />;
