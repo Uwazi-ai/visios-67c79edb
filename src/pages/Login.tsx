@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { VisiLogo } from "@/components/visi/Logo";
+import { Mail } from "lucide-react";
 
 const GOOGLE_SCOPES = [
   "openid",
@@ -28,9 +29,11 @@ const GoogleIcon = () => (
 const Login = () => {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const invitedEmail = useMemo(() => params.get("invited") ?? "", [params]);
   const [signing, setSigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(invitedEmail);
   const [password, setPassword] = useState("");
 
   const handleDevLogin = async (e: React.FormEvent) => {
@@ -84,6 +87,27 @@ const Login = () => {
       >
         <div className="flex flex-col items-center text-center">
           <VisiLogo size={160} showWordmark />
+
+          {invitedEmail && (
+            <div
+              className="mt-6 w-full flex items-start gap-2.5 px-3 py-2.5 rounded-[10px]"
+              style={{
+                background: "rgba(37,99,235,0.10)",
+                border: "1px solid rgba(37,99,235,0.35)",
+              }}
+            >
+              <Mail size={14} style={{ color: "#60A5FA", marginTop: 2, flexShrink: 0 }} />
+              <div className="text-left flex-1 min-w-0">
+                <div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 600 }}>
+                  You've been invited to join a team
+                </div>
+                <div className="t-mono mt-0.5 truncate" style={{ fontSize: 10, color: "#93C5FD" }}>
+                  Sign in with {invitedEmail} to accept
+                </div>
+              </div>
+            </div>
+          )}
+
           <h1
             className="t-hero mt-8"
             style={{ fontSize: "clamp(28px, 4vw, 40px)" }}

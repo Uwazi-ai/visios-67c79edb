@@ -4,6 +4,8 @@ import { ChevronDown, ChevronRight, Plus, MoreHorizontal, Trash2 } from "lucide-
 import { format, isPast, isToday } from "date-fns";
 import type { Task, Project, TaskSection } from "@/hooks/useTasks";
 import type { Org } from "@/lib/orgs";
+import type { MemberInfo } from "@/hooks/useOrgMembersMap";
+import { AssigneeAvatar } from "./AssigneeAvatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -13,6 +15,7 @@ interface Props {
   sections: TaskSection[];
   projects: Project[];
   orgs: Org[];
+  members?: Record<string, MemberInfo>;
   activeProjectId: string | null;
   onTaskClick: (t: Task) => void;
   onUpdate: (id: string, patch: Partial<Task>) => void;
@@ -41,9 +44,9 @@ function dueColor(due: string | null, status: string | null) {
 }
 
 const TaskRow = ({
-  task, depth, org, onClick, onUpdate, onAddSubtask, onDelete,
+  task, depth, org, assignee, onClick, onUpdate, onAddSubtask, onDelete,
 }: {
-  task: Task; depth: number; org?: Org;
+  task: Task; depth: number; org?: Org; assignee?: MemberInfo;
   onClick: () => void;
   onUpdate: (patch: Partial<Task>) => void;
   onAddSubtask: () => void;
@@ -131,6 +134,9 @@ const TaskRow = ({
         </Select>
       </div>
 
+      {/* Assignee avatar */}
+      <AssigneeAvatar member={assignee} size={18} />
+
       {/* Org dot */}
       {org && (
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: org.color, flexShrink: 0 }} />
@@ -173,7 +179,7 @@ const TaskRow = ({
 };
 
 export const SectionedListView = ({
-  tasks, sections, projects, orgs, activeProjectId,
+  tasks, sections, projects, orgs, members, activeProjectId,
   onTaskClick, onUpdate, onCreate, onDelete,
   onCreateSection, onUpdateSection, onDeleteSection,
 }: Props) => {
@@ -237,6 +243,7 @@ export const SectionedListView = ({
         task={t}
         depth={depth}
         org={orgs.find((o) => o.id === t.org_id)}
+        assignee={t.assignee_id ? members?.[t.assignee_id] : undefined}
         onClick={() => onTaskClick(t)}
         onUpdate={(patch) => onUpdate(t.id, patch)}
         onAddSubtask={async () => {

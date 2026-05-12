@@ -10,6 +10,7 @@ import {
 import { Plus } from "lucide-react";
 import type { Task, TaskStatus, Project } from "@/hooks/useTasks";
 import type { Org } from "@/lib/orgs";
+import type { MemberInfo } from "@/hooks/useOrgMembersMap";
 import { TaskCard } from "./TaskCard";
 import { toast } from "@/hooks/use-toast";
 
@@ -25,6 +26,7 @@ interface Props {
   orgs: Org[];
   projects: Project[];
   activeOrgId: string | "all" | null;
+  members?: Record<string, MemberInfo>;
   onTaskClick: (t: Task) => void;
   onUpdate: (id: string, patch: Partial<Task>) => void;
   onCreate: (input: { title: string; status: TaskStatus; org_id: string; project_id: string | null }) => void;
@@ -36,6 +38,7 @@ const Column = ({
   tasks,
   orgs,
   projects,
+  members,
   onTaskClick,
   onAdd,
 }: {
@@ -43,6 +46,7 @@ const Column = ({
   tasks: Task[];
   orgs: Org[];
   projects: Project[];
+  members?: Record<string, MemberInfo>;
   onTaskClick: (t: Task) => void;
   onAdd: (title: string) => void;
 }) => {
@@ -79,6 +83,7 @@ const Column = ({
             task={t}
             org={orgs.find((o) => o.id === t.org_id)}
             projectName={projects.find((p) => p.id === t.project_id)?.name}
+            assignee={t.assignee_id ? members?.[t.assignee_id] : undefined}
             onClick={() => onTaskClick(t)}
           />
         ))}
@@ -125,6 +130,7 @@ export const BoardView = ({
   orgs,
   projects,
   activeOrgId,
+  members,
   onTaskClick,
   onUpdate,
   onCreate,
@@ -162,6 +168,7 @@ export const BoardView = ({
               tasks={colTasks}
               orgs={orgs}
               projects={projects}
+              members={members}
               onTaskClick={onTaskClick}
               onAdd={(title) => {
                 if (!orgIdForAdd) {
