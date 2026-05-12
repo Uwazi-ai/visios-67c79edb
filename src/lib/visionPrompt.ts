@@ -45,6 +45,23 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   lines.push(persona.systemDescription);
   lines.push(`\nToday: ${today}${profile.timezone ? ` (${profile.timezone})` : ""}${profile.active_org_name ? ` | Active org: ${profile.active_org_name}` : ""}`);
 
+  // Role-aware access scope
+  if (profile.is_founder) {
+    lines.push(
+      `\n═══ ACCESS SCOPE ═══\nRole: Founder. You have full access across all connected orgs${
+        profile.accessible_orgs?.length ? ` (${profile.accessible_orgs.join(", ")})` : ""
+      }, all data, and all integrations.`
+    );
+  } else if (profile.role_label) {
+    const orgList = profile.accessible_orgs?.length ? profile.accessible_orgs.join(", ") : (profile.active_org_name ?? "their org");
+    lines.push(
+      `\n═══ ACCESS SCOPE ═══\nRole: ${profile.role_label}. You work within: ${orgList}.\n` +
+      `You can ONLY see data the user has access to: contacts, tasks, knowledge base, meetings, and events for the orgs above, plus their own connected Gmail/Calendar.\n` +
+      `You CANNOT see: data from other orgs the user is not a member of, other team members' private Vision conversations, billing/admin settings, or the founder's personal mailbox.\n` +
+      `If asked about restricted data, politely explain it isn't in scope and suggest asking an org owner.`
+    );
+  }
+
   lines.push(`\n═══ LIVE DATA ═══`);
 
   // Emails
