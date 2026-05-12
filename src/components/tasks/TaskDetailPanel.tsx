@@ -41,8 +41,18 @@ export const TaskDetailBody = ({
   const [draft, setDraft] = useState<Task>(task);
   const [subVal, setSubVal] = useState("");
   const [aiBusy, setAiBusy] = useState<"sub" | "est" | null>(null);
+  const [members, setMembers] = useState<{ user_id: string; display_name: string | null; email: string; avatar_url: string | null }[]>([]);
 
   useEffect(() => setDraft(task), [task]);
+
+  useEffect(() => {
+    if (!draft.org_id) { setMembers([]); return; }
+    let cancelled = false;
+    supabase.rpc("get_org_members" as any, { _org_id: draft.org_id }).then(({ data }) => {
+      if (!cancelled) setMembers((data ?? []) as any);
+    });
+    return () => { cancelled = true; };
+  }, [draft.org_id]);
 
   const subtasks = allTasks.filter((t) => t.parent_task_id === task.id);
   const orgProjects = projects.filter((p) => p.org_id === draft.org_id);
