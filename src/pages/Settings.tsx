@@ -14,8 +14,9 @@ import DigitalCardTab from "@/components/settings/tabs/DigitalCardTab";
 import NotificationsTab from "@/components/settings/tabs/NotificationsTab";
 import PrivacyTab from "@/components/settings/tabs/PrivacyTab";
 import AccountTab from "@/components/settings/tabs/AccountTab";
+import TeamTab from "@/components/settings/tabs/TeamTab";
 
-type TabKey = "profile" | "orgs" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger";
+type TabKey = "profile" | "orgs" | "team" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger";
 
 interface NavItem {
   key: TabKey;
