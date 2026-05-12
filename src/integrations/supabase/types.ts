@@ -1995,6 +1995,18 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      get_org_members: {
+        Args: { _org_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+          email: string
+          is_restricted: boolean
+          joined_at: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }[]
+      }
       has_org_role: {
         Args: {
           _org_id: string
