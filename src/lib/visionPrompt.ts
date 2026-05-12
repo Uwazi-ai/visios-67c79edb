@@ -19,6 +19,9 @@ export interface VisionProfile {
   email?: string | null;
   timezone?: string | null;
   active_org_name?: string | null;
+  role_label?: string | null;            // "Founder" | "Org Admin" | "Team Member" | "Read-only"
+  is_founder?: boolean;
+  accessible_orgs?: string[];            // org names this user can access
 }
 
 function fmtDate(iso?: string | null) {
