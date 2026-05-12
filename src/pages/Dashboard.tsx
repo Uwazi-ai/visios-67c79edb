@@ -1,7 +1,8 @@
-import { Clock, Inbox, CheckSquare, Activity, Zap, GitBranch, Lock } from "lucide-react";
+import { Clock, Inbox, CheckSquare, Zap, GitBranch, Lock } from "lucide-react";
 import { MorningBrief } from "@/components/dashboard/MorningBrief";
 import { DashCard, EmptyHint } from "@/components/dashboard/DashCard";
 import { ScheduleToday } from "@/components/dashboard/ScheduleToday";
+import { TeamActivityCard } from "@/components/dashboard/TeamActivityCard";
 
 const Dashboard = () => {
   return (
