@@ -53,9 +53,9 @@ export default function SettingsPage() {
   const { user } = useAuth();
   const { isRestricted } = useOrg();
   const [tab, setTab] = useState<TabKey>("profile");
-  const NAV_VISIBLE = NAV.filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "danger"));
+  const NAV_VISIBLE = NAV.filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "team" && n.key !== "danger"));
   useEffect(() => {
-    if (isRestricted && (tab === "orgs" || tab === "danger")) setTab("profile");
+    if (isRestricted && (tab === "orgs" || tab === "team" || tab === "danger")) setTab("profile");
   }, [isRestricted, tab]);
   const [completion, setCompletion] = useState<CompletionMap | null>(null);
 
