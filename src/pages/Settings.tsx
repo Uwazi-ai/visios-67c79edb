@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   User as UserIcon, Building2, Plug, Sparkles, CreditCard, Bell, Lock, Settings as SettingsIcon,
-  Trash2,
+  Trash2, Users,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
