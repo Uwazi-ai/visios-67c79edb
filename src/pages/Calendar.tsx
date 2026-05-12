@@ -11,6 +11,9 @@ import { detectOrgSlugFromEmails } from "@/lib/orgDetect";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
+import TeamCalendarsPanel, { type Teammate } from "@/components/calendar/TeamCalendarsPanel";
+import { useCalendarPreferences } from "@/hooks/useCalendarPreferences";
+import { colorForMember } from "@/lib/memberColors";
 
 type View = "day" | "week" | "month";
 
@@ -26,6 +29,13 @@ interface CalEvent {
   htmlLink: string | null;
   org_id: string | null;
   org_color: string;
+  // Team layer
+  owner_id?: string | null;
+  owner_name?: string | null;
+  owner_avatar?: string | null;
+  is_team_event?: boolean;
+  db_event_id?: string | null;
+  my_rsvp?: "invited" | "accepted" | "declined" | "tentative" | null;
 }
 
 interface PlanBlock {
