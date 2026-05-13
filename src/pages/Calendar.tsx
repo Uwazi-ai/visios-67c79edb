@@ -292,7 +292,16 @@ export default function Calendar() {
     <div className="flex gap-4 min-h-[calc(100vh-120px)]">
       {/* Sidebar mini calendar (desktop only) */}
       {!isMobile && (
-        <MiniSidebar cursor={cursor} setCursor={setCursor} events={events} orgs={orgs} />
+        <MiniSidebar
+          cursor={cursor}
+          setCursor={setCursor}
+          events={events}
+          orgs={orgs}
+          me={me}
+          teammates={teammates}
+          visibleMemberIds={visibleMemberIds}
+          onToggleMember={toggleMember}
+        />
       )}
 
       {/* Main calendar */}
