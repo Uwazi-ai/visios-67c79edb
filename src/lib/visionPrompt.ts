@@ -66,28 +66,43 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   lines.push(`\n═══ LIVE DATA ═══`);
 
+  const isBrief = !!ctx.intent?.isDailyBrief;
+  const isScheduling = !!ctx.intent?.isSchedulingRequest;
+
   // Emails
   if (ctx.emails && ctx.emails.length) {
-    lines.push(`\n📧 EMAILS (${ctx.emails.length}):`);
+    const unread = ctx.emails.filter((e) => e.unread).length;
+    lines.push(`\n📧 EMAILS (${ctx.emails.length}${unread ? `, ${unread} unread` : ""}):`);
     for (const e of ctx.emails) {
-      lines.push(`• [gmail:${e.id}] ${e.from} — "${e.subject}" (${e.date})\n  ${e.snippet}`);
+      const flags = [e.unread ? "UNREAD" : "", e.starred ? "★" : ""].filter(Boolean).join(" ");
+      lines.push(`• [gmail:${e.id}] ${flags ? flags + " · " : ""}${e.from} — "${e.subject}" (${e.date})\n  ${e.snippet}`);
     }
   }
 
-  // Calendar
+  // Calendar (merged personal + team)
   if (ctx.calendar && ctx.calendar.length) {
     lines.push(`\n📅 CALENDAR (${ctx.calendar.length}):`);
     for (const ev of ctx.calendar) {
       const att = (ev.attendees ?? []).map((a) => a.name || a.email).filter(Boolean).slice(0, 5).join(", ");
-      lines.push(`• ${fmtDate(ev.start)} — ${ev.title}${att ? ` | with ${att}` : ""}${ev.meetLink ? ` | Meet: ${ev.meetLink}` : ""}`);
+      const tag = ev.source === "team" ? " [team]" : "";
+      const loc = ev.location ? ` @ ${ev.location}` : "";
+      lines.push(`• ${fmtDate(ev.start)}${ev.end ? `–${fmtDate(ev.end)}` : ""}${tag} — ${ev.title}${loc}${att ? ` | with ${att}` : ""}${ev.meetLink ? ` | Meet: ${ev.meetLink}` : ""}`);
     }
   }
 
   // Tasks
   if (ctx.tasks && ctx.tasks.length) {
     lines.push(`\n✅ OPEN TASKS (${ctx.tasks.length}):`);
-    for (const t of ctx.tasks.slice(0, 8)) {
-      lines.push(`• [${t.priority ?? "normal"}] ${t.title}${t.due_at ? ` (due ${fmtDate(t.due_at)})` : ""}`);
+    for (const t of ctx.tasks.slice(0, 12)) {
+      lines.push(`• [${t.priority ?? "normal"}] ${t.title}${t.due_at ? ` (due ${fmtDate(t.due_at)})` : ""}${t.assignee_id ? ` (assigned)` : ""}`);
+    }
+  }
+
+  // Chat
+  if (ctx.chat && ctx.chat.length) {
+    lines.push(`\n💬 RECENT CHAT (${ctx.chat.length}):`);
+    for (const m of ctx.chat) {
+      lines.push(`• #${m.channel} — "${m.text}"`);
     }
   }
 
@@ -108,12 +123,10 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
     }
   }
 
-  // Slack
+  // Slack (legacy)
   if (ctx.slack && ctx.slack.length) {
     lines.push(`\n💬 SLACK:`);
-    for (const m of ctx.slack) {
-      lines.push(`• [slack:${m.channel}] #${m.channel} — ${m.user}: "${m.text}"`);
-    }
+    for (const m of ctx.slack) lines.push(`• [slack:${m.channel}] #${m.channel} — ${m.user}: "${m.text}"`);
   }
 
   // KB
@@ -126,11 +139,32 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   lines.push(`\n═══ END LIVE DATA ═══`);
 
+  if (isBrief) {
+    lines.push(`\n═══ DAILY BRIEF MODE ═══
+Produce a structured morning brief with these sections (markdown):
+1. **Today at a glance** — time-ordered meetings; flag conflicts, back-to-backs, missing prep, no lunch buffer.
+2. **Inbox** — group urgent / waiting-on-you / FYI. Cite [gmail:ID].
+3. **Top priorities** — pick 3 from open tasks weighted by due date + priority.
+4. **Team pulse** — what teammates have on, recent chat highlights.
+5. **Suggested actions** — 2-3 concrete next steps. Be opinionated.
+Keep it scannable, no fluff.`);
+  }
+
+  if (isScheduling) {
+    lines.push(`\n═══ SCHEDULING MODE ═══
+The user is asking about scheduling. Use the calendar data above (personal + team) to:
+- Identify free windows in working hours (default 9–17 local).
+- Respect existing meetings, lunch, and back-to-back fatigue (suggest 10-min buffers).
+- Propose 2-3 specific options with date+time and call out attendee conflicts.
+- If you'd create an event, describe title/attendees/time/duration clearly so the user can confirm before any action is taken.`);
+  }
+
   lines.push(`\nYou are Vision. Never refer to yourself as Claude, Anthropic, or any underlying model.
-Cite sources naturally inline using these tokens (the UI renders them as clickable chips):
+Cite sources naturally inline using these tokens (UI renders them as clickable chips):
   [gmail:THREAD_ID|short label]   [drive:FILE_ID|name]   [kb:DOC_ID|title]
   [slack:channel|#channel]        [task:title]
-Be specific. Be grounded in the data above. If a source isn't connected, don't pretend you saw it.`);
+Be specific. Be grounded in the data above. If a source isn't connected, say so — never invent.`);
 
   return lines.join("\n");
 }
+
