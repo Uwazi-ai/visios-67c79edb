@@ -3,11 +3,13 @@ import { PERSONA_MAP, type PersonaKey } from "./aiPersonas";
 
 export interface VisionContext {
   intent?: any;
-  emails?: { id: string; subject: string; from: string; date: string; snippet: string }[] | null;
-  calendar?: { id: string; title: string; start: string; end?: string; meetLink?: string | null; attendees?: { email: string; name?: string }[] }[] | null;
+  emails?: { id: string; subject: string; from: string; date: string; snippet: string; unread?: boolean; starred?: boolean }[] | null;
+  calendar?: { id: string; title: string; start: string; end?: string; meetLink?: string | null; location?: string | null; attendees?: { email: string; name?: string; status?: string }[]; source?: "google" | "team"; org_id?: string | null }[] | null;
+  team_calendar?: { id: string; title: string; start: string; end?: string; org_id?: string | null; created_by?: string | null }[] | null;
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; contentPreview?: string }[] | null;
   contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
-  tasks?: { title: string; status?: string; priority?: string; due_at?: string | null }[];
+  tasks?: { title: string; status?: string; priority?: string; due_at?: string | null; assignee_id?: string | null }[];
+  chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
   kb?: { id: string; document_id: string; document_title: string; content: string }[];
   sources?: Record<string, boolean>;
