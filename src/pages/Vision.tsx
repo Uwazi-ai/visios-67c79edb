@@ -201,8 +201,15 @@ export default function Vision() {
     // Fetch live context from Vision Context Engine
     let visionCtx: VisionContext = {};
     try {
+      const accessibleOrgIds = memberships.map((m) => m.org_id);
+      const isDailyBrief = /\b(brief|morning brief|daily brief|day ahead|catch me up|what'?s on (today|my plate))\b/i.test(text);
       const { data: ctxData } = await supabase.functions.invoke("vision-context", {
-        body: { org_id: activeOrgId ?? null, message: text },
+        body: {
+          org_id: activeOrgId ?? null,
+          org_ids: accessibleOrgIds,
+          message: text,
+          is_daily_brief: isDailyBrief,
+        },
       });
       if (ctxData) {
         visionCtx = ctxData as VisionContext;
