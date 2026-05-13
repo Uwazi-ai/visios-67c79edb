@@ -32,7 +32,7 @@ async function userOrgIds(): Promise<string[]> {
 const mcp = new McpServer({
   name: "visios-mcp",
   version: "1.0.0",
-  schemaAdapter: (schema: any) => zodToJsonSchema(schema, { target: "openApi3" }) as any,
+  schemaAdapter: (schema: any) => z.toJSONSchema(schema),
 });
 
 // ---------------- visi_get_context ----------------
