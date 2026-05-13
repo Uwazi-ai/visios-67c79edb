@@ -499,6 +499,13 @@ function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMe
           Personal / Other
         </div>
       </div>
+
+      <TeamCalendarsPanel
+        me={me}
+        teammates={teammates}
+        visibleMemberIds={visibleMemberIds}
+        onToggle={onToggleMember}
+      />
     </aside>
   );
 }
