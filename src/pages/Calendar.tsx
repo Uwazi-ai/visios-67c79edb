@@ -730,9 +730,23 @@ function MonthView({ events, cursor, onSelect, setCursor, setView }: { events: C
 // =================== EVENT DETAIL PANEL ===================
 function EventDetailPanel({ event, onClose, orgs }: { event: CalEvent; onClose: () => void; orgs: { id: string; name: string; color: string; slug: string }[] }) {
   const { tz } = useTime();
+  const { user } = useAuth();
   const start = new Date(event.start);
   const end = new Date(event.end);
   const org = event.org_id ? orgs.find((o) => o.id === event.org_id) : null;
+  const isMyEvent = event.is_team_event && event.owner_id === user?.id;
+  const canRsvp = event.is_team_event && !isMyEvent && event.db_event_id && event.my_rsvp;
+
+  const rsvp = async (status: "accepted" | "declined" | "tentative") => {
+    if (!event.db_event_id || !user) return;
+    const { error } = await (supabase as any)
+      .from("event_attendees")
+      .update({ status })
+      .eq("event_id", event.db_event_id)
+      .eq("user_id", user.id);
+    if (error) toast.error(error.message);
+    else toast.success(`Marked ${status}`);
+  };
 
   return (
     <aside className="glass-elevated flex-shrink-0 p-4 flex flex-col gap-3 card-enter" style={{ width: 280, alignSelf: "flex-start", position: "sticky", top: 72 }}>
