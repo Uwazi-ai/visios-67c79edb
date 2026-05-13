@@ -588,9 +588,11 @@ function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSele
   if (top >= columnHeight) return null;
 
   const c = event.org_color;
+  const isInvited = event.is_team_event && event.my_rsvp === "invited";
   return (
     <button
       onClick={() => onSelect(event)}
+      title={event.owner_name ? `${event.summary} — ${event.owner_name}` : event.summary}
       className="absolute text-left overflow-hidden hover:brightness-125 transition-all"
       style={{
         top, left: 2, right: 2, height,
@@ -598,7 +600,7 @@ function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSele
         padding: "3px 6px",
         borderLeft: `2px solid ${c}`,
         background: `${c}26`,
-        border: `1px solid ${c}47`,
+        border: isInvited ? `1px dashed ${c}` : `1px solid ${c}47`,
         cursor: "pointer",
       }}
     >
@@ -606,7 +608,15 @@ function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSele
         {event.summary}
       </div>
       {height > 28 && (
-        <div className="t-mono" style={{ fontSize: 8 }}>{fmtTimeShort(start, tz)}–{fmtTimeShort(end, tz)}</div>
+        <div className="t-mono flex items-center gap-1" style={{ fontSize: 8 }}>
+          <span>{fmtTimeShort(start, tz)}–{fmtTimeShort(end, tz)}</span>
+          {event.is_team_event && event.owner_name && (
+            <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 3, opacity: 0.85 }}>
+              <span style={{ width: 5, height: 5, borderRadius: 999, background: c }} />
+              {event.owner_name.split(" ")[0]}
+            </span>
+          )}
+        </div>
       )}
     </button>
   );
