@@ -1209,6 +1209,67 @@ export type Database = {
         }
         Relationships: []
       }
+      mcp_approvals: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          org_id: string | null
+          payload: Json
+          requested_by: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          tool: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          org_id?: string | null
+          payload?: Json
+          requested_by?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          tool: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          org_id?: string | null
+          payload?: Json
+          requested_by?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          tool?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mcp_approvals_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mcp_approvals_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mcp_approvals_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           channel_id: string
