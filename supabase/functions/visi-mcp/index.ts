@@ -33,8 +33,7 @@ async function userOrgIds(): Promise<string[]> {
 const mcp = new McpServer({
   name: "visios-mcp",
   version: "1.0.0",
-  // Convert zod schemas to JSON Schema for tools/list
-  schemaAdapter: (schema: any) => z.toJSONSchema ? z.toJSONSchema(schema) : (schema as any)._def ?? schema,
+  schemaAdapter: (schema: any) => zodToJsonSchema(schema, { target: "openApi3" }) as any,
 });
 
 // ---------------- visi_get_context ----------------
