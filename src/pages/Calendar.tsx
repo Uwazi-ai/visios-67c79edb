@@ -757,6 +757,26 @@ function EventDetailPanel({ event, onClose, orgs }: { event: CalEvent; onClose: 
       <h3 className="t-section">{event.summary}</h3>
       <div className="t-mono">{fmtDateLong(start, tz, { weekday: "short", month: "short", day: "numeric" })} · {fmtRange(start, end, tz)}</div>
 
+      {event.is_team_event && event.owner_name && (
+        <div className="text-xs flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: event.org_color }} />
+          Organizer: {isMyEvent ? "You" : event.owner_name}
+        </div>
+      )}
+
+      {canRsvp && (
+        <div className="flex flex-col gap-1.5 p-2 rounded" style={{ background: "var(--bg-glass-1)", border: "1px solid var(--border-glass)" }}>
+          <span className="t-mono" style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.08 }}>
+            {event.owner_name?.split(" ")[0]} invited you · Currently: {event.my_rsvp}
+          </span>
+          <div className="flex gap-1.5">
+            <button onClick={() => rsvp("accepted")} className="btn-primary flex-1 justify-center" style={{ height: 28, fontSize: 11 }}>Accept</button>
+            <button onClick={() => rsvp("tentative")} className="btn-ghost flex-1 justify-center" style={{ height: 28, fontSize: 11 }}>Maybe</button>
+            <button onClick={() => rsvp("declined")} className="btn-ghost flex-1 justify-center" style={{ height: 28, fontSize: 11 }}>Decline</button>
+          </div>
+        </div>
+      )}
+
       {org ? (
         <div className="org-pill self-start active">
           <span className="org-dot" style={{ background: org.color }} />
