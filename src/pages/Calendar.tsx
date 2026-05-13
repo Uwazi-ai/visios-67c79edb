@@ -11,6 +11,9 @@ import { detectOrgSlugFromEmails } from "@/lib/orgDetect";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import ScheduleMeetingModal from "@/components/meetings/ScheduleMeetingModal";
+import TeamCalendarsPanel, { type Teammate } from "@/components/calendar/TeamCalendarsPanel";
+import { useCalendarPreferences } from "@/hooks/useCalendarPreferences";
+import { colorForMember } from "@/lib/memberColors";
 
 type View = "day" | "week" | "month";
 
@@ -26,6 +29,13 @@ interface CalEvent {
   htmlLink: string | null;
   org_id: string | null;
   org_color: string;
+  // Team layer
+  owner_id?: string | null;
+  owner_name?: string | null;
+  owner_avatar?: string | null;
+  is_team_event?: boolean;
+  db_event_id?: string | null;
+  my_rsvp?: "invited" | "accepted" | "declined" | "tentative" | null;
 }
 
 interface PlanBlock {
@@ -75,16 +85,22 @@ const fmtDateLong = (d: Date, tz: string, opts: Intl.DateTimeFormatOptions) => d
 export default function Calendar() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
-  const { orgs } = useOrg();
+  const { orgs, memberships } = useOrg();
   const { tz } = useTime();
   const [view, setView] = useState<View>(isMobile ? "day" : "week");
   const [cursor, setCursor] = useState<Date>(new Date());
-  const [events, setEvents] = useState<CalEvent[]>([]);
+  const [googleEvents, setGoogleEvents] = useState<CalEvent[]>([]);
+  const [teamEvents, setTeamEvents] = useState<CalEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalEvent | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [now, setNow] = useState(new Date());
+
+  // Team layer
+  const [teammates, setTeammates] = useState<Teammate[]>([]);
+  const [me, setMe] = useState<Teammate | null>(null);
+  const { visibleMemberIds, toggleMember, setAll, loaded: prefsLoaded } = useCalendarPreferences();
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
@@ -109,7 +125,7 @@ export default function Calendar() {
 
   const [needsReconnect, setNeedsReconnect] = useState(false);
 
-  const loadEvents = useCallback(async () => {
+  const loadGoogleEvents = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -119,12 +135,12 @@ export default function Calendar() {
       const errMsg = (await getFunctionErrorMessage(error)) ?? data?.error ?? null;
       if (data?.fallback) {
         setNeedsReconnect(data.error === "GOOGLE_AUTH_REQUIRED" || Boolean(errMsg && /refresh token/i.test(errMsg)));
-        setEvents([]);
+        setGoogleEvents([]);
         return;
       }
       if (errMsg && /refresh token/i.test(errMsg)) {
         setNeedsReconnect(true);
-        setEvents([]);
+        setGoogleEvents([]);
         return;
       }
       if (error) throw new Error(errMsg ?? "Failed to load calendar");
@@ -137,9 +153,11 @@ export default function Calendar() {
           ...e,
           org_id: orgInfo?.id ?? null,
           org_color: orgInfo?.color ?? PERSONAL_COLOR,
+          owner_id: user.id,
+          is_team_event: false,
         };
       });
-      setEvents(mapped);
+      setGoogleEvents(mapped);
     } catch (e) {
       console.error(e);
       toast.error(e instanceof Error ? e.message : "Failed to load calendar");
@@ -148,7 +166,114 @@ export default function Calendar() {
     }
   }, [range.from, range.to, user, orgBySlug, orgs]);
 
-  useEffect(() => { loadEvents(); }, [loadEvents]);
+  // Load teammates (other members of orgs the user belongs to) + self
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const orgIds = memberships.map((m) => m.org_id);
+      if (orgIds.length === 0) {
+        if (!cancelled) { setTeammates([]); setMe(null); }
+        return;
+      }
+      const { data: ms } = await supabase
+        .from("org_memberships")
+        .select("user_id")
+        .in("org_id", orgIds);
+      const allIds = Array.from(new Set([...((ms ?? []).map((r: any) => r.user_id) as string[]), user.id]));
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, display_name, email, avatar_url")
+        .in("id", allIds);
+      if (cancelled) return;
+      const list: Teammate[] = (profs ?? []).map((p: any) => ({
+        user_id: p.id, display_name: p.display_name, email: p.email, avatar_url: p.avatar_url,
+      }));
+      setMe(list.find((t) => t.user_id === user.id) ?? null);
+      setTeammates(
+        list.filter((t) => t.user_id !== user.id)
+          .sort((a, b) => (a.display_name ?? a.email ?? "").localeCompare(b.display_name ?? b.email ?? ""))
+      );
+    })();
+    return () => { cancelled = true; };
+  }, [user, memberships]);
+
+  // Default visible = all teammates if no pref saved yet
+  useEffect(() => {
+    if (!prefsLoaded || teammates.length === 0) return;
+    if (visibleMemberIds.length === 0) {
+      setAll(teammates.map((t) => t.user_id));
+    }
+  }, [prefsLoaded, teammates, visibleMemberIds.length, setAll]);
+
+  // Load DB team events + my own DB events for the range
+  const loadTeamEvents = useCallback(async () => {
+    if (!user) return;
+    const visibleIds = Array.from(new Set([user.id, ...visibleMemberIds]));
+    const { data, error } = await (supabase as any)
+      .from("events")
+      .select("id, title, description, start_at, end_at, attendees, meet_link, org_id, color, created_by, visibility, event_attendees(user_id, status)")
+      .gte("start_at", range.from.toISOString())
+      .lte("start_at", range.to.toISOString())
+      .in("created_by", visibleIds);
+    if (error) {
+      console.error("team events", error);
+      return;
+    }
+    const teamMap = new Map(teammates.map((t) => [t.user_id, t]));
+    if (me) teamMap.set(me.user_id, me);
+    const mapped: CalEvent[] = (data ?? []).map((e: any) => {
+      const owner = teamMap.get(e.created_by);
+      const ownerColor = colorForMember(e.created_by);
+      const orgInfo = orgs.find((o) => o.id === e.org_id);
+      const myAttendee = (e.event_attendees ?? []).find((a: any) => a.user_id === user.id);
+      return {
+        id: `db:${e.id}`,
+        db_event_id: e.id,
+        summary: e.title ?? "(no title)",
+        description: e.description ?? "",
+        start: e.start_at,
+        end: e.end_at ?? e.start_at,
+        allDay: false,
+        attendees: Array.isArray(e.attendees) ? e.attendees.map((a: any) => typeof a === "string" ? a : a?.email).filter(Boolean) : [],
+        hangoutLink: e.meet_link ?? null,
+        htmlLink: null,
+        org_id: e.org_id ?? null,
+        org_color: e.color ?? ownerColor ?? orgInfo?.color ?? PERSONAL_COLOR,
+        owner_id: e.created_by,
+        owner_name: owner?.display_name ?? owner?.email ?? null,
+        owner_avatar: owner?.avatar_url ?? null,
+        is_team_event: true,
+        my_rsvp: myAttendee?.status ?? null,
+      };
+    });
+    setTeamEvents(mapped);
+  }, [user, range.from, range.to, visibleMemberIds, teammates, me, orgs]);
+
+  const loadEvents = useCallback(async () => {
+    await Promise.all([loadGoogleEvents(), loadTeamEvents()]);
+  }, [loadGoogleEvents, loadTeamEvents]);
+
+  useEffect(() => { loadGoogleEvents(); }, [loadGoogleEvents]);
+  useEffect(() => { loadTeamEvents(); }, [loadTeamEvents]);
+
+  // Realtime: refresh team events when attendees change for me
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel(`cal-events-${user.id}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "events" }, () => loadTeamEvents())
+      .on("postgres_changes", { event: "*", schema: "public", table: "event_attendees" }, () => loadTeamEvents())
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [user, loadTeamEvents]);
+
+  // Merged event list passed to views
+  const events = useMemo(() => {
+    const visible = new Set([user?.id, ...visibleMemberIds].filter(Boolean) as string[]);
+    const team = teamEvents.filter((e) => !e.owner_id || visible.has(e.owner_id));
+    return [...googleEvents, ...team];
+  }, [googleEvents, teamEvents, visibleMemberIds, user]);
 
   // ---------- nav ----------
   const goToday = () => setCursor(new Date());
@@ -167,7 +292,16 @@ export default function Calendar() {
     <div className="flex gap-4 min-h-[calc(100vh-120px)]">
       {/* Sidebar mini calendar (desktop only) */}
       {!isMobile && (
-        <MiniSidebar cursor={cursor} setCursor={setCursor} events={events} orgs={orgs} />
+        <MiniSidebar
+          cursor={cursor}
+          setCursor={setCursor}
+          events={events}
+          orgs={orgs}
+          me={me}
+          teammates={teammates}
+          visibleMemberIds={visibleMemberIds}
+          onToggleMember={toggleMember}
+        />
       )}
 
       {/* Main calendar */}
@@ -283,7 +417,13 @@ function ReconnectBanner() {
 }
 
 // =================== MINI SIDEBAR ===================
-function MiniSidebar({ cursor, setCursor, events, orgs }: { cursor: Date; setCursor: (d: Date) => void; events: CalEvent[]; orgs: { id: string; name: string; slug: string; color: string }[] }) {
+function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, onToggleMember }: {
+  cursor: Date; setCursor: (d: Date) => void; events: CalEvent[];
+  orgs: { id: string; name: string; slug: string; color: string }[];
+  me: Teammate | null; teammates: Teammate[];
+  visibleMemberIds: string[];
+  onToggleMember: (id: string, on: boolean) => void;
+}) {
   const [miniMonth, setMiniMonth] = useState(new Date(cursor.getFullYear(), cursor.getMonth(), 1));
   useEffect(() => { setMiniMonth(new Date(cursor.getFullYear(), cursor.getMonth(), 1)); }, [cursor]);
 
@@ -359,6 +499,13 @@ function MiniSidebar({ cursor, setCursor, events, orgs }: { cursor: Date; setCur
           Personal / Other
         </div>
       </div>
+
+      <TeamCalendarsPanel
+        me={me}
+        teammates={teammates}
+        visibleMemberIds={visibleMemberIds}
+        onToggle={onToggleMember}
+      />
     </aside>
   );
 }
@@ -441,9 +588,11 @@ function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSele
   if (top >= columnHeight) return null;
 
   const c = event.org_color;
+  const isInvited = event.is_team_event && event.my_rsvp === "invited";
   return (
     <button
       onClick={() => onSelect(event)}
+      title={event.owner_name ? `${event.summary} — ${event.owner_name}` : event.summary}
       className="absolute text-left overflow-hidden hover:brightness-125 transition-all"
       style={{
         top, left: 2, right: 2, height,
@@ -451,7 +600,7 @@ function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSele
         padding: "3px 6px",
         borderLeft: `2px solid ${c}`,
         background: `${c}26`,
-        border: `1px solid ${c}47`,
+        border: isInvited ? `1px dashed ${c}` : `1px solid ${c}47`,
         cursor: "pointer",
       }}
     >
@@ -459,7 +608,15 @@ function EventBlock({ event, onSelect, columnHeight }: { event: CalEvent; onSele
         {event.summary}
       </div>
       {height > 28 && (
-        <div className="t-mono" style={{ fontSize: 8 }}>{fmtTimeShort(start, tz)}–{fmtTimeShort(end, tz)}</div>
+        <div className="t-mono flex items-center gap-1" style={{ fontSize: 8 }}>
+          <span>{fmtTimeShort(start, tz)}–{fmtTimeShort(end, tz)}</span>
+          {event.is_team_event && event.owner_name && (
+            <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 3, opacity: 0.85 }}>
+              <span style={{ width: 5, height: 5, borderRadius: 999, background: c }} />
+              {event.owner_name.split(" ")[0]}
+            </span>
+          )}
+        </div>
       )}
     </button>
   );
@@ -573,9 +730,23 @@ function MonthView({ events, cursor, onSelect, setCursor, setView }: { events: C
 // =================== EVENT DETAIL PANEL ===================
 function EventDetailPanel({ event, onClose, orgs }: { event: CalEvent; onClose: () => void; orgs: { id: string; name: string; color: string; slug: string }[] }) {
   const { tz } = useTime();
+  const { user } = useAuth();
   const start = new Date(event.start);
   const end = new Date(event.end);
   const org = event.org_id ? orgs.find((o) => o.id === event.org_id) : null;
+  const isMyEvent = event.is_team_event && event.owner_id === user?.id;
+  const canRsvp = event.is_team_event && !isMyEvent && event.db_event_id && event.my_rsvp;
+
+  const rsvp = async (status: "accepted" | "declined" | "tentative") => {
+    if (!event.db_event_id || !user) return;
+    const { error } = await (supabase as any)
+      .from("event_attendees")
+      .update({ status })
+      .eq("event_id", event.db_event_id)
+      .eq("user_id", user.id);
+    if (error) toast.error(error.message);
+    else toast.success(`Marked ${status}`);
+  };
 
   return (
     <aside className="glass-elevated flex-shrink-0 p-4 flex flex-col gap-3 card-enter" style={{ width: 280, alignSelf: "flex-start", position: "sticky", top: 72 }}>
@@ -585,6 +756,26 @@ function EventDetailPanel({ event, onClose, orgs }: { event: CalEvent; onClose: 
       </div>
       <h3 className="t-section">{event.summary}</h3>
       <div className="t-mono">{fmtDateLong(start, tz, { weekday: "short", month: "short", day: "numeric" })} · {fmtRange(start, end, tz)}</div>
+
+      {event.is_team_event && event.owner_name && (
+        <div className="text-xs flex items-center gap-1.5" style={{ color: "var(--text-secondary)" }}>
+          <span style={{ width: 8, height: 8, borderRadius: 999, background: event.org_color }} />
+          Organizer: {isMyEvent ? "You" : event.owner_name}
+        </div>
+      )}
+
+      {canRsvp && (
+        <div className="flex flex-col gap-1.5 p-2 rounded" style={{ background: "var(--bg-glass-1)", border: "1px solid var(--border-glass)" }}>
+          <span className="t-mono" style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.08 }}>
+            {event.owner_name?.split(" ")[0]} invited you · Currently: {event.my_rsvp}
+          </span>
+          <div className="flex gap-1.5">
+            <button onClick={() => rsvp("accepted")} className="btn-primary flex-1 justify-center" style={{ height: 28, fontSize: 11 }}>Accept</button>
+            <button onClick={() => rsvp("tentative")} className="btn-ghost flex-1 justify-center" style={{ height: 28, fontSize: 11 }}>Maybe</button>
+            <button onClick={() => rsvp("declined")} className="btn-ghost flex-1 justify-center" style={{ height: 28, fontSize: 11 }}>Decline</button>
+          </div>
+        </div>
+      )}
 
       {org ? (
         <div className="org-pill self-start active">

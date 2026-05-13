@@ -229,6 +229,27 @@ export type Database = {
           },
         ]
       }
+      calendar_preferences: {
+        Row: {
+          id: string
+          updated_at: string
+          user_id: string
+          visible_member_ids: string[]
+        }
+        Insert: {
+          id?: string
+          updated_at?: string
+          user_id: string
+          visible_member_ids?: string[]
+        }
+        Update: {
+          id?: string
+          updated_at?: string
+          user_id?: string
+          visible_member_ids?: string[]
+        }
+        Relationships: []
+      }
       channels: {
         Row: {
           created_at: string
@@ -708,6 +729,41 @@ export type Database = {
         }
         Relationships: []
       }
+      event_attendees: {
+        Row: {
+          added_at: string
+          added_by: string | null
+          event_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by?: string | null
+          event_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string | null
+          event_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_types: {
         Row: {
           active: boolean | null
@@ -771,7 +827,9 @@ export type Database = {
       events: {
         Row: {
           attendees: Json
+          color: string | null
           created_at: string
+          created_by: string | null
           end_at: string | null
           google_event_id: string | null
           id: string
@@ -782,10 +840,13 @@ export type Database = {
           summary: string | null
           title: string
           user_id: string | null
+          visibility: string
         }
         Insert: {
           attendees?: Json
+          color?: string | null
           created_at?: string
+          created_by?: string | null
           end_at?: string | null
           google_event_id?: string | null
           id?: string
@@ -796,10 +857,13 @@ export type Database = {
           summary?: string | null
           title: string
           user_id?: string | null
+          visibility?: string
         }
         Update: {
           attendees?: Json
+          color?: string | null
           created_at?: string
+          created_by?: string | null
           end_at?: string | null
           google_event_id?: string | null
           id?: string
@@ -810,6 +874,7 @@ export type Database = {
           summary?: string | null
           title?: string
           user_id?: string | null
+          visibility?: string
         }
         Relationships: [
           {
