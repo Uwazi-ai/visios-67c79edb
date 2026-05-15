@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_requests: {
+        Row: {
+          agent_name: string
+          content: Json
+          created_at: string | null
+          executed_at: string | null
+          id: string
+          priority: string | null
+          request_type: string
+          result: Json | null
+          reviewed_at: string | null
+          status: string | null
+          title: string
+        }
+        Insert: {
+          agent_name: string
+          content: Json
+          created_at?: string | null
+          executed_at?: string | null
+          id?: string
+          priority?: string | null
+          request_type: string
+          result?: Json | null
+          reviewed_at?: string | null
+          status?: string | null
+          title: string
+        }
+        Update: {
+          agent_name?: string
+          content?: Json
+          created_at?: string | null
+          executed_at?: string | null
+          id?: string
+          priority?: string | null
+          request_type?: string
+          result?: Json | null
+          reviewed_at?: string | null
+          status?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       agent_settings: {
         Row: {
           created_at: string
@@ -999,6 +1041,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      growth_agent_logs: {
+        Row: {
+          created_at: string | null
+          error_text: string | null
+          event_type: string
+          id: string
+          message_sent: string | null
+          phone_number: string | null
+          status: string | null
+          twilio_sid: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_text?: string | null
+          event_type: string
+          id?: string
+          message_sent?: string | null
+          phone_number?: string | null
+          status?: string | null
+          twilio_sid?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          error_text?: string | null
+          event_type?: string
+          id?: string
+          message_sent?: string | null
+          phone_number?: string | null
+          status?: string | null
+          twilio_sid?: string | null
+        }
+        Relationships: []
       }
       integrations: {
         Row: {
