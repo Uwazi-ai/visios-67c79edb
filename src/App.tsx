@@ -30,6 +30,8 @@ import KnowledgePage from "./pages/Knowledge";
 import AISettings from "./pages/AISettings";
 import Vision from "./pages/Vision";
 import CapitalRaise from "./pages/CapitalRaise";
+import Social from "./pages/Social";
+
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { RestrictedGuard } from "@/components/RestrictedGuard";
 import NotFound from "./pages/NotFound";
