@@ -580,7 +580,7 @@ export const MessageList = ({
                         <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
                           {[...m.metadata.edits].reverse().map((e: any, idx: number) => (
                             <div
-                              key={i}
+                              key={idx}
                               style={{
                                 background: "var(--bg-glass-1)",
                                 border: "1px solid var(--border-glass)",
