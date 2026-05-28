@@ -2,6 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Zap, Pencil, Check, X, History, FileText, Download } from "lucide-react";
 import type { ChatAttachment, MentionUser } from "./MessageInput";
 import { useTime } from "@/contexts/TimezoneContext";
+import { VisionCircle } from "@/components/vision/VisionCircle";
+
+const VISION_COLOR = "#9bd34b";
+function isVisionMessage(m: { user_id: string | null; metadata?: any }, isSystemChannel: boolean) {
+  if (isSystemChannel) return false;
+  if (m.metadata?.source === "vision" || m.metadata?.sender === "vision") return true;
+  return false;
+}
 
 export interface ChatMessage {
   id: string;
