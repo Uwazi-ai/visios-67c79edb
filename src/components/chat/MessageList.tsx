@@ -2,6 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Zap, Pencil, Check, X, History, FileText, Download } from "lucide-react";
 import type { ChatAttachment, MentionUser } from "./MessageInput";
 import { useTime } from "@/contexts/TimezoneContext";
+import { VisionCircle } from "@/components/vision/VisionCircle";
+
+const VISION_COLOR = "#9bd34b";
+function isVisionMessage(m: { user_id: string | null; metadata?: any }, isSystemChannel: boolean) {
+  if (isSystemChannel) return false;
+  if (m.metadata?.source === "vision" || m.metadata?.sender === "vision") return true;
+  return false;
+}
 
 export interface ChatMessage {
   id: string;
@@ -276,18 +284,36 @@ export const MessageList = ({
           <div className="t-mono">No messages yet</div>
         </div>
       )}
-      {messages.map((m) => {
+      {messages.map((m, i) => {
         const day = dayKey(m.created_at, tz);
         const showDay = day !== lastDay;
         lastDay = day;
         const mine = m.user_id === currentUserId;
-        const isSystem = isSystemChannel || m.user_id === null;
+        const isSystem = (isSystemChannel || m.user_id === null) && !isVisionMessage(m, isSystemChannel);
+        const isVision = isVisionMessage(m, isSystemChannel);
         const profile = m.user_id ? profiles[m.user_id] : undefined;
-        const name = profile?.display_name ?? profile?.email ?? "System";
-        const nameColor = m.user_id ? colorFor(m.user_id) : "#818cf8";
+        const name = isVision
+          ? "Vision"
+          : profile?.display_name ?? profile?.email ?? "System";
+        const nameColor = isVision
+          ? VISION_COLOR
+          : m.user_id
+            ? colorFor(m.user_id)
+            : "#818cf8";
+
+        // Group consecutive messages from the same sender within 5 min on the same day
+        const prev = i > 0 ? messages[i - 1] : null;
+        const prevIsVision = prev ? isVisionMessage(prev, isSystemChannel) : false;
+        const sameSender =
+          !!prev &&
+          !showDay &&
+          prev.user_id === m.user_id &&
+          prevIsVision === isVision &&
+          new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() < 5 * 60 * 1000;
+        const showHeader = !sameSender;
 
         return (
-          <div key={m.id}>
+          <div key={m.id} style={{ marginTop: sameSender ? -6 : 0 }}>
             {showDay && (
               <div className="flex justify-center my-3">
                 <div
@@ -328,67 +354,96 @@ export const MessageList = ({
                 className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}
                 style={{ alignItems: "flex-start" }}
               >
-                <div
-                  className="flex items-center justify-center font-display"
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    background: `${nameColor}22`,
-                    color: nameColor,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    flexShrink: 0,
-                  }}
-                >
-                  {initials(profile)}
-                </div>
+                {showHeader ? (
+                  isVision ? (
+                    <div style={{ flexShrink: 0 }}>
+                      <VisionCircle size={32} />
+                    </div>
+                  ) : profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt=""
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        flexShrink: 0,
+                        border: "1px solid var(--border-glass)",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="flex items-center justify-center font-display"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        background: `${nameColor}22`,
+                        color: nameColor,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        flexShrink: 0,
+                        border: `1px solid ${nameColor}44`,
+                      }}
+                    >
+                      {initials(profile)}
+                    </div>
+                  )
+                ) : (
+                  <div style={{ width: 32, flexShrink: 0 }} aria-hidden />
+                )}
                 <div
                   className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
                   style={{ maxWidth: "70%" }}
                 >
-                  <div
-                    className={`flex items-center gap-2 mb-1 ${mine ? "flex-row-reverse" : ""}`}
-                  >
-                    <span
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontWeight: 700,
-                        fontSize: 12,
-                        color: nameColor,
-                      }}
+                  {showHeader && (
+                    <div
+                      className={`flex items-center gap-2 mb-1 ${mine ? "flex-row-reverse" : ""}`}
                     >
-                      {mine ? "You" : name}
-                    </span>
-                    <span className="t-mono" style={{ fontSize: 9 }}>
-                      {timeStr(m.created_at, tz)}
-                    </span>
-                    {m.edited_at && (
-                      <button
-                        onClick={() =>
-                          setHistoryOpenId(historyOpenId === m.id ? null : m.id)
-                        }
-                        className="t-mono inline-flex items-center gap-1"
-                        title={`Edited ${timeStr(m.edited_at, tz)} · click to view history`}
+                      <span
                         style={{
-                          fontSize: 9,
-                          fontStyle: "italic",
+                          fontFamily: "var(--font-display)",
+                          fontWeight: 600,
+                          fontSize: 11,
                           color: "var(--text-muted)",
-                          padding: "0 2px",
                         }}
                       >
-                        <History size={9} strokeWidth={1.5} /> edited
-                      </button>
-                    )}
-                  </div>
+                        {mine ? "You" : name}
+                      </span>
+                      {m.edited_at && (
+                        <button
+                          onClick={() =>
+                            setHistoryOpenId(historyOpenId === m.id ? null : m.id)
+                          }
+                          className="t-mono inline-flex items-center gap-1"
+                          title={`Edited ${timeStr(m.edited_at, tz)} · click to view history`}
+                          style={{
+                            fontSize: 9,
+                            fontStyle: "italic",
+                            color: "var(--text-muted)",
+                            padding: "0 2px",
+                          }}
+                        >
+                          <History size={9} strokeWidth={1.5} /> edited
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <div className={`group/msg relative ${mine ? "self-end" : "self-start"} flex flex-col gap-1.5 ${mine ? "items-end" : "items-start"}`}>
                     {(m.content?.trim() || editingId === m.id) && (
                     <div
                       style={{
-                        background: mine ? "rgba(37,99,235,0.18)" : "rgba(255,255,255,0.06)",
-                        border: mine
-                          ? "1px solid rgba(37,99,235,0.40)"
-                          : "1px solid var(--border-glass)",
+                        background: isVision
+                          ? "var(--bg-glass-2)"
+                          : mine
+                            ? "rgba(37,99,235,0.18)"
+                            : "rgba(255,255,255,0.06)",
+                        border: isVision
+                          ? `1px solid ${VISION_COLOR}40`
+                          : mine
+                            ? "1px solid rgba(37,99,235,0.40)"
+                            : "1px solid var(--border-glass)",
                         borderRadius: mine ? "12px 12px 3px 12px" : "12px 12px 12px 3px",
                         padding: "8px 12px",
                         color: "var(--text-primary)",
@@ -523,9 +578,9 @@ export const MessageList = ({
                           </button>
                         </div>
                         <div className="flex flex-col gap-2 max-h-56 overflow-y-auto">
-                          {[...m.metadata.edits].reverse().map((e: any, i: number) => (
+                          {[...m.metadata.edits].reverse().map((e: any, idx: number) => (
                             <div
-                              key={i}
+                              key={idx}
                               style={{
                                 background: "var(--bg-glass-1)",
                                 border: "1px solid var(--border-glass)",
@@ -552,6 +607,17 @@ export const MessageList = ({
                       </div>
                     )}
                   </div>
+                  <span
+                    className="t-mono"
+                    style={{
+                      fontSize: 10,
+                      color: "var(--text-tertiary, var(--text-muted))",
+                      marginTop: 2,
+                    }}
+                  >
+                    {timeStr(m.created_at, tz)}
+                    {m.edited_at ? " · edited" : ""}
+                  </span>
                 </div>
               </div>
             )}
