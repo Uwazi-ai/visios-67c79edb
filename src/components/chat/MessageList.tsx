@@ -284,12 +284,10 @@ export const MessageList = ({
           <div className="t-mono">No messages yet</div>
         </div>
       )}
-      {messages.map((m) => {
+      {messages.map((m, i) => {
         const day = dayKey(m.created_at, tz);
         const showDay = day !== lastDay;
         lastDay = day;
-        const mine = m.user_id === currentUserId;
-        const isSystem = isSystemChannel || m.user_id === null;
         const mine = m.user_id === currentUserId;
         const isSystem = (isSystemChannel || m.user_id === null) && !isVisionMessage(m, isSystemChannel);
         const isVision = isVisionMessage(m, isSystemChannel);
