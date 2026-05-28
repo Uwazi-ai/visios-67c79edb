@@ -62,6 +62,7 @@ const App = () => (
                 <Route path="/tasks/:id" element={<TaskFullPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
+                <Route path="/social" element={<Social />} />
                 <Route path="/chat" element={<ChatPage />} />
                 <Route path="/notifications" element={<RestrictedGuard><NotificationsPage /></RestrictedGuard>} />
                 <Route path="/contacts" element={<ContactsPage />} />
