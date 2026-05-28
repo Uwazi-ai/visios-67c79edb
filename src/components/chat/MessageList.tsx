@@ -607,6 +607,17 @@ export const MessageList = ({
                       </div>
                     )}
                   </div>
+                  <span
+                    className="t-mono"
+                    style={{
+                      fontSize: 10,
+                      color: "var(--text-tertiary, var(--text-muted))",
+                      marginTop: 2,
+                    }}
+                  >
+                    {timeStr(m.created_at, tz)}
+                    {m.edited_at ? " · edited" : ""}
+                  </span>
                 </div>
               </div>
             )}
