@@ -30,6 +30,8 @@ import KnowledgePage from "./pages/Knowledge";
 import AISettings from "./pages/AISettings";
 import Vision from "./pages/Vision";
 import CapitalRaise from "./pages/CapitalRaise";
+import Social from "./pages/Social";
+
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { RestrictedGuard } from "@/components/RestrictedGuard";
 import NotFound from "./pages/NotFound";
@@ -60,6 +62,7 @@ const App = () => (
                 <Route path="/tasks/:id" element={<TaskFullPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
+                <Route path="/social" element={<Social />} />
                 <Route path="/chat" element={<ChatPage />} />
                 <Route path="/notifications" element={<RestrictedGuard><NotificationsPage /></RestrictedGuard>} />
                 <Route path="/contacts" element={<ContactsPage />} />

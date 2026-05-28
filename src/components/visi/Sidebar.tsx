@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, CheckSquare, Calendar, Link2, MessageSquare,
-  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp,
+  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp, Instagram,
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
@@ -15,6 +15,7 @@ const NAV_ALL = [
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/tasks", label: "Tasks", icon: CheckSquare },
   { to: "/calendar", label: "Calendar", icon: Calendar },
+  { to: "/social", label: "Social", icon: Instagram },
   { to: "/bookings", label: "Bookings", icon: Link2 },
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/notifications", label: "Notifications", icon: Bell, restricted: true },
@@ -23,6 +24,7 @@ const NAV_ALL = [
   { to: "/meetings", label: "Meetings", icon: Video },
   { to: "/finance", label: "Finance", icon: BarChart3, restricted: true },
 ];
+
 
 export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile" } = {}) => {
   const { user, signOut } = useAuth();
