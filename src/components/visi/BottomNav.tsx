@@ -3,7 +3,7 @@ import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Home, Sparkles, Inbox, Users, Grid3x3, Calendar, BookOpen,
   CheckSquare, CreditCard, Settings as SettingsIcon, Video, BarChart3,
-  Link2, MessageSquare, Bell, LogOut,
+  Link2, MessageSquare, Bell, LogOut, Instagram,
 } from "lucide-react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { usePendingReviewCount } from "@/hooks/useGmailAgent";
@@ -20,6 +20,7 @@ interface Tab {
 
 const MORE_LINKS_ALL: Array<{ to: string; icon: any; label: string; restricted?: boolean }> = [
   { to: "/calendar", icon: Calendar, label: "Calendar" },
+  { to: "/social", icon: Instagram, label: "Social" },
   { to: "/tasks", icon: CheckSquare, label: "Tasks" },
   { to: "/bookings", icon: Link2, label: "Bookings" },
   { to: "/chat", icon: MessageSquare, label: "Chat" },
@@ -30,6 +31,7 @@ const MORE_LINKS_ALL: Array<{ to: string; icon: any; label: string; restricted?:
   { to: "/settings/my-card", icon: CreditCard, label: "My Digital Card" },
   { to: "/settings", icon: SettingsIcon, label: "Settings" },
 ];
+
 
 export const BottomNav = () => {
   const loc = useLocation();
