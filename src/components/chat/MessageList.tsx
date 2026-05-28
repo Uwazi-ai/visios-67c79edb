@@ -434,10 +434,16 @@ export const MessageList = ({
                     {(m.content?.trim() || editingId === m.id) && (
                     <div
                       style={{
-                        background: mine ? "rgba(37,99,235,0.18)" : "rgba(255,255,255,0.06)",
-                        border: mine
-                          ? "1px solid rgba(37,99,235,0.40)"
-                          : "1px solid var(--border-glass)",
+                        background: isVision
+                          ? "var(--bg-glass-2)"
+                          : mine
+                            ? "rgba(37,99,235,0.18)"
+                            : "rgba(255,255,255,0.06)",
+                        border: isVision
+                          ? `1px solid ${VISION_COLOR}40`
+                          : mine
+                            ? "1px solid rgba(37,99,235,0.40)"
+                            : "1px solid var(--border-glass)",
                         borderRadius: mine ? "12px 12px 3px 12px" : "12px 12px 12px 3px",
                         padding: "8px 12px",
                         color: "var(--text-primary)",
