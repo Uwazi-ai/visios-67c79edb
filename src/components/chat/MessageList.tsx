@@ -290,12 +290,32 @@ export const MessageList = ({
         lastDay = day;
         const mine = m.user_id === currentUserId;
         const isSystem = isSystemChannel || m.user_id === null;
+        const mine = m.user_id === currentUserId;
+        const isSystem = (isSystemChannel || m.user_id === null) && !isVisionMessage(m, isSystemChannel);
+        const isVision = isVisionMessage(m, isSystemChannel);
         const profile = m.user_id ? profiles[m.user_id] : undefined;
-        const name = profile?.display_name ?? profile?.email ?? "System";
-        const nameColor = m.user_id ? colorFor(m.user_id) : "#818cf8";
+        const name = isVision
+          ? "Vision"
+          : profile?.display_name ?? profile?.email ?? "System";
+        const nameColor = isVision
+          ? VISION_COLOR
+          : m.user_id
+            ? colorFor(m.user_id)
+            : "#818cf8";
+
+        // Group consecutive messages from the same sender within 5 min on the same day
+        const prev = i > 0 ? messages[i - 1] : null;
+        const prevIsVision = prev ? isVisionMessage(prev, isSystemChannel) : false;
+        const sameSender =
+          !!prev &&
+          !showDay &&
+          prev.user_id === m.user_id &&
+          prevIsVision === isVision &&
+          new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() < 5 * 60 * 1000;
+        const showHeader = !sameSender;
 
         return (
-          <div key={m.id}>
+          <div key={m.id} style={{ marginTop: sameSender ? -6 : 0 }}>
             {showDay && (
               <div className="flex justify-center my-3">
                 <div
@@ -336,59 +356,82 @@ export const MessageList = ({
                 className={`flex gap-2 ${mine ? "flex-row-reverse" : ""}`}
                 style={{ alignItems: "flex-start" }}
               >
-                <div
-                  className="flex items-center justify-center font-display"
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    background: `${nameColor}22`,
-                    color: nameColor,
-                    fontSize: 10,
-                    fontWeight: 700,
-                    flexShrink: 0,
-                  }}
-                >
-                  {initials(profile)}
-                </div>
+                {showHeader ? (
+                  isVision ? (
+                    <div style={{ flexShrink: 0 }}>
+                      <VisionCircle size={32} />
+                    </div>
+                  ) : profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt=""
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        flexShrink: 0,
+                        border: "1px solid var(--border-glass)",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      className="flex items-center justify-center font-display"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        background: `${nameColor}22`,
+                        color: nameColor,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        flexShrink: 0,
+                        border: `1px solid ${nameColor}44`,
+                      }}
+                    >
+                      {initials(profile)}
+                    </div>
+                  )
+                ) : (
+                  <div style={{ width: 32, flexShrink: 0 }} aria-hidden />
+                )}
                 <div
                   className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
                   style={{ maxWidth: "70%" }}
                 >
-                  <div
-                    className={`flex items-center gap-2 mb-1 ${mine ? "flex-row-reverse" : ""}`}
-                  >
-                    <span
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        fontWeight: 700,
-                        fontSize: 12,
-                        color: nameColor,
-                      }}
+                  {showHeader && (
+                    <div
+                      className={`flex items-center gap-2 mb-1 ${mine ? "flex-row-reverse" : ""}`}
                     >
-                      {mine ? "You" : name}
-                    </span>
-                    <span className="t-mono" style={{ fontSize: 9 }}>
-                      {timeStr(m.created_at, tz)}
-                    </span>
-                    {m.edited_at && (
-                      <button
-                        onClick={() =>
-                          setHistoryOpenId(historyOpenId === m.id ? null : m.id)
-                        }
-                        className="t-mono inline-flex items-center gap-1"
-                        title={`Edited ${timeStr(m.edited_at, tz)} · click to view history`}
+                      <span
                         style={{
-                          fontSize: 9,
-                          fontStyle: "italic",
+                          fontFamily: "var(--font-display)",
+                          fontWeight: 600,
+                          fontSize: 11,
                           color: "var(--text-muted)",
-                          padding: "0 2px",
                         }}
                       >
-                        <History size={9} strokeWidth={1.5} /> edited
-                      </button>
-                    )}
-                  </div>
+                        {mine ? "You" : name}
+                      </span>
+                      {m.edited_at && (
+                        <button
+                          onClick={() =>
+                            setHistoryOpenId(historyOpenId === m.id ? null : m.id)
+                          }
+                          className="t-mono inline-flex items-center gap-1"
+                          title={`Edited ${timeStr(m.edited_at, tz)} · click to view history`}
+                          style={{
+                            fontSize: 9,
+                            fontStyle: "italic",
+                            color: "var(--text-muted)",
+                            padding: "0 2px",
+                          }}
+                        >
+                          <History size={9} strokeWidth={1.5} /> edited
+                        </button>
+                      )}
+                    </div>
+                  )}
                   <div className={`group/msg relative ${mine ? "self-end" : "self-start"} flex flex-col gap-1.5 ${mine ? "items-end" : "items-start"}`}>
                     {(m.content?.trim() || editingId === m.id) && (
                     <div
