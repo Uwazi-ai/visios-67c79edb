@@ -31,6 +31,7 @@ import AISettings from "./pages/AISettings";
 import Vision from "./pages/Vision";
 import CapitalRaise from "./pages/CapitalRaise";
 import Social from "./pages/Social";
+import MakeIntegration from "./pages/MakeIntegration";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { RestrictedGuard } from "@/components/RestrictedGuard";
@@ -74,6 +75,7 @@ const App = () => (
                 <Route path="/settings/my-card" element={<MyCardSettings />} />
                 <Route path="/settings/ai" element={<AISettings />} />
                 <Route path="/settings/token-health" element={<TokenHealthPage />} />
+                <Route path="/settings/integrations/make" element={<MakeIntegration />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
