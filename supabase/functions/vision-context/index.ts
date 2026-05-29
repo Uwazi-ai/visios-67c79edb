@@ -508,11 +508,16 @@ Deno.serve(async (req) => {
 
     const pick = <T,>(r: PromiseSettledResult<T>): T | null => r.status === "fulfilled" ? r.value : null;
     const calendarVal = pick(calendarR) ?? [];
-    const teamCalVal = pick(teamCalR) ?? [];
-    // Merge & de-dupe team + google calendar events (by google_event_id when present)
+    const teamCalRaw: any = pick(teamCalR);
+    const teamCalEvents: any[] = Array.isArray(teamCalRaw) ? teamCalRaw : (teamCalRaw?.events ?? []);
+    const teamPerMember = teamCalRaw?.per_member ?? [];
+    const teamConflicts = teamCalRaw?.conflicts ?? [];
+    const teamOpenSlots = teamCalRaw?.open_slots ?? [];
+
+    // Merge & de-dupe team + google calendar events
     const seen = new Set<string>();
     const mergedCalendar: any[] = [];
-    for (const e of [...(calendarVal as any[]), ...(teamCalVal as any[])]) {
+    for (const e of [...(calendarVal as any[]), ...teamCalEvents]) {
       const k = e?.id ?? "";
       if (k && seen.has(k)) continue;
       seen.add(k);
@@ -556,7 +561,10 @@ Deno.serve(async (req) => {
       intent,
       emails: pick(emailsR),
       calendar: mergedCalendar,
-      team_calendar: teamCalVal,
+      team_calendar: teamCalEvents,
+      team_per_member: teamPerMember,
+      team_conflicts: teamConflicts,
+      team_open_slots: teamOpenSlots,
       today_busy: busy,
       today_free: free,
       drive: pick(driveR),
