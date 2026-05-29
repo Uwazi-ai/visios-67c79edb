@@ -418,11 +418,45 @@ Deno.serve(async (req) => {
     }
     mergedCalendar.sort((a, b) => String(a.start ?? "").localeCompare(String(b.start ?? "")));
 
+    // Compute today's busy/free blocks (working hours 9–17 local of server; client renders TZ-aware)
+    const todayStart = new Date(); todayStart.setHours(9, 0, 0, 0);
+    const todayEnd = new Date(); todayEnd.setHours(17, 0, 0, 0);
+    const busy: { start: string; end: string; title: string }[] = [];
+    for (const ev of mergedCalendar) {
+      const s = ev.start ? new Date(ev.start) : null;
+      const e = ev.end ? new Date(ev.end) : null;
+      if (!s || !e) continue;
+      if (e <= todayStart || s >= todayEnd) continue;
+      busy.push({
+        start: (s < todayStart ? todayStart : s).toISOString(),
+        end: (e > todayEnd ? todayEnd : e).toISOString(),
+        title: ev.title ?? "Busy",
+      });
+    }
+    busy.sort((a, b) => a.start.localeCompare(b.start));
+    const free: { start: string; end: string; minutes: number }[] = [];
+    let cursor = todayStart;
+    for (const b of busy) {
+      const bs = new Date(b.start);
+      if (bs > cursor) {
+        const mins = Math.round((bs.getTime() - cursor.getTime()) / 60000);
+        if (mins >= 15) free.push({ start: cursor.toISOString(), end: bs.toISOString(), minutes: mins });
+      }
+      const be = new Date(b.end);
+      if (be > cursor) cursor = be;
+    }
+    if (cursor < todayEnd) {
+      const mins = Math.round((todayEnd.getTime() - cursor.getTime()) / 60000);
+      if (mins >= 15) free.push({ start: cursor.toISOString(), end: todayEnd.toISOString(), minutes: mins });
+    }
+
     return jsonResponse({
       intent,
       emails: pick(emailsR),
       calendar: mergedCalendar,
       team_calendar: teamCalVal,
+      today_busy: busy,
+      today_free: free,
       drive: pick(driveR),
       contacts: pick(contactsR) ?? [],
       tasks: pick(tasksR) ?? [],
