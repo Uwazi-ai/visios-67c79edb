@@ -11,7 +11,7 @@ export interface VisionContext {
   team_open_slots?: { start: string; end: string; minutes: number }[];
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; modifiedTime?: string; lastModifiedBy?: string | null; contentPreview?: string | null }[] | null;
   contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
-  tasks?: { title: string; status?: string; priority?: string; due_at?: string | null; assignee_id?: string | null }[];
+  tasks?: { id?: string; title: string; status?: string; priority?: string; due_at?: string | null; start_date?: string | null; assignee_id?: string | null; org_id?: string | null; project?: { name?: string; emoji?: string } | null; buckets?: string[] }[];
   chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
   kb?: { id: string; document_id: string; document_title: string; content: string; source_type?: string | null; source_integration?: string | null; source_url?: string | null; category?: string | null; file_type?: string | null; updated_at?: string | null; score?: number | null }[];
@@ -128,10 +128,28 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   // Tasks
   if (ctx.tasks && ctx.tasks.length) {
-    lines.push(`\n✅ OPEN TASKS (${ctx.tasks.length}):`);
-    for (const t of ctx.tasks.slice(0, 12)) {
-      lines.push(`• [${t.priority ?? "normal"}] ${t.title}${t.due_at ? ` (due ${fmtDate(t.due_at)})` : ""}${t.assignee_id ? ` (assigned)` : ""}`);
-    }
+    const byBucket = (b: string) => ctx.tasks!.filter((t) => t.buckets?.includes(b));
+    const overdue = byBucket("overdue");
+    const dueToday = byBucket("due_today");
+    const high = byBucket("high_priority").filter((t) => !t.buckets?.includes("overdue") && !t.buckets?.includes("due_today"));
+    const mentioned = byBucket("mentioned");
+    const sched = byBucket("needs_scheduling");
+    const rest = ctx.tasks.filter((t) => !t.buckets || t.buckets.every((b) => !["overdue","due_today","high_priority","mentioned","needs_scheduling"].includes(b)));
+
+    const renderTask = (t: any) => {
+      const proj = t.project?.name ? ` ${t.project.emoji ?? ""}${t.project.name}` : "";
+      const due = t.due_at ? ` (due ${fmtDate(t.due_at)})` : "";
+      const id = t.id ? `[task:${t.id}] ` : "";
+      return `• ${id}[${t.priority ?? "normal"}] ${t.title}${proj}${due}`;
+    };
+
+    lines.push(`\n✅ TASKS (${ctx.tasks.length}):`);
+    if (overdue.length) { lines.push(`  ⏰ Overdue (${overdue.length}):`); overdue.slice(0, 8).forEach((t) => lines.push("  " + renderTask(t))); }
+    if (dueToday.length) { lines.push(`  📅 Due today (${dueToday.length}):`); dueToday.slice(0, 8).forEach((t) => lines.push("  " + renderTask(t))); }
+    if (high.length) { lines.push(`  🔥 High/urgent priority (${high.length}):`); high.slice(0, 6).forEach((t) => lines.push("  " + renderTask(t))); }
+    if (mentioned.length) { lines.push(`  👥 Involving mentioned people (${mentioned.length}):`); mentioned.slice(0, 6).forEach((t) => lines.push("  " + renderTask(t))); }
+    if (sched.length) { lines.push(`  🗓 Could be scheduled (${sched.length}):`); sched.slice(0, 6).forEach((t) => lines.push("  " + renderTask(t))); }
+    if (rest.length) { lines.push(`  📝 Other open (${rest.length}):`); rest.slice(0, 8).forEach((t) => lines.push("  " + renderTask(t))); }
   }
 
   // Chat
