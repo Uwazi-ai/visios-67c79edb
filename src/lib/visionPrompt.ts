@@ -12,7 +12,7 @@ export interface VisionContext {
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; modifiedTime?: string; lastModifiedBy?: string | null; contentPreview?: string | null }[] | null;
   contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
   tasks?: { id?: string; title: string; status?: string; priority?: string; due_at?: string | null; start_date?: string | null; assignee_id?: string | null; org_id?: string | null; project?: { name?: string; emoji?: string } | null; buckets?: string[] }[];
-  chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
+  chat?: { id: string; channel: string; is_dm?: boolean; user_id?: string | null; thread_id?: string | null; text: string; ts?: string; buckets?: string[] }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
   kb?: { id: string; document_id: string; document_title: string; content: string; source_type?: string | null; source_integration?: string | null; source_url?: string | null; category?: string | null; file_type?: string | null; updated_at?: string | null; score?: number | null }[];
   today_busy?: { start: string; end: string; title: string }[];
