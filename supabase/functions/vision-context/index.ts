@@ -190,6 +190,7 @@ async function fetchGoogleCalendar(userId: string, intent: Intent) {
       end: e.end?.dateTime ?? e.end?.date,
       meetLink: e.hangoutLink ?? null,
       location: e.location ?? null,
+      description: (e.description ?? "").replace(/\s+/g, " ").slice(0, 100),
       attendees: (e.attendees ?? []).map((a: any) => ({ email: a.email, name: a.displayName, status: a.responseStatus })),
       source: "google" as const,
     }));
