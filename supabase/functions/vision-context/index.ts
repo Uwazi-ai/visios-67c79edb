@@ -923,7 +923,7 @@ Deno.serve(async (req) => {
       today_busy: busy,
       today_free: free,
       drive: pick(driveR),
-      contacts: pick(contactsR) ?? [],
+      contacts: await enrichContactsWithTodayEvents(admin, pick(contactsR) ?? [], mergedCalendar),
       tasks: pick(tasksR) ?? [],
       chat: pick(chatR) ?? [],
       kb: pick(kbR) ?? [],
