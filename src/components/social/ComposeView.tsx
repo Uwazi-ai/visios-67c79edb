@@ -143,22 +143,37 @@ export function ComposeView({
       <div className="max-w-3xl mx-auto p-5 space-y-5">
         {/* Top row */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: "var(--bg-glass-1)" }}>
-            {PLATFORMS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setPlatform(p.key)}
-                className="px-3 py-1.5 rounded-md transition"
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  background: platform === p.key ? "var(--bg-glass-3)" : "transparent",
-                  color: platform === p.key ? "var(--text-primary)" : "var(--text-secondary)",
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+          <div className="flex items-center gap-1 rounded-lg p-1 flex-wrap" style={{ background: "var(--bg-glass-1)" }}>
+            {PLATFORMS.map((p) => {
+              const tok = getFor(p.key);
+              const isActive = platform === p.key;
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => setPlatform(p.key)}
+                  className="px-3 py-1.5 rounded-md transition flex items-center gap-1.5"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    background: isActive ? "var(--bg-glass-3)" : "transparent",
+                    color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
+                  }}
+                >
+                  <span>{p.label}</span>
+                  <span style={{
+                    width: 6, height: 6, borderRadius: 99,
+                    background: tok ? "#22C55E" : "#6b7280",
+                  }} />
+                  {tok ? (
+                    <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                      @{(tok.account_username || tok.account_name || "").replace(/^@/, "").slice(0, 14)}
+                    </span>
+                  ) : isActive ? (
+                    <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Connect →</span>
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
 
           <select
