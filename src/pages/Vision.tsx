@@ -163,6 +163,34 @@ export default function Vision() {
     setSidebarOpen(false);
   }, []);
 
+  // Daily brief: send "Give me my daily brief" and record in daily_briefs
+  const triggerDailyBrief = useCallback(async (origin: "manual" | "auto") => {
+    if (!user || sending) return;
+    const today = new Date().toISOString().slice(0, 10);
+    if (origin === "auto") {
+      // Only auto-trigger if no brief recorded today
+      const { data: existing } = await supabase
+        .from("daily_briefs")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("brief_date", today)
+        .maybeSingle();
+      if (existing) return;
+    }
+    // Record the brief (idempotent via unique constraint)
+    await supabase
+      .from("daily_briefs")
+      .insert({ user_id: user.id, brief_date: today })
+      .then(() => {}, () => {});
+    // Start a fresh chat for the brief
+    setActiveConvId(null);
+    setMessages([]);
+    sendMessageRef.current?.("Give me my daily brief");
+  }, [user, sending]);
+
+  // Ref to break circular dep between triggerDailyBrief and sendMessage
+  const sendMessageRef = useRef<((text: string) => void) | null>(null);
+
   const sendMessage = useCallback(async (rawText: string) => {
     const text = rawText.trim();
     if (!text || sending || !user) return;
