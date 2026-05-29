@@ -168,11 +168,22 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   // Contacts
   if (ctx.contacts && ctx.contacts.length) {
-    lines.push(`\n👥 CONTACTS:`);
-    for (const c of ctx.contacts.slice(0, 6)) {
+    const mentioned = ctx.contacts.filter((c) => c.buckets?.includes("mentioned"));
+    const todayEv = ctx.contacts.filter((c) => c.buckets?.includes("today_event") && !c.buckets.includes("mentioned"));
+    const stale = ctx.contacts.filter((c) => c.buckets?.includes("stale") && !c.buckets.includes("mentioned") && !c.buckets.includes("today_event"));
+    const rest = ctx.contacts.filter((c) => !c.buckets?.some((b) => ["mentioned","today_event","stale"].includes(b)));
+    const renderC = (c: any) => {
       const ds = daysSince(c.last_touched_at ?? null);
-      lines.push(`• ${c.name}${c.role ? ` (${c.role}` : ""}${c.company ? `${c.role ? " @ " : " ("}${c.company}` : ""}${c.role || c.company ? ")" : ""}${ds !== null ? ` — ${ds}d since contact` : ""}`);
-    }
+      const role = [c.role, c.company].filter(Boolean).join(" @ ");
+      const meta = [role, c.engagement_stage, ds !== null ? `${ds}d since touch` : ""].filter(Boolean).join(" · ");
+      const notes = c.notes ? `\n    note: ${String(c.notes).slice(0, 120)}` : "";
+      return `  • ${c.name}${c.email ? ` <${c.email}>` : ""}${meta ? ` — ${meta}` : ""}${notes}`;
+    };
+    lines.push(`\n👥 CONTACTS (${ctx.contacts.length}):`);
+    if (mentioned.length) { lines.push(`  🎯 Mentioned (${mentioned.length}):`); mentioned.slice(0, 6).forEach((c) => lines.push(renderC(c))); }
+    if (todayEv.length) { lines.push(`  📅 On today's calendar (${todayEv.length}):`); todayEv.slice(0, 6).forEach((c) => lines.push(renderC(c))); }
+    if (stale.length) { lines.push(`  🧊 Going cold — 30+ days no touch (${stale.length}):`); stale.slice(0, 6).forEach((c) => lines.push(renderC(c))); }
+    if (rest.length) { lines.push(`  ↪ Recent (${rest.length}):`); rest.slice(0, 4).forEach((c) => lines.push(renderC(c))); }
   }
 
   // Drive
