@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Upload, X, Plus, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { Sparkles, Upload, X, Plus, Loader2, ChevronDown, ChevronRight, AlertCircle } from "lucide-react";
 import {
   BRANDS, PLATFORMS, PLATFORM_LIMIT, type BrandKey, type SocialPlatform, ASSIGNEES,
 } from "./shared";
 import { generateSocialContent, type SocialPost } from "@/hooks/useSocialPosts";
+import { useSocialConnections } from "@/hooks/useSocialConnections";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Hook { type: string; text: string; }
