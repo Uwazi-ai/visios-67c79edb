@@ -12,6 +12,8 @@ export interface VisionContext {
   chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
   kb?: { id: string; document_id: string; document_title: string; content: string }[];
+  today_busy?: { start: string; end: string; title: string }[];
+  today_free?: { start: string; end: string; minutes: number }[];
   sources?: Record<string, boolean>;
 }
 
