@@ -234,13 +234,14 @@ async function fetchTeamCalendar(admin: any, userId: string, orgIds: string[], i
 }
 
 async function fetchDrive(userId: string, query: string, folderIds: string[]) {
-  if (!folderIds.length) return null;
   try {
     const token = await getFreshGoogleAccessToken(userId);
-    const terms = query.replace(/['"\\]/g, "").split(/\s+/).filter((w) => w.length > 3).slice(0, 4).join(" ");
+    const terms = (query || "").replace(/['"\\]/g, "").split(/\s+/).filter((w) => w.length > 3).slice(0, 4).join(" ");
     if (!terms) return null;
-    const folderClause = folderIds.map((id) => `'${id}' in parents`).join(" or ");
-    const q = `(${folderClause}) and fullText contains '${terms}' and trashed = false`;
+    const scopeClause = folderIds.length
+      ? `(${folderIds.map((id) => `'${id}' in parents`).join(" or ")}) and `
+      : "";
+    const q = `${scopeClause}fullText contains '${terms}' and trashed = false`;
     const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,modifiedTime,webViewLink)&pageSize=5&orderBy=modifiedTime desc`;
     const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!r.ok) return null;
