@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, Send, Trash2, Settings, MoreHorizontal, Pencil, Check, X,
   Copy, RefreshCw, ThumbsUp, ThumbsDown, Menu, ChevronDown, Sparkles,
-  Target, Pencil as PencilIcon, FlaskConical, BarChart3, Compass, Palette, Eye,
+  Target, Pencil as PencilIcon, FlaskConical, BarChart3, Compass, Palette, Eye, Sun,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { VisionCircle } from "@/components/vision/VisionCircle";
 import { StreamingText } from "@/components/vision/StreamingText";
 import { ThinkingIndicator } from "@/components/vision/ThinkingIndicator";
+import { extractActionFromResponse, handleVisionAction } from "@/lib/visionActions";
 
 interface Conversation {
   id: string;
@@ -161,6 +162,34 @@ export default function Vision() {
     setInput("");
     setSidebarOpen(false);
   }, []);
+
+  // Daily brief: send "Give me my daily brief" and record in daily_briefs
+  const triggerDailyBrief = useCallback(async (origin: "manual" | "auto") => {
+    if (!user || sending) return;
+    const today = new Date().toISOString().slice(0, 10);
+    if (origin === "auto") {
+      // Only auto-trigger if no brief recorded today
+      const { data: existing } = await supabase
+        .from("daily_briefs")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("brief_date", today)
+        .maybeSingle();
+      if (existing) return;
+    }
+    // Record the brief (idempotent via unique constraint)
+    await supabase
+      .from("daily_briefs")
+      .insert({ user_id: user.id, brief_date: today })
+      .then(() => {}, () => {});
+    // Start a fresh chat for the brief
+    setActiveConvId(null);
+    setMessages([]);
+    sendMessageRef.current?.("Give me my daily brief");
+  }, [user, sending]);
+
+  // Ref to break circular dep between triggerDailyBrief and sendMessage
+  const sendMessageRef = useRef<((text: string) => void) | null>(null);
 
   const sendMessage = useCallback(async (rawText: string) => {
     const text = rawText.trim();
@@ -346,15 +375,28 @@ export default function Vision() {
         wait();
       });
 
-      setMessages((prev) => prev.map((m) => m.id === assistantId
-        ? { ...m, content: accumulated, streaming: false, thinking: false } : m));
+      // Extract any trailing action JSON block
+      const { action, cleanedText } = extractActionFromResponse(accumulated);
+      const finalText = action ? cleanedText : accumulated;
 
-      // Persist assistant message
+      setMessages((prev) => prev.map((m) => m.id === assistantId
+        ? { ...m, content: finalText, streaming: false, thinking: false } : m));
+
+      // Persist assistant message (without the JSON block)
       const { data: savedMsg } = await supabase.from("vision_messages").insert({
-        conversation_id: convId, user_id: user.id, role: "assistant", content: accumulated, persona,
+        conversation_id: convId, user_id: user.id, role: "assistant", content: finalText, persona,
       }).select().single();
       if (savedMsg) {
         setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, id: savedMsg.id } : m));
+      }
+
+      // Dispatch action (after persisting)
+      if (action) {
+        try {
+          await handleVisionAction(action, { navigate, userId: user.id, activeOrgId });
+        } catch (err) {
+          console.warn("Vision action failed", err);
+        }
       }
 
       // Bump updated_at
@@ -383,7 +425,24 @@ export default function Vision() {
     } finally {
       setSending(false);
     }
-  }, [sending, user, activeConvId, persona, activeOrgId, activeOrg, messages, reloadConversations]);
+  }, [sending, user, activeConvId, persona, activeOrgId, activeOrg, messages, reloadConversations, navigate, memberships, orgs, isOwner, isRestricted]);
+
+  // Keep ref in sync so triggerDailyBrief can invoke without a dep cycle
+  useEffect(() => { sendMessageRef.current = sendMessage; }, [sendMessage]);
+
+  // Auto-trigger morning brief between 6am–9am once per local day
+  const autoBriefTried = useRef(false);
+  useEffect(() => {
+    if (autoBriefTried.current || !user) return;
+    const hr = new Date().getHours();
+    if (hr < 6 || hr >= 9) return;
+    autoBriefTried.current = true;
+    // Slight delay so initial conversations have loaded first
+    const t = setTimeout(() => { triggerDailyBrief("auto"); }, 800);
+    return () => clearTimeout(t);
+  }, [user, triggerDailyBrief]);
+
+
 
   const switchPersona = (next: PersonaKey) => {
     setPersona(next);
@@ -568,6 +627,14 @@ export default function Vision() {
         <div className="flex items-center px-3 py-2 gap-2" style={{ borderBottom: "1px solid #1f1f2e" }}>
           <button onClick={() => setSidebarOpen(true)} className="text-gray-300 md:hidden"><Menu size={20} /></button>
           <div className="flex-1 text-center md:text-left text-white font-display font-bold md:pl-2">Vision</div>
+          <button
+            onClick={() => triggerDailyBrief("manual")}
+            disabled={sending}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-amber-300 hover:text-white hover:bg-[#1f2937] disabled:opacity-40"
+            title="Get my daily brief"
+          >
+            <Sun size={14} /> <span className="hidden sm:inline">Daily Brief</span>
+          </button>
           <div className="relative">
             <button
               onClick={() => setSourcesOpen((v) => !v)}
