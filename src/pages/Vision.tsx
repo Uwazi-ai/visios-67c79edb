@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, Send, Trash2, Settings, MoreHorizontal, Pencil, Check, X,
   Copy, RefreshCw, ThumbsUp, ThumbsDown, Menu, ChevronDown, Sparkles,
-  Target, Pencil as PencilIcon, FlaskConical, BarChart3, Compass, Palette, Eye,
+  Target, Pencil as PencilIcon, FlaskConical, BarChart3, Compass, Palette, Eye, Sun,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
