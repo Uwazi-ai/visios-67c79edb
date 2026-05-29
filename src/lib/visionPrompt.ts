@@ -155,7 +155,8 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   if (ctx.drive && ctx.drive.length) {
     lines.push(`\n📁 DRIVE FILES:`);
     for (const f of ctx.drive) {
-      lines.push(`• [drive:${f.id}] ${f.name}${f.contentPreview ? `\n  ${f.contentPreview}` : ""}`);
+      const meta = [f.modifiedTime ? `modified ${fmtDate(f.modifiedTime)}` : "", f.lastModifiedBy ? `by ${f.lastModifiedBy}` : ""].filter(Boolean).join(" ");
+      lines.push(`• [drive:${f.id}] ${f.name}${meta ? ` (${meta})` : ""}${f.contentPreview ? `\n  ${f.contentPreview}` : ""}`);
     }
   }
 
