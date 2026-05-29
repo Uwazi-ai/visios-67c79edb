@@ -141,22 +141,29 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   if (isBrief) {
     lines.push(`\n═══ DAILY BRIEF MODE ═══
-Produce a structured morning brief with these sections (markdown):
-1. **Today at a glance** — time-ordered meetings; flag conflicts, back-to-backs, missing prep, no lunch buffer.
-2. **Inbox** — group urgent / waiting-on-you / FYI. Cite [gmail:ID].
-3. **Top priorities** — pick 3 from open tasks weighted by due date + priority.
-4. **Team pulse** — what teammates have on, recent chat highlights.
-5. **Suggested actions** — 2-3 concrete next steps. Be opinionated.
-Keep it scannable, no fluff.`);
+Produce a rich, opinionated morning brief in markdown with these sections — skip any section that has zero relevant data:
+
+1. **☀️ Good morning, ${userName}** — one warm opening line tied to today's calendar shape (busy / focus day / light day) and the most important thing on their plate.
+2. **📅 Today at a glance** — time-ordered list of meetings (personal + team). Call out conflicts, back-to-backs without buffer, missing prep docs, no lunch window, and the longest free block.
+3. **📧 Inbox priorities** — group as **Urgent / needs reply today**, **Waiting on you**, and **FYI**. Sort by the importance score in the data. Cite each [gmail:ID].
+4. **✅ Top 3 priorities** — pick from open tasks weighted by due date + priority + meeting prep. Be opinionated about the *order*.
+5. **💬 Team pulse** — what teammates said in chat (last 24h) + their key meetings. Surface anything blocking the user.
+6. **👥 Relationships** — 1-2 contacts going cold (no touch in 14+ days) worth a ping today.
+7. **📚 From your knowledge** — if a relevant KB doc or recent Drive file matches today's meetings or tasks, surface it as a "you may want to re-read" link. Cite [kb:ID] / [drive:ID].
+8. **🎯 Suggested next actions** — 2-3 concrete moves (draft this reply, block focus time at X, follow up with Y). Be specific, not generic.
+
+Keep each section scannable. Use bullets, not paragraphs. Never invent data — if a source is empty, omit the section.`);
   }
 
   if (isScheduling) {
     lines.push(`\n═══ SCHEDULING MODE ═══
-The user is asking about scheduling. Use the calendar data above (personal + team) to:
-- Identify free windows in working hours (default 9–17 local).
-- Respect existing meetings, lunch, and back-to-back fatigue (suggest 10-min buffers).
-- Propose 2-3 specific options with date+time and call out attendee conflicts.
-- If you'd create an event, describe title/attendees/time/duration clearly so the user can confirm before any action is taken.`);
+The user is asking about scheduling. Combine personal + team calendar data above to:
+- Identify free windows in working hours (default 9–17 local) over the requested timeframe.
+- Respect existing meetings, lunch (12–13 local), and back-to-back fatigue — suggest 10-min buffers between meetings.
+- For "find time with X": flag attendee conflicts explicitly and propose 2-3 specific date+time options ranked best-first.
+- For "reschedule / move / cancel": identify the exact event, then propose the action clearly and ask for confirmation before any change is made.
+- For "when am I free this week": return a compact list of free windows by day.
+Always describe title / attendees / time / duration before you'd create or modify anything — wait for the user to confirm.`);
   }
 
   lines.push(`\nYou are Vision. Never refer to yourself as Claude, Anthropic, or any underlying model.
