@@ -469,35 +469,82 @@ async function fetchContacts(admin: any, orgIds: string[], intent: Intent) {
   } catch (e) { console.warn("fetchContacts failed", e); return []; }
 }
 
+async function enrichKbChunks(admin: any, chunks: any[]) {
+  if (!chunks.length) return [];
+  const docIds = Array.from(new Set(chunks.map((c) => c.document_id).filter(Boolean)));
+  let docMap = new Map<string, any>();
+  if (docIds.length) {
+    const { data } = await admin.from("kb_documents")
+      .select("id, title, source_type, source_url, source_integration, updated_at, category, file_type")
+      .in("id", docIds);
+    (data ?? []).forEach((d: any) => docMap.set(d.id, d));
+  }
+  return chunks.map((c) => {
+    const d = docMap.get(c.document_id) ?? {};
+    return {
+      id: c.id ?? c.document_id,
+      document_id: c.document_id,
+      document_title: c.document_title ?? d.title ?? "Untitled",
+      content: (c.content ?? "").slice(0, 600),
+      source_type: d.source_type ?? null,
+      source_integration: d.source_integration ?? null,
+      source_url: d.source_url ?? null,
+      category: d.category ?? null,
+      file_type: d.file_type ?? null,
+      updated_at: d.updated_at ?? null,
+      score: typeof c.rank === "number" ? c.rank : (typeof c.similarity === "number" ? c.similarity : null),
+    };
+  });
+}
+
 async function fetchKnowledge(admin: any, userId: string, orgIds: string[], query: string, isDailyBrief: boolean) {
   try {
-    // On daily brief without a strong query, surface the most recent ready docs
-    if (isDailyBrief && (!query || query.length < 4)) {
+    const results: any[] = [];
+
+    // 1. Semantic / full-text search on the user's message (when meaningful)
+    if (query && query.length >= 4) {
+      for (const oid of orgIds.length ? orgIds : [null]) {
+        const { data } = await admin.rpc("search_kb_text", {
+          query_text: query,
+          org_filter: oid,
+          user_filter: userId,
+          match_count: 5,
+        });
+        if (data) results.push(...data);
+      }
+    }
+
+    // 2. Daily-brief boost: surface recently updated docs alongside any matches
+    if (isDailyBrief) {
       let q = admin.from("kb_documents")
-        .select("id, title, description, updated_at, org_id")
+        .select("id, title, description, updated_at, source_type, source_url, source_integration, category, file_type")
         .eq("status", "ready")
         .order("updated_at", { ascending: false })
         .limit(5);
       if (orgIds.length) q = q.or(`user_id.eq.${userId},org_id.in.(${orgIds.join(",")})`);
       else q = q.eq("user_id", userId);
       const { data } = await q;
-      return (data ?? []).map((d: any) => ({
-        id: d.id, document_id: d.id, document_title: d.title,
-        content: (d.description ?? "").slice(0, 400),
-      }));
+      for (const d of data ?? []) {
+        if (results.some((r) => r.document_id === d.id)) continue;
+        results.push({
+          document_id: d.id,
+          document_title: d.title,
+          content: (d.description ?? "").slice(0, 400),
+          rank: 0,
+        });
+      }
     }
-    if (!query || query.length < 4) return [];
-    const out: any[] = [];
-    for (const oid of orgIds.length ? orgIds : [null]) {
-      const { data } = await admin.rpc("search_kb_text", {
-        query_text: query,
-        org_filter: oid,
-        user_filter: userId,
-        match_count: 4,
-      });
-      if (data) out.push(...data);
+
+    // Dedupe by document_id, keep highest-ranked chunk per doc, cap at 6
+    const byDoc = new Map<string, any>();
+    for (const r of results) {
+      const k = r.document_id;
+      if (!k) continue;
+      const existing = byDoc.get(k);
+      if (!existing || (r.rank ?? 0) > (existing.rank ?? 0)) byDoc.set(k, r);
     }
-    return out.slice(0, 6);
+    const top = Array.from(byDoc.values()).slice(0, 6);
+    return await enrichKbChunks(admin, top);
   } catch (e) { console.warn("fetchKnowledge failed", e); return []; }
 }
 
