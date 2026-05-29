@@ -38,6 +38,12 @@ export default function Social() {
   useEffect(() => { saveActiveBrand(brand); }, [brand]);
 
   useEffect(() => {
+    const handler = () => setTab("settings");
+    window.addEventListener("visios:social:goto-settings", handler);
+    return () => window.removeEventListener("visios:social:goto-settings", handler);
+  }, []);
+
+  useEffect(() => {
     (async () => {
       const { data } = await supabase.from("social_ai_prompts").select("voice_notes").eq("brand", brand).maybeSingle();
       setVoiceNotes((data as any)?.voice_notes || "");
