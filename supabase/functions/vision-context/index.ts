@@ -18,6 +18,7 @@ interface Intent {
   mentionedPerson: string | null;
   mentionedCompany: string | null;
   mentionedPeople: string[];
+  mentionedOrgs: string[];
   timeframe: "today" | "week" | "month" | "general";
 }
 
@@ -25,7 +26,7 @@ const DEFAULT_INTENT: Intent = {
   needsEmails: false, needsCalendar: false, needsDrive: false, needsKnowledge: false,
   needsTasks: false, needsChat: false, needsContacts: false, needsTeamCalendar: false,
   isDailyBrief: false, isSchedulingRequest: false,
-  mentionedPerson: null, mentionedCompany: null, mentionedPeople: [],
+  mentionedPerson: null, mentionedCompany: null, mentionedPeople: [], mentionedOrgs: [],
   timeframe: "general",
 };
 
