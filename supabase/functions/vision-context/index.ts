@@ -336,25 +336,112 @@ async function fetchTeamCalendar(admin: any, userId: string, orgIds: string[], i
   }
 }
 
-async function fetchDrive(userId: string, query: string, folderIds: string[]) {
+async function exportDriveFile(token: string, fileId: string, mimeType: string): Promise<string | null> {
   try {
-    const token = await getFreshGoogleAccessToken(userId);
-    const terms = (query || "").replace(/['"\\]/g, "").split(/\s+/).filter((w) => w.length > 3).slice(0, 4).join(" ");
-    if (!terms) return null;
-    const scopeClause = folderIds.length
-      ? `(${folderIds.map((id) => `'${id}' in parents`).join(" or ")}) and `
-      : "";
-    const q = `${scopeClause}fullText contains '${terms}' and trashed = false`;
-    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,modifiedTime,webViewLink)&pageSize=5&orderBy=modifiedTime desc`;
+    let url: string;
+    if (mimeType === "application/vnd.google-apps.document") {
+      url = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/plain`;
+    } else if (mimeType === "application/vnd.google-apps.spreadsheet") {
+      url = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/csv`;
+    } else if (mimeType === "application/vnd.google-apps.presentation") {
+      url = `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=text/plain`;
+    } else if (mimeType?.startsWith("text/")) {
+      url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
+    } else {
+      return null;
+    }
     const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!r.ok) return null;
-    const data = await r.json();
-    return (data.files ?? []).slice(0, 4);
+    const text = await r.text();
+    return text.replace(/\s+/g, " ").slice(0, 2000);
+  } catch { return null; }
+}
+
+async function fetchDrive(
+  userId: string,
+  query: string,
+  folderIds: string[],
+  orgFolders: { org_id: string; folder_id: string }[],
+  intent: Intent,
+) {
+  try {
+    const token = await getFreshGoogleAccessToken(userId);
+    const allFolders = Array.from(new Set([
+      ...folderIds,
+      ...orgFolders.map((o) => o.folder_id).filter(Boolean),
+    ]));
+
+    const terms = (query || "")
+      .replace(/['"\\]/g, "")
+      .split(/\s+/)
+      .filter((w) => w.length > 3)
+      .slice(0, 4)
+      .join(" ");
+
+    const scopeClause = allFolders.length
+      ? `(${allFolders.map((id) => `'${id}' in parents`).join(" or ")}) and `
+      : "";
+
+    const fields = "files(id,name,mimeType,modifiedTime,webViewLink,lastModifyingUser(displayName,emailAddress))";
+    const results: any[] = [];
+
+    // 1) Recent files in org folders (last 7d) — always on daily brief, when folders exist
+    if (allFolders.length && (intent.isDailyBrief || !terms)) {
+      const since = new Date(Date.now() - 7 * 86400000).toISOString();
+      const q = `${scopeClause}modifiedTime > '${since}' and trashed = false`;
+      const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(fields)}&pageSize=10&orderBy=modifiedTime desc`;
+      const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) {
+        const data = await r.json();
+        results.push(...(data.files ?? []));
+      }
+    }
+
+    // 2) Topic search
+    if (terms) {
+      const q = `${scopeClause}fullText contains '${terms}' and trashed = false`;
+      const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(fields)}&pageSize=6&orderBy=modifiedTime desc`;
+      const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) {
+        const data = await r.json();
+        results.push(...(data.files ?? []));
+      }
+    }
+
+    // De-dupe by id, cap to 10
+    const seen = new Set<string>();
+    const unique: any[] = [];
+    for (const f of results) {
+      if (!f?.id || seen.has(f.id)) continue;
+      seen.add(f.id);
+      unique.push(f);
+      if (unique.length >= 10) break;
+    }
+
+    // Tag org via folder match (best-effort — parent ids aren't in the response, so match by org folder presence)
+    // Export content for the top N when intent likely needs it
+    const wantsContent = !!terms || intent.mentionedCompany || intent.mentionedPeople.length > 0;
+    const exportLimit = wantsContent ? 3 : 0;
+    for (let i = 0; i < Math.min(exportLimit, unique.length); i++) {
+      const snippet = await exportDriveFile(token, unique[i].id, unique[i].mimeType);
+      if (snippet) unique[i].contentPreview = snippet;
+    }
+
+    return unique.map((f) => ({
+      id: f.id,
+      name: f.name,
+      mimeType: f.mimeType,
+      modifiedTime: f.modifiedTime,
+      webViewLink: f.webViewLink,
+      lastModifiedBy: f.lastModifyingUser?.displayName ?? f.lastModifyingUser?.emailAddress ?? null,
+      contentPreview: f.contentPreview ?? null,
+    }));
   } catch (e) {
     console.warn("fetchDrive failed", e);
     return null;
   }
 }
+
 
 async function fetchTasks(admin: any, userId: string, orgIds: string[], intent: Intent) {
   try {
@@ -479,27 +566,29 @@ Deno.serve(async (req) => {
     const wantContacts = intent.needsContacts || intent.mentionedPeople.length > 0 || !!intent.mentionedPerson || intent.isDailyBrief;
     const wantKB = intent.needsKnowledge || intent.isDailyBrief;
 
-    // Pre-fetch contact/org hints for email importance scoring
+    // Pre-fetch contact/org hints for email importance scoring + per-org drive folders
     const [{ data: contactRows }, { data: orgRows }] = await Promise.all([
       admin.from("contacts").select("email").not("email", "is", null).limit(500),
       orgIds.length
-        ? admin.from("orgs").select("metadata, slug").in("id", orgIds)
+        ? admin.from("orgs").select("id, slug, metadata, drive_folder_id").in("id", orgIds)
         : Promise.resolve({ data: [] as any[] }),
     ]);
     const contactEmails = new Set<string>(
       (contactRows ?? []).map((c: any) => String(c.email ?? "").toLowerCase()).filter(Boolean),
     );
     const orgDomains = new Set<string>();
+    const orgFolders: { org_id: string; folder_id: string }[] = [];
     for (const o of (orgRows ?? []) as any[]) {
       const domains: string[] = Array.isArray(o?.metadata?.domains) ? o.metadata.domains : [];
       for (const d of domains) if (d) orgDomains.add(String(d).toLowerCase());
+      if (o.drive_folder_id) orgFolders.push({ org_id: o.id, folder_id: o.drive_folder_id });
     }
 
     const [emailsR, calendarR, teamCalR, driveR, tasksR, contactsR, kbR, chatR] = await Promise.allSettled([
       wantEmails ? fetchEmails(user.id, intent, contactEmails, orgDomains) : Promise.resolve(null),
       wantCalendar ? fetchGoogleCalendar(user.id, intent) : Promise.resolve(null),
       wantTeamCal ? fetchTeamCalendar(admin, user.id, orgIds, intent) : Promise.resolve(null),
-      wantDrive ? fetchDrive(user.id, userMessage, driveFolderIds) : Promise.resolve(null),
+      wantDrive ? fetchDrive(user.id, userMessage, driveFolderIds, orgFolders, intent) : Promise.resolve(null),
       wantTasks ? fetchTasks(admin, user.id, orgIds, intent) : Promise.resolve([]),
       wantContacts ? fetchContacts(admin, orgIds, intent) : Promise.resolve([]),
       wantKB ? fetchKnowledge(admin, user.id, orgIds, userMessage, intent.isDailyBrief) : Promise.resolve([]),

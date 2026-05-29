@@ -9,7 +9,7 @@ export interface VisionContext {
   team_per_member?: { user_id: string; name: string; busy_count: number; busy: { start: string; end?: string; title: string }[] }[];
   team_conflicts?: { start: string; end: string; members: string[]; titles: string[] }[];
   team_open_slots?: { start: string; end: string; minutes: number }[];
-  drive?: { id: string; name: string; mimeType: string; webViewLink?: string; contentPreview?: string }[] | null;
+  drive?: { id: string; name: string; mimeType: string; webViewLink?: string; modifiedTime?: string; lastModifiedBy?: string | null; contentPreview?: string | null }[] | null;
   contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
   tasks?: { title: string; status?: string; priority?: string; due_at?: string | null; assignee_id?: string | null }[];
   chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
@@ -155,7 +155,8 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   if (ctx.drive && ctx.drive.length) {
     lines.push(`\n📁 DRIVE FILES:`);
     for (const f of ctx.drive) {
-      lines.push(`• [drive:${f.id}] ${f.name}${f.contentPreview ? `\n  ${f.contentPreview}` : ""}`);
+      const meta = [f.modifiedTime ? `modified ${fmtDate(f.modifiedTime)}` : "", f.lastModifiedBy ? `by ${f.lastModifiedBy}` : ""].filter(Boolean).join(" ");
+      lines.push(`• [drive:${f.id}] ${f.name}${meta ? ` (${meta})` : ""}${f.contentPreview ? `\n  ${f.contentPreview}` : ""}`);
     }
   }
 
