@@ -652,22 +652,78 @@ async function fetchKnowledge(admin: any, userId: string, orgIds: string[], quer
 async function fetchChat(admin: any, userId: string, orgIds: string[], intent: Intent) {
   if (!orgIds.length && !intent.isDailyBrief) return [];
   try {
-    const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-    let q = admin.from("messages")
-      .select("id, channel_id, content, user_id, created_at, org_id, channels(name, is_dm)")
-      .gte("created_at", since)
+    const since24 = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+    const since48 = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
+
+    // Resolve current user's name handles for @mention detection
+    const { data: me } = await admin.from("profiles")
+      .select("display_name, email, username").eq("id", userId).maybeSingle();
+    const handles = [me?.display_name, me?.username, me?.email?.split("@")[0]]
+      .filter(Boolean).map((s: string) => s.toLowerCase());
+
+    const select = "id, channel_id, content, user_id, created_at, org_id, thread_id, channels(name, is_dm, dm_participants)";
+
+    // Recent messages in user's orgs OR DMs they participate in
+    let q = admin.from("messages").select(select)
+      .gte("created_at", since48)
       .neq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(intent.isDailyBrief ? 15 : 8);
+      .limit(60);
     if (orgIds.length) q = q.in("org_id", orgIds);
-    const { data } = await q;
-    return (data ?? []).map((m: any) => ({
-      id: m.id,
-      channel: m.channels?.name ?? (m.channels?.is_dm ? "dm" : "channel"),
-      user_id: m.user_id,
-      text: (m.content ?? "").slice(0, 240),
-      ts: m.created_at,
-    }));
+    const { data: recent } = await q;
+
+    // Threads the user has participated in — find their messages, then fetch new replies
+    const { data: myThreads } = await admin.from("messages")
+      .select("thread_id")
+      .eq("user_id", userId)
+      .not("thread_id", "is", null)
+      .gte("created_at", new Date(Date.now() - 14 * 86400000).toISOString())
+      .limit(50);
+    const threadIds = Array.from(new Set((myThreads ?? []).map((t: any) => t.thread_id).filter(Boolean)));
+    let threadReplies: any[] = [];
+    if (threadIds.length) {
+      const { data } = await admin.from("messages").select(select)
+        .in("thread_id", threadIds)
+        .neq("user_id", userId)
+        .gte("created_at", since48)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      threadReplies = data ?? [];
+    }
+
+    const all = [...(recent ?? []), ...threadReplies];
+    const seen = new Map<string, any>();
+    for (const m of all) {
+      if (seen.has(m.id)) continue;
+      const txt = (m.content ?? "").toLowerCase();
+      const isDM = !!m.channels?.is_dm;
+      const isMention = handles.some((h: string) => h && (txt.includes("@" + h) || txt.includes(h)));
+      const inThread = !!m.thread_id && threadIds.includes(m.thread_id);
+      const recent24 = m.created_at >= since24;
+      const buckets: string[] = [];
+      if (isMention) buckets.push("mention");
+      if (isDM) buckets.push("dm");
+      if (inThread) buckets.push("thread_reply");
+      if (recent24 && !buckets.length) buckets.push("recent");
+      if (!buckets.length) continue;
+      seen.set(m.id, {
+        id: m.id,
+        channel: m.channels?.name ?? (isDM ? "dm" : "channel"),
+        is_dm: isDM,
+        user_id: m.user_id,
+        thread_id: m.thread_id ?? null,
+        text: (m.content ?? "").slice(0, 240),
+        ts: m.created_at,
+        buckets,
+      });
+    }
+
+    // Sort: mentions first, then DMs, threads, recent — newest within each
+    const order = (b: string[]) =>
+      b.includes("mention") ? 0 : b.includes("dm") ? 1 : b.includes("thread_reply") ? 2 : 3;
+    return Array.from(seen.values())
+      .sort((a, b) => order(a.buckets) - order(b.buckets) || (b.ts > a.ts ? 1 : -1))
+      .slice(0, intent.isDailyBrief ? 25 : 15);
   } catch (e) { console.warn("fetchChat failed", e); return []; }
 }
 
