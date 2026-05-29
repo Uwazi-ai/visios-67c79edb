@@ -27,3 +27,5 @@ project_id = "qzurwsqecdsgziyvnuul"
     verify_jwt = false
   [functions.visi-mcp]
     verify_jwt = false
+  [functions.growth-radar]
+    verify_jwt = false
