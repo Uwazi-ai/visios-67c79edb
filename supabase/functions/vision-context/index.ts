@@ -558,16 +558,78 @@ async function fetchTasks(admin: any, userId: string, orgIds: string[], intent: 
 
 async function fetchContacts(admin: any, orgIds: string[], intent: Intent) {
   try {
-    let q = admin.from("contacts")
-      .select("name, email, company, role, last_touched_at, engagement_stage, org_id")
-      .order("last_touched_at", { ascending: false, nullsFirst: false })
-      .limit(8);
-    if (orgIds.length) q = q.in("org_id", orgIds);
-    if (intent.mentionedPerson) q = q.ilike("name", `%${intent.mentionedPerson}%`);
-    else if (intent.mentionedCompany) q = q.ilike("company", `%${intent.mentionedCompany}%`);
-    const { data } = await q;
-    return data ?? [];
+    const select = "id, name, email, company, role, last_touched_at, engagement_stage, linkedin_url, notes, org_id";
+    const collected = new Map<string, any>();
+    const tag = (rows: any[] | null, bucket: string) => {
+      for (const r of rows ?? []) {
+        const key = r.id ?? `${r.email ?? r.name}`;
+        const ex = collected.get(key);
+        if (ex) ex.buckets = Array.from(new Set([...(ex.buckets ?? []), bucket]));
+        else collected.set(key, { ...r, buckets: [bucket] });
+      }
+    };
+
+    // 1. Mentioned people / company → full profile
+    const names: string[] = intent.mentionedPeople ?? (intent.mentionedPerson ? [intent.mentionedPerson] : []);
+    if (names.length) {
+      const orExpr = names.map((n) => `name.ilike.%${n}%,email.ilike.%${n}%`).join(",");
+      let q = admin.from("contacts").select(select).or(orExpr).limit(10);
+      if (orgIds.length) q = q.in("org_id", orgIds);
+      const { data } = await q;
+      tag(data, "mentioned");
+    }
+    if (intent.mentionedCompany) {
+      let q = admin.from("contacts").select(select).ilike("company", `%${intent.mentionedCompany}%`).limit(8);
+      if (orgIds.length) q = q.in("org_id", orgIds);
+      const { data } = await q;
+      tag(data, "mentioned");
+    }
+
+    // 2. Stale contacts (no touch in 30+ days) — daily brief priority
+    if (intent.isDailyBrief) {
+      const thirtyAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+      let q = admin.from("contacts").select(select)
+        .lt("last_touched_at", thirtyAgo)
+        .neq("engagement_stage", "archived")
+        .order("last_touched_at", { ascending: true, nullsFirst: false })
+        .limit(8);
+      if (orgIds.length) q = q.in("org_id", orgIds);
+      const { data } = await q;
+      tag(data, "stale");
+    }
+
+    // 3. Recently touched fallback
+    if (collected.size < 5) {
+      let q = admin.from("contacts").select(select)
+        .order("last_touched_at", { ascending: false, nullsFirst: false })
+        .limit(8);
+      if (orgIds.length) q = q.in("org_id", orgIds);
+      const { data } = await q;
+      tag(data, "recent");
+    }
+
+    return Array.from(collected.values()).slice(0, 20);
   } catch (e) { console.warn("fetchContacts failed", e); return []; }
+}
+
+async function enrichContactsWithTodayEvents(admin: any, contacts: any[], calendarEvents: any[]) {
+  try {
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(); todayEnd.setHours(23, 59, 59, 999);
+    const attendeeEmails = new Set<string>();
+    for (const ev of calendarEvents ?? []) {
+      const t = new Date(ev.start ?? 0).getTime();
+      if (t < todayStart.getTime() || t > todayEnd.getTime()) continue;
+      for (const a of ev.attendees ?? []) if (a.email) attendeeEmails.add(String(a.email).toLowerCase());
+    }
+    if (!attendeeEmails.size) return contacts;
+    return contacts.map((c) => {
+      if (c.email && attendeeEmails.has(String(c.email).toLowerCase())) {
+        return { ...c, buckets: Array.from(new Set([...(c.buckets ?? []), "today_event"])) };
+      }
+      return c;
+    });
+  } catch { return contacts; }
 }
 
 async function enrichKbChunks(admin: any, chunks: any[]) {
@@ -861,7 +923,7 @@ Deno.serve(async (req) => {
       today_busy: busy,
       today_free: free,
       drive: pick(driveR),
-      contacts: pick(contactsR) ?? [],
+      contacts: await enrichContactsWithTodayEvents(admin, pick(contactsR) ?? [], mergedCalendar),
       tasks: pick(tasksR) ?? [],
       chat: pick(chatR) ?? [],
       kb: pick(kbR) ?? [],

@@ -10,7 +10,7 @@ export interface VisionContext {
   team_conflicts?: { start: string; end: string; members: string[]; titles: string[] }[];
   team_open_slots?: { start: string; end: string; minutes: number }[];
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; modifiedTime?: string; lastModifiedBy?: string | null; contentPreview?: string | null }[] | null;
-  contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
+  contacts?: { id?: string; name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null; engagement_stage?: string | null; linkedin_url?: string | null; notes?: string | null; buckets?: string[] }[];
   tasks?: { id?: string; title: string; status?: string; priority?: string; due_at?: string | null; start_date?: string | null; assignee_id?: string | null; org_id?: string | null; project?: { name?: string; emoji?: string } | null; buckets?: string[] }[];
   chat?: { id: string; channel: string; is_dm?: boolean; user_id?: string | null; thread_id?: string | null; text: string; ts?: string; buckets?: string[] }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
@@ -168,11 +168,22 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   // Contacts
   if (ctx.contacts && ctx.contacts.length) {
-    lines.push(`\n👥 CONTACTS:`);
-    for (const c of ctx.contacts.slice(0, 6)) {
+    const mentioned = ctx.contacts.filter((c) => c.buckets?.includes("mentioned"));
+    const todayEv = ctx.contacts.filter((c) => c.buckets?.includes("today_event") && !c.buckets.includes("mentioned"));
+    const stale = ctx.contacts.filter((c) => c.buckets?.includes("stale") && !c.buckets.includes("mentioned") && !c.buckets.includes("today_event"));
+    const rest = ctx.contacts.filter((c) => !c.buckets?.some((b) => ["mentioned","today_event","stale"].includes(b)));
+    const renderC = (c: any) => {
       const ds = daysSince(c.last_touched_at ?? null);
-      lines.push(`• ${c.name}${c.role ? ` (${c.role}` : ""}${c.company ? `${c.role ? " @ " : " ("}${c.company}` : ""}${c.role || c.company ? ")" : ""}${ds !== null ? ` — ${ds}d since contact` : ""}`);
-    }
+      const role = [c.role, c.company].filter(Boolean).join(" @ ");
+      const meta = [role, c.engagement_stage, ds !== null ? `${ds}d since touch` : ""].filter(Boolean).join(" · ");
+      const notes = c.notes ? `\n    note: ${String(c.notes).slice(0, 120)}` : "";
+      return `  • ${c.name}${c.email ? ` <${c.email}>` : ""}${meta ? ` — ${meta}` : ""}${notes}`;
+    };
+    lines.push(`\n👥 CONTACTS (${ctx.contacts.length}):`);
+    if (mentioned.length) { lines.push(`  🎯 Mentioned (${mentioned.length}):`); mentioned.slice(0, 6).forEach((c) => lines.push(renderC(c))); }
+    if (todayEv.length) { lines.push(`  📅 On today's calendar (${todayEv.length}):`); todayEv.slice(0, 6).forEach((c) => lines.push(renderC(c))); }
+    if (stale.length) { lines.push(`  🧊 Going cold — 30+ days no touch (${stale.length}):`); stale.slice(0, 6).forEach((c) => lines.push(renderC(c))); }
+    if (rest.length) { lines.push(`  ↪ Recent (${rest.length}):`); rest.slice(0, 4).forEach((c) => lines.push(renderC(c))); }
   }
 
   // Drive
