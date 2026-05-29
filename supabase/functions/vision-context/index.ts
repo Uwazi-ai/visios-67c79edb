@@ -362,6 +362,7 @@ async function fetchDrive(
   query: string,
   folderIds: string[],
   orgFolders: { org_id: string; folder_id: string }[],
+  orgSharedDrives: { org_id: string; drive_id: string; drive_name: string | null; org_name: string | null }[],
   intent: Intent,
 ) {
   try {
@@ -397,8 +398,8 @@ async function fetchDrive(
       }
     }
 
-    // 2) Topic search
-    if (terms) {
+    // 2) Topic search across legacy folders
+    if (terms && allFolders.length) {
       const q = `${scopeClause}fullText contains '${terms}' and trashed = false`;
       const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(fields)}&pageSize=6&orderBy=modifiedTime desc`;
       const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -408,17 +409,40 @@ async function fetchDrive(
       }
     }
 
-    // De-dupe by id, cap to 10
+    // 3) Per-org Shared Drives — recent + topic search
+    for (const od of orgSharedDrives) {
+      if (!od.drive_id) continue;
+      const base = `https://www.googleapis.com/drive/v3/files?corpora=drive&driveId=${encodeURIComponent(od.drive_id)}&includeItemsFromAllDrives=true&supportsAllDrives=true&fields=${encodeURIComponent(fields)}&orderBy=modifiedTime desc`;
+
+      if (intent.isDailyBrief || !terms) {
+        const since = new Date(Date.now() - 7 * 86400000).toISOString();
+        const q = `modifiedTime > '${since}' and trashed = false`;
+        const r = await fetch(`${base}&q=${encodeURIComponent(q)}&pageSize=5`, { headers: { Authorization: `Bearer ${token}` } });
+        if (r.ok) {
+          const data = await r.json();
+          for (const f of (data.files ?? [])) results.push({ ...f, _orgName: od.org_name, _driveName: od.drive_name, _driveId: od.drive_id });
+        }
+      }
+      if (terms) {
+        const q = `(name contains '${terms}' or fullText contains '${terms}') and trashed = false`;
+        const r = await fetch(`${base}&q=${encodeURIComponent(q)}&pageSize=6`, { headers: { Authorization: `Bearer ${token}` } });
+        if (r.ok) {
+          const data = await r.json();
+          for (const f of (data.files ?? [])) results.push({ ...f, _orgName: od.org_name, _driveName: od.drive_name, _driveId: od.drive_id });
+        }
+      }
+    }
+
+    // De-dupe by id, cap to 12
     const seen = new Set<string>();
     const unique: any[] = [];
     for (const f of results) {
       if (!f?.id || seen.has(f.id)) continue;
       seen.add(f.id);
       unique.push(f);
-      if (unique.length >= 10) break;
+      if (unique.length >= 12) break;
     }
 
-    // Tag org via folder match (best-effort — parent ids aren't in the response, so match by org folder presence)
     // Export content for the top N when intent likely needs it
     const wantsContent = !!terms || intent.mentionedCompany || intent.mentionedPeople.length > 0;
     const exportLimit = wantsContent ? 3 : 0;
@@ -435,6 +459,9 @@ async function fetchDrive(
       webViewLink: f.webViewLink,
       lastModifiedBy: f.lastModifyingUser?.displayName ?? f.lastModifyingUser?.emailAddress ?? null,
       contentPreview: f.contentPreview ?? null,
+      orgName: f._orgName ?? null,
+      driveName: f._driveName ?? null,
+      driveId: f._driveId ?? null,
     }));
   } catch (e) {
     console.warn("fetchDrive failed", e);
@@ -836,7 +863,7 @@ Deno.serve(async (req) => {
     const [{ data: contactRows }, { data: orgRows }] = await Promise.all([
       admin.from("contacts").select("email").not("email", "is", null).limit(500),
       orgIds.length
-        ? admin.from("orgs").select("id, slug, metadata, drive_folder_id").in("id", orgIds)
+        ? admin.from("orgs").select("id, name, slug, metadata, drive_folder_id, shared_drive_id, shared_drive_name").in("id", orgIds)
         : Promise.resolve({ data: [] as any[] }),
     ]);
     const contactEmails = new Set<string>(
@@ -844,17 +871,19 @@ Deno.serve(async (req) => {
     );
     const orgDomains = new Set<string>();
     const orgFolders: { org_id: string; folder_id: string }[] = [];
+    const orgSharedDrives: { org_id: string; drive_id: string; drive_name: string | null; org_name: string | null }[] = [];
     for (const o of (orgRows ?? []) as any[]) {
       const domains: string[] = Array.isArray(o?.metadata?.domains) ? o.metadata.domains : [];
       for (const d of domains) if (d) orgDomains.add(String(d).toLowerCase());
       if (o.drive_folder_id) orgFolders.push({ org_id: o.id, folder_id: o.drive_folder_id });
+      if (o.shared_drive_id) orgSharedDrives.push({ org_id: o.id, drive_id: o.shared_drive_id, drive_name: o.shared_drive_name ?? null, org_name: o.name ?? null });
     }
 
     const [emailsR, calendarR, teamCalR, driveR, tasksR, contactsR, kbR, chatR] = await Promise.allSettled([
       wantEmails ? fetchEmails(user.id, intent, contactEmails, orgDomains) : Promise.resolve(null),
       wantCalendar ? fetchGoogleCalendar(user.id, intent) : Promise.resolve(null),
       wantTeamCal ? fetchTeamCalendar(admin, user.id, orgIds, intent) : Promise.resolve(null),
-      wantDrive ? fetchDrive(user.id, userMessage, driveFolderIds, orgFolders, intent) : Promise.resolve(null),
+      wantDrive ? fetchDrive(user.id, userMessage, driveFolderIds, orgFolders, orgSharedDrives, intent) : Promise.resolve(null),
       wantTasks ? fetchTasks(admin, user.id, orgIds, intent) : Promise.resolve([]),
       wantContacts ? fetchContacts(admin, orgIds, intent) : Promise.resolve([]),
       wantKB ? fetchKnowledge(admin, user.id, orgIds, userMessage, intent.isDailyBrief) : Promise.resolve([]),

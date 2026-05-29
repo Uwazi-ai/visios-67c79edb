@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Mail, Calendar, FolderOpen, Users, CheckSquare, MessageSquare, BookOpen, Ticket, FileText, Eye, EyeOff } from "lucide-react";
+import SharedDrivesPanel from "./SharedDrivesPanel";
 
 interface IntegrationRow {
   id: string;
@@ -170,6 +171,8 @@ export default function ConnectionsPanel() {
           />
         </div>
       )}
+
+      {hasGoogle && <SharedDrivesPanel />}
     </div>
   );
 }

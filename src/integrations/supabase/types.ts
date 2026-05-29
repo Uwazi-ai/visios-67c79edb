@@ -1579,6 +1579,9 @@ export type Database = {
           pipeline_stages: Json
           priorities: Json
           relationship_label: string | null
+          shared_drive_connected_at: string | null
+          shared_drive_id: string | null
+          shared_drive_name: string | null
           short_name: string | null
           slug: string
           stage_labels: Json
@@ -1600,6 +1603,9 @@ export type Database = {
           pipeline_stages?: Json
           priorities?: Json
           relationship_label?: string | null
+          shared_drive_connected_at?: string | null
+          shared_drive_id?: string | null
+          shared_drive_name?: string | null
           short_name?: string | null
           slug: string
           stage_labels?: Json
@@ -1621,6 +1627,9 @@ export type Database = {
           pipeline_stages?: Json
           priorities?: Json
           relationship_label?: string | null
+          shared_drive_connected_at?: string | null
+          shared_drive_id?: string | null
+          shared_drive_name?: string | null
           short_name?: string | null
           slug?: string
           stage_labels?: Json
