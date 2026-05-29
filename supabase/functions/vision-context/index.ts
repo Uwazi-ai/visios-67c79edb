@@ -445,13 +445,114 @@ async function fetchDrive(
 
 async function fetchTasks(admin: any, userId: string, orgIds: string[], intent: Intent) {
   try {
-    let q = admin.from("tasks").select("title, status, priority, due_at, assignee_id, org_id")
+    const nowIso = new Date().toISOString();
+    const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
+    const eotIso = endOfToday.toISOString();
+
+    const select = "id, title, status, priority, due_at, start_date, assignee_id, org_id, project_id, projects(name, emoji)";
+
+    // Build base scoping: tasks in user's orgs OR assigned to / created by user
+    const orgFilter = orgIds.length ? `org_id.in.(${orgIds.join(",")}),` : "";
+    const scope = `${orgFilter}assignee_id.eq.${userId},created_by.eq.${userId}`;
+
+    // 1. Overdue (assigned to me)
+    const { data: overdue } = await admin.from("tasks").select(select)
       .neq("status", "done")
+      .eq("assignee_id", userId)
+      .not("due_at", "is", null)
+      .lt("due_at", nowIso)
+      .order("due_at", { ascending: true })
+      .limit(10);
+
+    // 2. Due today (assigned to me)
+    const { data: dueToday } = await admin.from("tasks").select(select)
+      .neq("status", "done")
+      .eq("assignee_id", userId)
+      .gte("due_at", nowIso)
+      .lte("due_at", eotIso)
+      .order("due_at", { ascending: true })
+      .limit(10);
+
+    // 3. My open tasks (no/future due)
+    const { data: mine } = await admin.from("tasks").select(select)
+      .neq("status", "done")
+      .eq("assignee_id", userId)
       .order("due_at", { ascending: true, nullsFirst: false })
       .limit(intent.isDailyBrief ? 15 : 10);
-    if (orgIds.length) q = q.in("org_id", orgIds);
-    const { data } = await q;
-    return data ?? [];
+
+    // 4. High/urgent priority across user's orgs (not necessarily assigned to me)
+    let highQ = admin.from("tasks").select(select)
+      .neq("status", "done")
+      .in("priority", ["urgent", "high"])
+      .order("due_at", { ascending: true, nullsFirst: false })
+      .limit(8);
+    if (orgIds.length) highQ = highQ.or(scope);
+    const { data: high } = await highQ;
+
+    // 5. Mentioned-person filter: tasks assigned to a matching profile
+    let mentioned: any[] = [];
+    const names = intent.mentionedPeople ?? (intent.mentionedPerson ? [intent.mentionedPerson] : []);
+    if (names.length) {
+      const orExpr = names.map((n: string) => `display_name.ilike.%${n}%,email.ilike.%${n}%`).join(",");
+      const { data: profs } = await admin.from("profiles").select("id").or(orExpr).limit(5);
+      const ids = (profs ?? []).map((p: any) => p.id);
+      if (ids.length) {
+        let mq = admin.from("tasks").select(select)
+          .neq("status", "done")
+          .in("assignee_id", ids)
+          .order("due_at", { ascending: true, nullsFirst: false })
+          .limit(8);
+        if (orgIds.length) mq = mq.in("org_id", orgIds);
+        const { data } = await mq;
+        mentioned = data ?? [];
+      }
+    }
+
+    // 6. Scheduling intent: open tasks with start_date or due_at in next 14 days that lack a linked event
+    let needsScheduling: any[] = [];
+    if (intent.isSchedulingRequest) {
+      const in14 = new Date(Date.now() + 14 * 86400000).toISOString();
+      const { data } = await admin.from("tasks").select(select)
+        .neq("status", "done")
+        .eq("assignee_id", userId)
+        .or(`due_at.lte.${in14},start_date.lte.${in14}`)
+        .limit(10);
+      needsScheduling = data ?? [];
+    }
+
+    // Merge + dedupe by id, tag each with bucket
+    const tag = (rows: any[] | null | undefined, bucket: string) =>
+      (rows ?? []).map((r) => ({ ...r, bucket }));
+    const all = [
+      ...tag(overdue, "overdue"),
+      ...tag(dueToday, "due_today"),
+      ...tag(high, "high_priority"),
+      ...tag(mine, "mine"),
+      ...tag(mentioned, "mentioned"),
+      ...tag(needsScheduling, "needs_scheduling"),
+    ];
+    const seen = new Map<string, any>();
+    for (const t of all) {
+      if (!t.id) continue;
+      const existing = seen.get(t.id);
+      if (!existing) seen.set(t.id, t);
+      else {
+        // Keep earliest bucket but merge bucket labels
+        existing._buckets = Array.from(new Set([...(existing._buckets ?? [existing.bucket]), t.bucket]));
+      }
+    }
+    return Array.from(seen.values()).map((t) => ({
+      id: t.id,
+      title: t.title,
+      status: t.status,
+      priority: t.priority,
+      due_at: t.due_at,
+      start_date: t.start_date,
+      assignee_id: t.assignee_id,
+      org_id: t.org_id,
+      project: t.projects ? { name: t.projects.name, emoji: t.projects.emoji } : null,
+      buckets: t._buckets ?? [t.bucket],
+    })).slice(0, 25);
   } catch (e) { console.warn("fetchTasks failed", e); return []; }
 }
 
