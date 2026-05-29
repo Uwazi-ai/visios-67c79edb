@@ -10,7 +10,7 @@ export interface VisionContext {
   team_conflicts?: { start: string; end: string; members: string[]; titles: string[] }[];
   team_open_slots?: { start: string; end: string; minutes: number }[];
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; modifiedTime?: string; lastModifiedBy?: string | null; contentPreview?: string | null }[] | null;
-  contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
+  contacts?: { id?: string; name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null; engagement_stage?: string | null; linkedin_url?: string | null; notes?: string | null; buckets?: string[] }[];
   tasks?: { id?: string; title: string; status?: string; priority?: string; due_at?: string | null; start_date?: string | null; assignee_id?: string | null; org_id?: string | null; project?: { name?: string; emoji?: string } | null; buckets?: string[] }[];
   chat?: { id: string; channel: string; is_dm?: boolean; user_id?: string | null; thread_id?: string | null; text: string; ts?: string; buckets?: string[] }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
