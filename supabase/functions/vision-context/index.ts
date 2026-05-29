@@ -83,6 +83,7 @@ async function classifyIntent(message: string, isDailyBrief: boolean): Promise<I
                 mentionedPerson: { type: ["string", "null"] },
                 mentionedCompany: { type: ["string", "null"] },
                 mentionedPeople: { type: "array", items: { type: "string" } },
+                mentionedOrgs: { type: "array", items: { type: "string" } },
                 timeframe: { type: "string", enum: ["today", "week", "month", "general"] },
               },
               required: ["needsEmails","needsCalendar","needsDrive","needsKnowledge","needsTasks","needsChat","needsContacts","isSchedulingRequest","timeframe"],
@@ -103,6 +104,7 @@ async function classifyIntent(message: string, isDailyBrief: boolean): Promise<I
       ...parsed,
       isDailyBrief: fallback.isDailyBrief,
       mentionedPeople: parsed.mentionedPeople ?? (parsed.mentionedPerson ? [parsed.mentionedPerson] : []),
+      mentionedOrgs: parsed.mentionedOrgs ?? [],
       needsTeamCalendar: parsed.needsTeamCalendar ?? fallback.needsTeamCalendar,
     };
   } catch {
