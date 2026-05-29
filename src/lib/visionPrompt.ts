@@ -14,7 +14,7 @@ export interface VisionContext {
   tasks?: { title: string; status?: string; priority?: string; due_at?: string | null; assignee_id?: string | null }[];
   chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
-  kb?: { id: string; document_id: string; document_title: string; content: string }[];
+  kb?: { id: string; document_id: string; document_title: string; content: string; source_type?: string | null; source_integration?: string | null; source_url?: string | null; category?: string | null; file_type?: string | null; updated_at?: string | null; score?: number | null }[];
   today_busy?: { start: string; end: string; title: string }[];
   today_free?: { start: string; end: string; minutes: number }[];
   sources?: Record<string, boolean>;
