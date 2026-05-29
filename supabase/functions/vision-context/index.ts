@@ -430,7 +430,7 @@ Deno.serve(async (req) => {
       org_ids: orgIds,
       sources: {
         gmail: gmailOn, calendar: calendarOn, team_calendar: orgIds.length > 0,
-        drive: driveOn && driveFolderIds.length > 0, kb: true, contacts: true,
+        drive: driveOn, kb: true, contacts: true,
         tasks: true, chat: true,
       },
     });
