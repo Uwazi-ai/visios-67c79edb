@@ -41,6 +41,10 @@ export function ComposeView({
   const [assignedTo, setAssignedTo] = useState<string>("Anna");
   const [newTag, setNewTag] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [posting, setPosting] = useState(false);
+  const { tokens, getFor } = useSocialConnections();
+  const connectedCount = tokens.length;
+  const platformToken = getFor(platform);
 
   // Reset pillar when brand changes
   useEffect(() => { setPillar(cfg.pillars[0]); }, [brand, cfg.pillars]);
