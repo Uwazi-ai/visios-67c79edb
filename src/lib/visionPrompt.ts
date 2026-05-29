@@ -14,7 +14,7 @@ export interface VisionContext {
   tasks?: { title: string; status?: string; priority?: string; due_at?: string | null; assignee_id?: string | null }[];
   chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
-  kb?: { id: string; document_id: string; document_title: string; content: string }[];
+  kb?: { id: string; document_id: string; document_title: string; content: string; source_type?: string | null; source_integration?: string | null; source_url?: string | null; category?: string | null; file_type?: string | null; updated_at?: string | null; score?: number | null }[];
   today_busy?: { start: string; end: string; title: string }[];
   today_free?: { start: string; end: string; minutes: number }[];
   sources?: Record<string, boolean>;
@@ -168,9 +168,16 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   // KB
   if (ctx.kb && ctx.kb.length) {
-    lines.push(`\n📚 KNOWLEDGE BASE:`);
+    lines.push(`\n📚 KNOWLEDGE BASE (${ctx.kb.length}):`);
     for (const k of ctx.kb) {
-      lines.push(`[kb:${k.document_id}] ${k.document_title}\n${k.content.slice(0, 600)}`);
+      const meta = [
+        k.source_integration ?? k.source_type,
+        k.category,
+        k.file_type,
+        k.updated_at ? `updated ${fmtDate(k.updated_at)}` : "",
+      ].filter(Boolean).join(" · ");
+      const url = k.source_url ? `\n  url: ${k.source_url}` : "";
+      lines.push(`• [kb:${k.document_id}] ${k.document_title}${meta ? ` (${meta})` : ""}${url}\n  ${k.content.slice(0, 600)}`);
     }
   }
 
