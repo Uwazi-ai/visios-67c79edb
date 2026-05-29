@@ -458,19 +458,31 @@ export function ComposeView({
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 justify-end">
+            <div className="flex gap-2 pt-2 justify-end flex-wrap">
               <button onClick={() => save("draft")} className="btn-ghost">Save to Queue</button>
-              <button
-                onClick={() => save("scheduled")}
-                className="btn-primary"
-                disabled={!scheduledAt}
-                title={!scheduledAt ? "Set a schedule time first" : "Schedule post"}
-              >
-                {scheduledAt ? "Schedule" : "Post Now"}
-              </button>
+              {scheduledAt ? (
+                <button
+                  onClick={() => save("scheduled")}
+                  className="btn-primary"
+                >
+                  Schedule
+                </button>
+              ) : (
+                <button
+                  onClick={postNow}
+                  className="btn-primary"
+                  disabled={!platformToken || posting}
+                  title={!platformToken ? `Connect ${platform} in Settings first` : "Publish now"}
+                  style={{ background: platformToken ? "#9bd34b" : undefined, color: platformToken ? "#000" : undefined }}
+                >
+                  {posting ? <><Loader2 size={12} className="animate-spin" /> Posting…</> : "Post Now"}
+                </button>
+              )}
             </div>
             <div style={{ fontSize: 10, color: "var(--text-muted)" }} className="text-right">
-              Post Now requires platform connection in Settings.
+              {platformToken
+                ? `Will publish as @${(platformToken.account_username || platformToken.account_name || "").replace(/^@/, "")}`
+                : `Connect ${platform} in Settings to enable Post Now.`}
             </div>
           </div>
         )}
