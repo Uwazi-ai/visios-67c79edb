@@ -73,7 +73,7 @@ export async function handleVisionAction(
         created_by: ctx.userId,
         assignee_id: payload.assignee_id ?? ctx.userId,
       };
-      const { error } = await supabase.from("tasks").insert(insert);
+      const { error } = await supabase.from("tasks").insert(insert as any);
       if (error) {
         toast({ title: "Couldn't create task", description: error.message, variant: "destructive" });
       } else {
