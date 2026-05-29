@@ -566,27 +566,29 @@ Deno.serve(async (req) => {
     const wantContacts = intent.needsContacts || intent.mentionedPeople.length > 0 || !!intent.mentionedPerson || intent.isDailyBrief;
     const wantKB = intent.needsKnowledge || intent.isDailyBrief;
 
-    // Pre-fetch contact/org hints for email importance scoring
+    // Pre-fetch contact/org hints for email importance scoring + per-org drive folders
     const [{ data: contactRows }, { data: orgRows }] = await Promise.all([
       admin.from("contacts").select("email").not("email", "is", null).limit(500),
       orgIds.length
-        ? admin.from("orgs").select("metadata, slug").in("id", orgIds)
+        ? admin.from("orgs").select("id, slug, metadata, drive_folder_id").in("id", orgIds)
         : Promise.resolve({ data: [] as any[] }),
     ]);
     const contactEmails = new Set<string>(
       (contactRows ?? []).map((c: any) => String(c.email ?? "").toLowerCase()).filter(Boolean),
     );
     const orgDomains = new Set<string>();
+    const orgFolders: { org_id: string; folder_id: string }[] = [];
     for (const o of (orgRows ?? []) as any[]) {
       const domains: string[] = Array.isArray(o?.metadata?.domains) ? o.metadata.domains : [];
       for (const d of domains) if (d) orgDomains.add(String(d).toLowerCase());
+      if (o.drive_folder_id) orgFolders.push({ org_id: o.id, folder_id: o.drive_folder_id });
     }
 
     const [emailsR, calendarR, teamCalR, driveR, tasksR, contactsR, kbR, chatR] = await Promise.allSettled([
       wantEmails ? fetchEmails(user.id, intent, contactEmails, orgDomains) : Promise.resolve(null),
       wantCalendar ? fetchGoogleCalendar(user.id, intent) : Promise.resolve(null),
       wantTeamCal ? fetchTeamCalendar(admin, user.id, orgIds, intent) : Promise.resolve(null),
-      wantDrive ? fetchDrive(user.id, userMessage, driveFolderIds) : Promise.resolve(null),
+      wantDrive ? fetchDrive(user.id, userMessage, driveFolderIds, orgFolders, intent) : Promise.resolve(null),
       wantTasks ? fetchTasks(admin, user.id, orgIds, intent) : Promise.resolve([]),
       wantContacts ? fetchContacts(admin, orgIds, intent) : Promise.resolve([]),
       wantKB ? fetchKnowledge(admin, user.id, orgIds, userMessage, intent.isDailyBrief) : Promise.resolve([]),
