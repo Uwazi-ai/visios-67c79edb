@@ -45,34 +45,41 @@ function daysSince(iso?: string | null): number | null {
 export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionContext, profile: VisionProfile): string {
   const persona = PERSONA_MAP[personaKey];
   const userName = profile.preferred_name || profile.display_name || "the user";
-  const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const firstName = userName.split(" ")[0];
+  const now = new Date();
+  const dayOfWeek = now.toLocaleDateString("en-US", { weekday: "long" });
+  const formattedDate = now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  const currentTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const orgNames = profile.accessible_orgs ?? [];
 
   const lines: string[] = [];
-  lines.push(`You are Vision, ${userName}'s AI Chief of Staff, currently in the ${persona.name} ${persona.emoji} role.`);
+  lines.push(`You are Vision, the AI chief of staff for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
   lines.push(persona.systemDescription);
-  lines.push(`\nToday: ${today}${profile.timezone ? ` (${profile.timezone})` : ""}${profile.active_org_name ? ` | Active org: ${profile.active_org_name}` : ""}`);
 
-  // Role-aware access scope
   if (profile.is_founder) {
-    lines.push(
-      `\n═══ ACCESS SCOPE ═══\nRole: Founder. You have full access across all connected orgs${
-        profile.accessible_orgs?.length ? ` (${profile.accessible_orgs.join(", ")})` : ""
-      }, all data, and all integrations.`
-    );
+    lines.push(`\nYou support ${userName} as the founder of: ${orgNames.length ? orgNames.join(", ") : (profile.active_org_name ?? "their organizations")}.`);
   } else if (profile.role_label) {
-    const orgList = profile.accessible_orgs?.length ? profile.accessible_orgs.join(", ") : (profile.active_org_name ?? "their org");
+    lines.push(`\nYou are the AI assistant for ${userName} at ${profile.active_org_name ?? (orgNames[0] ?? "their org")}. Role: ${profile.role_label}.`);
+  }
+
+  lines.push(`\nToday is ${dayOfWeek}, ${formattedDate}. Current time: ${currentTime}${profile.timezone ? ` (${profile.timezone})` : ""}.`);
+
+  // Access scope guardrails for non-founders
+  if (!profile.is_founder && profile.role_label) {
+    const orgList = orgNames.length ? orgNames.join(", ") : (profile.active_org_name ?? "their org");
     lines.push(
-      `\n═══ ACCESS SCOPE ═══\nRole: ${profile.role_label}. You work within: ${orgList}.\n` +
+      `\n═══ ACCESS SCOPE ═══\nYou work within: ${orgList}.\n` +
       `You can ONLY see data the user has access to: contacts, tasks, knowledge base, meetings, and events for the orgs above, plus their own connected Gmail/Calendar.\n` +
       `You CANNOT see: data from other orgs the user is not a member of, other team members' private Vision conversations, billing/admin settings, or the founder's personal mailbox.\n` +
       `If asked about restricted data, politely explain it isn't in scope and suggest asking an org owner.`
     );
   }
 
-  lines.push(`\n═══ LIVE DATA ═══`);
+  lines.push(`\n═══ YOUR LIVE CONTEXT ═══`);
 
   const isBrief = !!ctx.intent?.isDailyBrief;
   const isScheduling = !!ctx.intent?.isSchedulingRequest;
+
 
   // Emails
   if (ctx.emails && ctx.emails.length) {
