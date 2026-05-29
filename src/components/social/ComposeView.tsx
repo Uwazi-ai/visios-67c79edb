@@ -130,6 +130,51 @@ export function ComposeView({
     }
   };
 
+  const postNow = async () => {
+    if (!platformToken) {
+      toast.error(`Connect ${platform} in Settings first.`);
+      return;
+    }
+    if (!caption.trim()) {
+      toast.error("Caption is required.");
+      return;
+    }
+    setPosting(true);
+    try {
+      // Persist as scheduled-for-now first to get an id
+      const payload: Partial<SocialPost> = {
+        platform,
+        content_pillar: pillar,
+        hook: selectedHookIdx !== null && hooks ? hooks[selectedHookIdx].text : null,
+        caption,
+        hashtags,
+        script_outline: scriptOutline,
+        scheduled_at: new Date().toISOString(),
+        assigned_to: assignedTo,
+        status: "scheduled",
+        ai_generated: !!hooks,
+      };
+      const created = editingId
+        ? (await onUpdate(editingId, payload), { id: editingId } as SocialPost)
+        : await onCreate(payload);
+
+      const { data, error } = await supabase.functions.invoke("social-post", {
+        body: { post_id: created.id, platform, caption, hashtags },
+      });
+      if (error || (data as any)?.error || (data as any)?.success === false) {
+        const msg = error?.message || (data as any)?.error || "Post failed";
+        toast.error(msg);
+      } else {
+        toast.success(`Posted to ${platform} ✓`);
+        reset();
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Post failed");
+    } finally {
+      setPosting(false);
+    }
+  };
+
   const showScriptOutline = platform === "tiktok" || platform === "instagram";
 
   return (
