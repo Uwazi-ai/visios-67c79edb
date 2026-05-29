@@ -1925,34 +1925,112 @@ export type Database = {
       }
       social_integrations: {
         Row: {
+          avatar_url: string | null
           connected_at: string | null
           created_at: string
           credentials: Json
+          display_name: string | null
+          follower_count: number | null
           id: string
           metadata: Json
           platform: string
+          scopes: string[] | null
           status: string
+          token_expires_at: string | null
           user_id: string
+          username: string | null
         }
         Insert: {
+          avatar_url?: string | null
           connected_at?: string | null
           created_at?: string
           credentials?: Json
+          display_name?: string | null
+          follower_count?: number | null
           id?: string
           metadata?: Json
           platform: string
+          scopes?: string[] | null
           status?: string
+          token_expires_at?: string | null
           user_id: string
+          username?: string | null
         }
         Update: {
+          avatar_url?: string | null
           connected_at?: string | null
           created_at?: string
           credentials?: Json
+          display_name?: string | null
+          follower_count?: number | null
           id?: string
           metadata?: Json
           platform?: string
+          scopes?: string[] | null
           status?: string
+          token_expires_at?: string | null
           user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      social_platform_tokens: {
+        Row: {
+          access_token: string
+          account_avatar_url: string | null
+          account_id: string | null
+          account_name: string | null
+          account_type: string | null
+          account_username: string | null
+          brand: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          platform: string
+          refresh_token: string | null
+          scopes: string[] | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          access_token: string
+          account_avatar_url?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          account_type?: string | null
+          account_username?: string | null
+          brand?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          platform: string
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          access_token?: string
+          account_avatar_url?: string | null
+          account_id?: string | null
+          account_name?: string | null
+          account_type?: string | null
+          account_username?: string | null
+          brand?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          platform?: string
+          refresh_token?: string | null
+          scopes?: string[] | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
