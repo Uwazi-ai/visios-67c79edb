@@ -6,6 +6,9 @@ export interface VisionContext {
   emails?: { id: string; subject: string; from: string; date: string; snippet: string; unread?: boolean; starred?: boolean }[] | null;
   calendar?: { id: string; title: string; start: string; end?: string; meetLink?: string | null; location?: string | null; description?: string | null; attendees?: { email: string; name?: string; status?: string }[]; source?: "google" | "team"; org_id?: string | null }[] | null;
   team_calendar?: { id: string; title: string; start: string; end?: string; org_id?: string | null; created_by?: string | null }[] | null;
+  team_per_member?: { user_id: string; name: string; busy_count: number; busy: { start: string; end?: string; title: string }[] }[];
+  team_conflicts?: { start: string; end: string; members: string[]; titles: string[] }[];
+  team_open_slots?: { start: string; end: string; minutes: number }[];
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; contentPreview?: string }[] | null;
   contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
   tasks?: { title: string; status?: string; priority?: string; due_at?: string | null; assignee_id?: string | null }[];
