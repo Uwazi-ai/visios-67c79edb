@@ -140,18 +140,19 @@ export function StrategyView() {
 
       {open90 && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
-          <div className="glass rounded-xl max-w-3xl w-full max-h-[85vh] flex flex-col">
+          <div className="glass rounded-xl w-full max-h-[90vh] flex flex-col" style={{ maxWidth: 1100 }}>
             <div className="flex items-center justify-between p-4" style={{ borderBottom: "1px solid var(--border-glass)" }}>
               <div className="t-section" style={{ fontSize: 14 }}>90-Day Strategy — {cfg.label}</div>
               <button onClick={() => setOpen90(false)} className="btn-icon"><X size={14} /></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-5">
+            <div className="flex-1 overflow-y-auto p-6">
               {loading90 ? (
-                <div className="flex items-center gap-2 justify-center py-12" style={{ color: "var(--text-muted)" }}>
-                  <Loader2 size={16} className="animate-spin" /> Generating strategy...
+                <div className="flex flex-col items-center gap-3 justify-center py-16" style={{ color: "var(--text-muted)" }}>
+                  <Loader2 size={24} className="animate-spin" style={{ color: cfg.color }} />
+                  <div style={{ fontSize: 13 }}>Vision is building your strategy...</div>
                 </div>
               ) : (
-                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "var(--font-body)", fontSize: 13, lineHeight: 1.6, color: "var(--text-primary)" }}>
+                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "var(--font-body)", fontSize: 13, lineHeight: 1.65, color: "var(--text-primary)" }}>
                   {strategy90}
                 </pre>
               )}
@@ -164,7 +165,7 @@ export function StrategyView() {
                 onClick={async () => {
                   const { data: { user } } = await supabase.auth.getUser();
                   const { error } = await supabase.from("kb_documents").insert({
-                    user_id: user?.id, title: `90-Day Strategy — ${cfg.label}`,
+                    user_id: user?.id, title: `90-Day Social Strategy — ${cfg.label} — ${new Date().toLocaleString(undefined, { month: "long", year: "numeric" })}`,
                     full_text: strategy90, source_type: "manual", category: "Social Strategy", status: "ready",
                   });
                   if (error) toast.error(error.message); else toast.success("Saved to Knowledge Base");

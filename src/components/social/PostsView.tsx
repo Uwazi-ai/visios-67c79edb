@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { Trash2, Copy, Edit3 } from "lucide-react";
-import { BRANDS, STATUS_COLORS, type BrandKey, type PostStatus } from "./shared";
+import { Trash2, Copy, Edit3, MessageCircle, X, Calendar as CalIcon, UserPlus } from "lucide-react";
+import { BRANDS, STATUS_COLORS, ASSIGNEES, type BrandKey, type PostStatus } from "./shared";
 import { platformIcon } from "./PostQueue";
 import type { SocialPost } from "@/hooks/useSocialPosts";
+import { CommentRepliesDrawer, useReplyCounts } from "./CommentRepliesDrawer";
 import { toast } from "sonner";
 
 export function PostsView({
@@ -24,6 +25,10 @@ export function PostsView({
   const [filterAssignee, setFilterAssignee] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [repliesPost, setRepliesPost] = useState<SocialPost | null>(null);
+  const [bulkSchedule, setBulkSchedule] = useState("");
+  const [bulkAssignee, setBulkAssignee] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const filtered = useMemo(() => posts.filter((p) => {
     if (filterPlatform !== "all" && p.platform !== filterPlatform) return false;
@@ -31,6 +36,8 @@ export function PostsView({
     if (filterStatus !== "all" && p.status !== filterStatus) return false;
     return true;
   }), [posts, filterPlatform, filterAssignee, filterStatus]);
+
+  const replyCounts = useReplyCounts(filtered.filter((p) => p.status === "published").map((p) => p.id));
 
   const toggleAll = () => {
     if (selected.size === filtered.length) setSelected(new Set());
@@ -41,12 +48,29 @@ export function PostsView({
     s.has(id) ? s.delete(id) : s.add(id);
     setSelected(s);
   };
+  const clearSelection = () => setSelected(new Set());
 
   const bulkDelete = async () => {
-    if (!confirm(`Delete ${selected.size} posts?`)) return;
     for (const id of selected) await onDelete(id);
     setSelected(new Set());
+    setConfirmDelete(false);
     toast.success("Deleted");
+  };
+
+  const applyBulkSchedule = async () => {
+    if (!bulkSchedule) { toast.error("Pick a date/time"); return; }
+    const iso = new Date(bulkSchedule).toISOString();
+    for (const id of selected) await onUpdate(id, { scheduled_at: iso, status: "scheduled" } as any);
+    toast.success(`Scheduled ${selected.size} posts`);
+    setBulkSchedule("");
+    setSelected(new Set());
+  };
+
+  const applyBulkAssign = async (who: string) => {
+    for (const id of selected) await onUpdate(id, { assigned_to: who } as any);
+    toast.success(`Assigned to ${who}`);
+    setBulkAssignee("");
+    setSelected(new Set());
   };
 
   const duplicate = async (p: SocialPost) => {
@@ -63,7 +87,7 @@ export function PostsView({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-5">
+    <div className="flex-1 overflow-y-auto p-5 relative" style={{ paddingBottom: selected.size >= 2 ? 96 : 20 }}>
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <select value={filterPlatform} onChange={(e) => setFilterPlatform(e.target.value)} className="input-glass" style={{ fontSize: 11 }}>
           <option value="all">All platforms</option>
@@ -86,14 +110,6 @@ export function PostsView({
           <option value="published">Published</option>
           <option value="failed">Failed</option>
         </select>
-        {selected.size > 0 && (
-          <div className="ml-auto flex items-center gap-2">
-            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{selected.size} selected</span>
-            <button onClick={bulkDelete} className="btn-ghost" style={{ fontSize: 11, color: "#EF4444" }}>
-              <Trash2 size={12} /> Delete
-            </button>
-          </div>
-        )}
       </div>
 
       {filtered.length === 0 ? (
@@ -123,6 +139,7 @@ export function PostsView({
                 const Icon = platformIcon(p.platform);
                 const sc = STATUS_COLORS[p.status as PostStatus] ?? STATUS_COLORS.draft;
                 const bColor = BRANDS[(p.brand as BrandKey)]?.color ?? "var(--text-muted)";
+                const rc = replyCounts[p.id];
                 return (
                   <tr key={p.id} style={{ borderBottom: "1px solid var(--border-glass)" }} className="hover:bg-white/5">
                     <td className="p-2">
@@ -155,7 +172,22 @@ export function PostsView({
                     </td>
                     <td className="p-2" style={{ color: "var(--text-secondary)" }}>{p.assigned_to || "—"}</td>
                     <td className="p-2">
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 items-center">
+                        {p.status === "published" && (
+                          <button
+                            onClick={() => setRepliesPost(p)}
+                            className="btn-ghost"
+                            style={{ fontSize: 10, padding: "2px 6px", height: 24, color: bColor, borderColor: bColor }}
+                            title="Comment replies"
+                          >
+                            <MessageCircle size={11} /> Replies
+                            {rc && rc.total > 0 && (
+                              <span style={{ marginLeft: 4, padding: "0 5px", borderRadius: 8, background: rc.pending > 0 ? "#EF4444" : "var(--bg-glass-2)", color: rc.pending > 0 ? "#fff" : "var(--text-secondary)", fontSize: 9, fontWeight: 600 }}>
+                                {rc.total}
+                              </span>
+                            )}
+                          </button>
+                        )}
                         <button onClick={() => onOpenPost(p)} className="btn-icon" style={{ width: 24, height: 24 }} title="Edit"><Edit3 size={11} /></button>
                         <button onClick={() => duplicate(p)} className="btn-icon" style={{ width: 24, height: 24 }} title="Duplicate"><Copy size={11} /></button>
                         <button onClick={() => { if (confirm("Delete this post?")) onDelete(p.id); }} className="btn-icon" style={{ width: 24, height: 24 }} title="Delete"><Trash2 size={11} /></button>
@@ -168,6 +200,63 @@ export function PostsView({
           </table>
         </div>
       )}
+
+      {selected.size >= 2 && (
+        <div
+          className="fixed left-1/2 -translate-x-1/2 z-40 glass rounded-xl flex items-center gap-3 px-4 py-2.5"
+          style={{ bottom: 24, boxShadow: "0 12px 40px rgba(0,0,0,0.5)", border: "1px solid var(--border-glass)" }}
+        >
+          <button onClick={clearSelection} className="btn-icon" style={{ width: 24, height: 24 }} title="Clear">
+            <X size={12} />
+          </button>
+          <span style={{ fontSize: 12, fontWeight: 600 }}>{selected.size} posts selected</span>
+          <div style={{ width: 1, height: 20, background: "var(--border-glass)" }} />
+
+          <div className="flex items-center gap-1.5">
+            <CalIcon size={12} style={{ color: "var(--text-muted)" }} />
+            <input
+              type="datetime-local"
+              value={bulkSchedule}
+              onChange={(e) => setBulkSchedule(e.target.value)}
+              className="input-glass"
+              style={{ fontSize: 11, padding: "4px 6px" }}
+            />
+            <button onClick={applyBulkSchedule} className="btn-ghost" style={{ fontSize: 11 }}>Schedule all</button>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <UserPlus size={12} style={{ color: "var(--text-muted)" }} />
+            <select
+              value={bulkAssignee}
+              onChange={(e) => { if (e.target.value) applyBulkAssign(e.target.value); }}
+              className="input-glass"
+              style={{ fontSize: 11, padding: "4px 6px" }}
+            >
+              <option value="">Assign to...</option>
+              {ASSIGNEES.map((a) => <option key={a} value={a}>{a}</option>)}
+            </select>
+          </div>
+
+          <button onClick={() => setConfirmDelete(true)} className="btn-ghost" style={{ fontSize: 11, color: "#EF4444" }}>
+            <Trash2 size={11} /> Delete selected
+          </button>
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setConfirmDelete(false)}>
+          <div className="glass rounded-xl p-5 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="t-section mb-2" style={{ fontSize: 14 }}>Delete {selected.size} posts?</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>This cannot be undone.</div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setConfirmDelete(false)} className="btn-ghost" style={{ fontSize: 12 }}>Cancel</button>
+              <button onClick={bulkDelete} className="btn-primary" style={{ fontSize: 12, background: "#EF4444", color: "#fff" }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {repliesPost && <CommentRepliesDrawer post={repliesPost} onClose={() => setRepliesPost(null)} />}
     </div>
   );
 }
