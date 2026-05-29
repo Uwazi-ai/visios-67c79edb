@@ -636,6 +636,27 @@ export type Database = {
           },
         ]
       }
+      daily_briefs: {
+        Row: {
+          brief_date: string
+          id: string
+          triggered_at: string
+          user_id: string
+        }
+        Insert: {
+          brief_date?: string
+          id?: string
+          triggered_at?: string
+          user_id: string
+        }
+        Update: {
+          brief_date?: string
+          id?: string
+          triggered_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       deals: {
         Row: {
           contact_id: string | null
