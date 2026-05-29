@@ -209,14 +209,21 @@ async function fetchTeamCalendar(admin: any, userId: string, orgIds: string[], i
     if (intent.timeframe === "week" || intent.isSchedulingRequest) timeMax.setDate(timeMax.getDate() + 7);
     else if (intent.timeframe === "month") timeMax.setDate(timeMax.getDate() + 30);
     else timeMax.setHours(timeMax.getHours() + 48);
-    const { data } = await admin.from("events")
-      .select("id, title, start_at, end_at, org_id, created_by, visibility, meet_link, attendees")
-      .or(`org_id.in.(${orgIds.join(",")}),created_by.eq.${userId},visibility.eq.all_orgs`)
-      .gte("start_at", timeMin.toISOString())
-      .lte("start_at", timeMax.toISOString())
-      .order("start_at", { ascending: true })
-      .limit(40);
-    return (data ?? []).map((e: any) => ({
+
+    const [{ data: events }, { data: members }] = await Promise.all([
+      admin.from("events")
+        .select("id, title, start_at, end_at, org_id, created_by, visibility, meet_link, attendees, event_attendees(user_id, status)")
+        .or(`org_id.in.(${orgIds.join(",")}),created_by.eq.${userId},visibility.eq.all_orgs`)
+        .gte("start_at", timeMin.toISOString())
+        .lte("start_at", timeMax.toISOString())
+        .order("start_at", { ascending: true })
+        .limit(60),
+      admin.from("org_memberships")
+        .select("user_id, profiles:user_id(display_name, email)")
+        .in("org_id", orgIds),
+    ]);
+
+    const mappedEvents = (events ?? []).map((e: any) => ({
       id: e.id,
       title: e.title,
       start: e.start_at,
@@ -226,8 +233,103 @@ async function fetchTeamCalendar(admin: any, userId: string, orgIds: string[], i
       created_by: e.created_by,
       visibility: e.visibility,
       attendees: e.attendees ?? [],
+      attendee_user_ids: (e.event_attendees ?? [])
+        .filter((a: any) => a.status !== "declined")
+        .map((a: any) => a.user_id),
       source: "team" as const,
     }));
+
+    const rosterMap = new Map<string, { user_id: string; name: string }>();
+    for (const m of (members ?? []) as any[]) {
+      if (!m.user_id || rosterMap.has(m.user_id)) continue;
+      rosterMap.set(m.user_id, {
+        user_id: m.user_id,
+        name: m.profiles?.display_name || m.profiles?.email || "Unknown",
+      });
+    }
+    const roster = Array.from(rosterMap.values());
+
+    const perMember = roster.map((r) => {
+      const busy = mappedEvents
+        .filter((e) => e.created_by === r.user_id || e.attendee_user_ids.includes(r.user_id))
+        .map((e) => ({ start: e.start, end: e.end ?? e.start, title: e.title }));
+      return { ...r, busy };
+    });
+
+    // Today working window 9-17 for conflict / open-slot analysis
+    const dayStart = new Date(); dayStart.setHours(9, 0, 0, 0);
+    const dayEnd = new Date(); dayEnd.setHours(17, 0, 0, 0);
+    type Iv = { start: Date; end: Date; user_id: string; title: string };
+    const ivs: Iv[] = [];
+    for (const m of perMember) {
+      for (const b of m.busy) {
+        if (!b.start || !b.end) continue;
+        const a = new Date(b.start), z = new Date(b.end);
+        if (z <= dayStart || a >= dayEnd) continue;
+        ivs.push({
+          start: a < dayStart ? dayStart : a,
+          end: z > dayEnd ? dayEnd : z,
+          user_id: m.user_id,
+          title: b.title,
+        });
+      }
+    }
+
+    // Sweep for conflicts (≥2 distinct members busy at the same moment)
+    const evts = ivs.flatMap((iv, idx) => [
+      { t: iv.start.getTime(), delta: 1, idx },
+      { t: iv.end.getTime(), delta: -1, idx },
+    ]).sort((a, b) => a.t - b.t || b.delta - a.delta);
+    const active = new Set<number>();
+    const conflicts: { start: string; end: string; members: string[]; titles: string[] }[] = [];
+    let confStart: number | null = null;
+    for (const p of evts) {
+      if (p.delta === 1) active.add(p.idx); else active.delete(p.idx);
+      const users = new Set(Array.from(active).map((i) => ivs[i].user_id));
+      if (users.size >= 2 && confStart === null) confStart = p.t;
+      else if (users.size < 2 && confStart !== null) {
+        const memberIds = Array.from(new Set(Array.from(active).map((i) => ivs[i].user_id)));
+        conflicts.push({
+          start: new Date(confStart).toISOString(),
+          end: new Date(p.t).toISOString(),
+          members: memberIds,
+          titles: Array.from(new Set(Array.from(active).map((i) => ivs[i].title))),
+        });
+        confStart = null;
+      }
+    }
+
+    // Open slots: windows during 9-17 today where NO member is busy
+    const merged: { start: Date; end: Date }[] = [];
+    for (const iv of ivs.slice().sort((a, b) => a.start.getTime() - b.start.getTime())) {
+      if (!merged.length || iv.start > merged[merged.length - 1].end) merged.push({ start: iv.start, end: iv.end });
+      else merged[merged.length - 1].end = new Date(Math.max(merged[merged.length - 1].end.getTime(), iv.end.getTime()));
+    }
+    const openSlots: { start: string; end: string; minutes: number }[] = [];
+    let cur = dayStart;
+    for (const m of merged) {
+      if (m.start > cur) {
+        const mins = Math.round((m.start.getTime() - cur.getTime()) / 60000);
+        if (mins >= 15) openSlots.push({ start: cur.toISOString(), end: m.start.toISOString(), minutes: mins });
+      }
+      if (m.end > cur) cur = m.end;
+    }
+    if (cur < dayEnd) {
+      const mins = Math.round((dayEnd.getTime() - cur.getTime()) / 60000);
+      if (mins >= 15) openSlots.push({ start: cur.toISOString(), end: dayEnd.toISOString(), minutes: mins });
+    }
+
+    return {
+      events: mappedEvents,
+      per_member: perMember.map((m) => ({
+        user_id: m.user_id,
+        name: m.name,
+        busy_count: m.busy.length,
+        busy: m.busy.slice(0, 8),
+      })),
+      conflicts,
+      open_slots: openSlots,
+    };
   } catch (e) {
     console.warn("fetchTeamCalendar failed", e);
     return null;
