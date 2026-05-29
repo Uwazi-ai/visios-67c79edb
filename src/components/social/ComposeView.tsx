@@ -192,6 +192,27 @@ export function ComposeView({
           )}
         </div>
 
+        {connectedCount === 0 && (
+          <div
+            className="glass p-3 rounded-lg flex items-start gap-3"
+            style={{ borderLeft: "2px solid #F59E0B", background: "rgba(245,158,11,0.08)" }}
+          >
+            <AlertCircle size={16} style={{ color: "#F59E0B", flexShrink: 0, marginTop: 2 }} />
+            <div className="flex-1">
+              <div style={{ fontSize: 12, color: "var(--text-primary)" }}>
+                No platforms connected yet. Connect your accounts in Settings to post directly from VisiOS.
+              </div>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("visios:social:goto-settings"))}
+                className="btn-ghost mt-1"
+                style={{ fontSize: 11, color: "#F59E0B" }}
+              >
+                Connect accounts →
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* AI brief */}
         <div className="glass p-4 rounded-xl">
           <div className="flex items-center gap-2 mb-2">
