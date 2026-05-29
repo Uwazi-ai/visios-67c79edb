@@ -18,6 +18,7 @@ interface Intent {
   mentionedPerson: string | null;
   mentionedCompany: string | null;
   mentionedPeople: string[];
+  mentionedOrgs: string[];
   timeframe: "today" | "week" | "month" | "general";
 }
 
@@ -25,7 +26,7 @@ const DEFAULT_INTENT: Intent = {
   needsEmails: false, needsCalendar: false, needsDrive: false, needsKnowledge: false,
   needsTasks: false, needsChat: false, needsContacts: false, needsTeamCalendar: false,
   isDailyBrief: false, isSchedulingRequest: false,
-  mentionedPerson: null, mentionedCompany: null, mentionedPeople: [],
+  mentionedPerson: null, mentionedCompany: null, mentionedPeople: [], mentionedOrgs: [],
   timeframe: "general",
 };
 
@@ -82,6 +83,7 @@ async function classifyIntent(message: string, isDailyBrief: boolean): Promise<I
                 mentionedPerson: { type: ["string", "null"] },
                 mentionedCompany: { type: ["string", "null"] },
                 mentionedPeople: { type: "array", items: { type: "string" } },
+                mentionedOrgs: { type: "array", items: { type: "string" } },
                 timeframe: { type: "string", enum: ["today", "week", "month", "general"] },
               },
               required: ["needsEmails","needsCalendar","needsDrive","needsKnowledge","needsTasks","needsChat","needsContacts","isSchedulingRequest","timeframe"],
@@ -102,6 +104,7 @@ async function classifyIntent(message: string, isDailyBrief: boolean): Promise<I
       ...parsed,
       isDailyBrief: fallback.isDailyBrief,
       mentionedPeople: parsed.mentionedPeople ?? (parsed.mentionedPerson ? [parsed.mentionedPerson] : []),
+      mentionedOrgs: parsed.mentionedOrgs ?? [],
       needsTeamCalendar: parsed.needsTeamCalendar ?? fallback.needsTeamCalendar,
     };
   } catch {
@@ -113,13 +116,13 @@ function header(msg: any, name: string): string {
   return msg?.payload?.headers?.find((h: any) => h.name?.toLowerCase() === name.toLowerCase())?.value ?? "";
 }
 
-async function fetchEmails(userId: string, intent: Intent) {
+async function fetchEmails(userId: string, intent: Intent, contactEmails: Set<string>, orgDomains: Set<string>) {
   try {
     const token = await getFreshGoogleAccessToken(userId);
     let q = "newer_than:2d -category:promotions -category:social";
     if (intent.isDailyBrief) q = "newer_than:2d is:unread -category:promotions -category:social";
     if (intent.mentionedPerson) q = `(from:${intent.mentionedPerson} OR to:${intent.mentionedPerson}) newer_than:30d`;
-    const max = intent.isDailyBrief ? 12 : 8;
+    const max = intent.isDailyBrief ? 20 : 10;
     const url = `https://gmail.googleapis.com/gmail/v1/users/me/threads?maxResults=${max}&q=${encodeURIComponent(q)}`;
     const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!r.ok) return null;
@@ -133,17 +136,34 @@ async function fetchEmails(userId: string, intent: Intent) {
       const td = await tr.json();
       const msg = td.messages?.[td.messages.length - 1];
       const labels: string[] = msg?.labelIds ?? [];
+      const from = header(msg, "From");
+      const fromEmail = (from.match(/<([^>]+)>/)?.[1] ?? from).toLowerCase().trim();
+      const fromDomain = fromEmail.split("@")[1] ?? "";
+      const unread = labels.includes("UNREAD");
+      const starred = labels.includes("STARRED");
+      // Importance: starred (3) + known contact (2) + org domain (2) + unread (1)
+      let importance = 0;
+      if (starred) importance += 3;
+      if (contactEmails.has(fromEmail)) importance += 2;
+      if (fromDomain && orgDomains.has(fromDomain)) importance += 2;
+      if (unread) importance += 1;
       return {
         id: t.id,
         subject: header(msg, "Subject"),
-        from: header(msg, "From"),
+        from,
         date: header(msg, "Date"),
         snippet: (msg?.snippet ?? "").slice(0, 220),
-        unread: labels.includes("UNREAD"),
-        starred: labels.includes("STARRED"),
+        unread,
+        starred,
+        importance,
       };
     }));
-    return detailed.filter(Boolean);
+    const list = detailed.filter(Boolean) as any[];
+    if (intent.isDailyBrief) {
+      list.sort((a, b) => (b.importance ?? 0) - (a.importance ?? 0));
+      return list.slice(0, 12);
+    }
+    return list;
   } catch (e) {
     console.warn("fetchEmails failed", e);
     return null;
@@ -214,13 +234,14 @@ async function fetchTeamCalendar(admin: any, userId: string, orgIds: string[], i
 }
 
 async function fetchDrive(userId: string, query: string, folderIds: string[]) {
-  if (!folderIds.length) return null;
   try {
     const token = await getFreshGoogleAccessToken(userId);
-    const terms = query.replace(/['"\\]/g, "").split(/\s+/).filter((w) => w.length > 3).slice(0, 4).join(" ");
+    const terms = (query || "").replace(/['"\\]/g, "").split(/\s+/).filter((w) => w.length > 3).slice(0, 4).join(" ");
     if (!terms) return null;
-    const folderClause = folderIds.map((id) => `'${id}' in parents`).join(" or ");
-    const q = `(${folderClause}) and fullText contains '${terms}' and trashed = false`;
+    const scopeClause = folderIds.length
+      ? `(${folderIds.map((id) => `'${id}' in parents`).join(" or ")}) and `
+      : "";
+    const q = `${scopeClause}fullText contains '${terms}' and trashed = false`;
     const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,mimeType,modifiedTime,webViewLink)&pageSize=5&orderBy=modifiedTime desc`;
     const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!r.ok) return null;
@@ -258,8 +279,23 @@ async function fetchContacts(admin: any, orgIds: string[], intent: Intent) {
   } catch (e) { console.warn("fetchContacts failed", e); return []; }
 }
 
-async function fetchKnowledge(admin: any, userId: string, orgIds: string[], query: string) {
+async function fetchKnowledge(admin: any, userId: string, orgIds: string[], query: string, isDailyBrief: boolean) {
   try {
+    // On daily brief without a strong query, surface the most recent ready docs
+    if (isDailyBrief && (!query || query.length < 4)) {
+      let q = admin.from("kb_documents")
+        .select("id, title, description, updated_at, org_id")
+        .eq("status", "ready")
+        .order("updated_at", { ascending: false })
+        .limit(5);
+      if (orgIds.length) q = q.or(`user_id.eq.${userId},org_id.in.(${orgIds.join(",")})`);
+      else q = q.eq("user_id", userId);
+      const { data } = await q;
+      return (data ?? []).map((d: any) => ({
+        id: d.id, document_id: d.id, document_title: d.title,
+        content: (d.description ?? "").slice(0, 400),
+      }));
+    }
     if (!query || query.length < 4) return [];
     const out: any[] = [];
     for (const oid of orgIds.length ? orgIds : [null]) {
@@ -334,20 +370,36 @@ Deno.serve(async (req) => {
     const wantEmails = gmailOn && (intent.needsEmails || intent.isDailyBrief);
     const wantCalendar = calendarOn && (intent.needsCalendar || intent.isDailyBrief);
     const wantTeamCal = (intent.needsTeamCalendar || intent.isDailyBrief || intent.isSchedulingRequest);
-    const wantDrive = driveOn && intent.needsDrive && driveFolderIds.length > 0;
+    const wantDrive = driveOn && (intent.needsDrive || intent.isDailyBrief);
     const wantTasks = intent.needsTasks || intent.isDailyBrief;
     const wantChat = intent.needsChat || intent.isDailyBrief;
-    const wantContacts = intent.needsContacts || intent.mentionedPeople.length > 0 || !!intent.mentionedPerson;
-    const wantKB = intent.needsKnowledge;
+    const wantContacts = intent.needsContacts || intent.mentionedPeople.length > 0 || !!intent.mentionedPerson || intent.isDailyBrief;
+    const wantKB = intent.needsKnowledge || intent.isDailyBrief;
+
+    // Pre-fetch contact/org hints for email importance scoring
+    const [{ data: contactRows }, { data: orgRows }] = await Promise.all([
+      admin.from("contacts").select("email").not("email", "is", null).limit(500),
+      orgIds.length
+        ? admin.from("orgs").select("metadata, slug").in("id", orgIds)
+        : Promise.resolve({ data: [] as any[] }),
+    ]);
+    const contactEmails = new Set<string>(
+      (contactRows ?? []).map((c: any) => String(c.email ?? "").toLowerCase()).filter(Boolean),
+    );
+    const orgDomains = new Set<string>();
+    for (const o of (orgRows ?? []) as any[]) {
+      const domains: string[] = Array.isArray(o?.metadata?.domains) ? o.metadata.domains : [];
+      for (const d of domains) if (d) orgDomains.add(String(d).toLowerCase());
+    }
 
     const [emailsR, calendarR, teamCalR, driveR, tasksR, contactsR, kbR, chatR] = await Promise.allSettled([
-      wantEmails ? fetchEmails(user.id, intent) : Promise.resolve(null),
+      wantEmails ? fetchEmails(user.id, intent, contactEmails, orgDomains) : Promise.resolve(null),
       wantCalendar ? fetchGoogleCalendar(user.id, intent) : Promise.resolve(null),
       wantTeamCal ? fetchTeamCalendar(admin, user.id, orgIds, intent) : Promise.resolve(null),
       wantDrive ? fetchDrive(user.id, userMessage, driveFolderIds) : Promise.resolve(null),
       wantTasks ? fetchTasks(admin, user.id, orgIds, intent) : Promise.resolve([]),
       wantContacts ? fetchContacts(admin, orgIds, intent) : Promise.resolve([]),
-      wantKB ? fetchKnowledge(admin, user.id, orgIds, userMessage) : Promise.resolve([]),
+      wantKB ? fetchKnowledge(admin, user.id, orgIds, userMessage, intent.isDailyBrief) : Promise.resolve([]),
       wantChat ? fetchChat(admin, user.id, orgIds, intent) : Promise.resolve([]),
     ]);
 
@@ -378,7 +430,7 @@ Deno.serve(async (req) => {
       org_ids: orgIds,
       sources: {
         gmail: gmailOn, calendar: calendarOn, team_calendar: orgIds.length > 0,
-        drive: driveOn && driveFolderIds.length > 0, kb: true, contacts: true,
+        drive: driveOn, kb: true, contacts: true,
         tasks: true, chat: true,
       },
     });
