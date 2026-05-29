@@ -2390,6 +2390,182 @@ export type Database = {
         }
         Relationships: []
       }
+      visi_agent_runs: {
+        Row: {
+          agent_id: string | null
+          created_at: string | null
+          duration_ms: number | null
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          make_execution_id: string | null
+          output_summary: string | null
+          started_at: string | null
+          status: string | null
+          triggered_by: string | null
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          make_execution_id?: string | null
+          output_summary?: string | null
+          started_at?: string | null
+          status?: string | null
+          triggered_by?: string | null
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string | null
+          duration_ms?: number | null
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          make_execution_id?: string | null
+          output_summary?: string | null
+          started_at?: string | null
+          status?: string | null
+          triggered_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visi_agent_runs_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "visi_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visi_agents: {
+        Row: {
+          ai_prompt: string | null
+          assigned_to: string[] | null
+          brand: string[] | null
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_prebuilt: boolean | null
+          last_run_at: string | null
+          last_run_status: string | null
+          make_scenario_id: string | null
+          make_scenario_url: string | null
+          name: string
+          run_count: number | null
+          template_key: string | null
+          trigger_config: Json | null
+          trigger_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_prompt?: string | null
+          assigned_to?: string[] | null
+          brand?: string[] | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_prebuilt?: boolean | null
+          last_run_at?: string | null
+          last_run_status?: string | null
+          make_scenario_id?: string | null
+          make_scenario_url?: string | null
+          name: string
+          run_count?: number | null
+          template_key?: string | null
+          trigger_config?: Json | null
+          trigger_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_prompt?: string | null
+          assigned_to?: string[] | null
+          brand?: string[] | null
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_prebuilt?: boolean | null
+          last_run_at?: string | null
+          last_run_status?: string | null
+          make_scenario_id?: string | null
+          make_scenario_url?: string | null
+          name?: string
+          run_count?: number | null
+          template_key?: string | null
+          trigger_config?: Json | null
+          trigger_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      visi_migration_tasks: {
+        Row: {
+          created_at: string | null
+          id: string
+          make_scenario_id: string | null
+          notes: string | null
+          status: string | null
+          updated_at: string | null
+          workflow_description: string | null
+          workflow_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          make_scenario_id?: string | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          workflow_description?: string | null
+          workflow_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          make_scenario_id?: string | null
+          notes?: string | null
+          status?: string | null
+          updated_at?: string | null
+          workflow_description?: string | null
+          workflow_name?: string
+        }
+        Relationships: []
+      }
+      visi_settings: {
+        Row: {
+          id: string
+          is_secret: boolean | null
+          key: string
+          updated_at: string | null
+          value: string | null
+        }
+        Insert: {
+          id?: string
+          is_secret?: boolean | null
+          key: string
+          updated_at?: string | null
+          value?: string | null
+        }
+        Update: {
+          id?: string
+          is_secret?: boolean | null
+          key?: string
+          updated_at?: string | null
+          value?: string | null
+        }
+        Relationships: []
+      }
       vision_conversations: {
         Row: {
           active_org_id: string | null
