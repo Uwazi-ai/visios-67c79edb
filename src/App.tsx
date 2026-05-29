@@ -33,6 +33,7 @@ import CapitalRaise from "./pages/CapitalRaise";
 import Social from "./pages/Social";
 import Agents from "./pages/Agents";
 import MakeIntegration from "./pages/MakeIntegration";
+import OAuthCallback from "./pages/OAuthCallback";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { RestrictedGuard } from "@/components/RestrictedGuard";
@@ -56,6 +57,7 @@ const App = () => (
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
               <Route path="/meet/:token" element={<ContactMeetPublic />} />
               <Route path="/card/:username" element={<CardPublic />} />
+              <Route path="/oauth-callback/:platform" element={<OAuthCallback />} />
               <Route element={<AppShell />}>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/vision" element={<Vision />} />

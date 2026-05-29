@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Upload, X, Plus, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { Sparkles, Upload, X, Plus, Loader2, ChevronDown, ChevronRight, AlertCircle } from "lucide-react";
 import {
   BRANDS, PLATFORMS, PLATFORM_LIMIT, type BrandKey, type SocialPlatform, ASSIGNEES,
 } from "./shared";
 import { generateSocialContent, type SocialPost } from "@/hooks/useSocialPosts";
+import { useSocialConnections } from "@/hooks/useSocialConnections";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Hook { type: string; text: string; }
@@ -39,6 +41,10 @@ export function ComposeView({
   const [assignedTo, setAssignedTo] = useState<string>("Anna");
   const [newTag, setNewTag] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [posting, setPosting] = useState(false);
+  const { tokens, getFor } = useSocialConnections();
+  const connectedCount = tokens.length;
+  const platformToken = getFor(platform);
 
   // Reset pillar when brand changes
   useEffect(() => { setPillar(cfg.pillars[0]); }, [brand, cfg.pillars]);
@@ -124,6 +130,51 @@ export function ComposeView({
     }
   };
 
+  const postNow = async () => {
+    if (!platformToken) {
+      toast.error(`Connect ${platform} in Settings first.`);
+      return;
+    }
+    if (!caption.trim()) {
+      toast.error("Caption is required.");
+      return;
+    }
+    setPosting(true);
+    try {
+      // Persist as scheduled-for-now first to get an id
+      const payload: Partial<SocialPost> = {
+        platform,
+        content_pillar: pillar,
+        hook: selectedHookIdx !== null && hooks ? hooks[selectedHookIdx].text : null,
+        caption,
+        hashtags,
+        script_outline: scriptOutline,
+        scheduled_at: new Date().toISOString(),
+        assigned_to: assignedTo,
+        status: "scheduled",
+        ai_generated: !!hooks,
+      };
+      const created = editingId
+        ? (await onUpdate(editingId, payload), { id: editingId } as SocialPost)
+        : await onCreate(payload);
+
+      const { data, error } = await supabase.functions.invoke("social-post", {
+        body: { post_id: created.id, platform, caption, hashtags },
+      });
+      if (error || (data as any)?.error || (data as any)?.success === false) {
+        const msg = error?.message || (data as any)?.error || "Post failed";
+        toast.error(msg);
+      } else {
+        toast.success(`Posted to ${platform} ✓`);
+        reset();
+      }
+    } catch (e: any) {
+      toast.error(e?.message || "Post failed");
+    } finally {
+      setPosting(false);
+    }
+  };
+
   const showScriptOutline = platform === "tiktok" || platform === "instagram";
 
   return (
@@ -137,22 +188,37 @@ export function ComposeView({
       <div className="max-w-3xl mx-auto p-5 space-y-5">
         {/* Top row */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: "var(--bg-glass-1)" }}>
-            {PLATFORMS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setPlatform(p.key)}
-                className="px-3 py-1.5 rounded-md transition"
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  background: platform === p.key ? "var(--bg-glass-3)" : "transparent",
-                  color: platform === p.key ? "var(--text-primary)" : "var(--text-secondary)",
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+          <div className="flex items-center gap-1 rounded-lg p-1 flex-wrap" style={{ background: "var(--bg-glass-1)" }}>
+            {PLATFORMS.map((p) => {
+              const tok = getFor(p.key);
+              const isActive = platform === p.key;
+              return (
+                <button
+                  key={p.key}
+                  onClick={() => setPlatform(p.key)}
+                  className="px-3 py-1.5 rounded-md transition flex items-center gap-1.5"
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    background: isActive ? "var(--bg-glass-3)" : "transparent",
+                    color: isActive ? "var(--text-primary)" : "var(--text-secondary)",
+                  }}
+                >
+                  <span>{p.label}</span>
+                  <span style={{
+                    width: 6, height: 6, borderRadius: 99,
+                    background: tok ? "#22C55E" : "#6b7280",
+                  }} />
+                  {tok ? (
+                    <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                      @{(tok.account_username || tok.account_name || "").replace(/^@/, "").slice(0, 14)}
+                    </span>
+                  ) : isActive ? (
+                    <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Connect →</span>
+                  ) : null}
+                </button>
+              );
+            })}
           </div>
 
           <select
@@ -170,6 +236,27 @@ export function ComposeView({
             </button>
           )}
         </div>
+
+        {connectedCount === 0 && (
+          <div
+            className="glass p-3 rounded-lg flex items-start gap-3"
+            style={{ borderLeft: "2px solid #F59E0B", background: "rgba(245,158,11,0.08)" }}
+          >
+            <AlertCircle size={16} style={{ color: "#F59E0B", flexShrink: 0, marginTop: 2 }} />
+            <div className="flex-1">
+              <div style={{ fontSize: 12, color: "var(--text-primary)" }}>
+                No platforms connected yet. Connect your accounts in Settings to post directly from VisiOS.
+              </div>
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("visios:social:goto-settings"))}
+                className="btn-ghost mt-1"
+                style={{ fontSize: 11, color: "#F59E0B" }}
+              >
+                Connect accounts →
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* AI brief */}
         <div className="glass p-4 rounded-xl">
@@ -371,19 +458,31 @@ export function ComposeView({
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2 justify-end">
+            <div className="flex gap-2 pt-2 justify-end flex-wrap">
               <button onClick={() => save("draft")} className="btn-ghost">Save to Queue</button>
-              <button
-                onClick={() => save("scheduled")}
-                className="btn-primary"
-                disabled={!scheduledAt}
-                title={!scheduledAt ? "Set a schedule time first" : "Schedule post"}
-              >
-                {scheduledAt ? "Schedule" : "Post Now"}
-              </button>
+              {scheduledAt ? (
+                <button
+                  onClick={() => save("scheduled")}
+                  className="btn-primary"
+                >
+                  Schedule
+                </button>
+              ) : (
+                <button
+                  onClick={postNow}
+                  className="btn-primary"
+                  disabled={!platformToken || posting}
+                  title={!platformToken ? `Connect ${platform} in Settings first` : "Publish now"}
+                  style={{ background: platformToken ? "#9bd34b" : undefined, color: platformToken ? "#000" : undefined }}
+                >
+                  {posting ? <><Loader2 size={12} className="animate-spin" /> Posting…</> : "Post Now"}
+                </button>
+              )}
             </div>
             <div style={{ fontSize: 10, color: "var(--text-muted)" }} className="text-right">
-              Post Now requires platform connection in Settings.
+              {platformToken
+                ? `Will publish as @${(platformToken.account_username || platformToken.account_name || "").replace(/^@/, "")}`
+                : `Connect ${platform} in Settings to enable Post Now.`}
             </div>
           </div>
         )}
