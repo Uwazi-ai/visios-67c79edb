@@ -425,7 +425,24 @@ export default function Vision() {
     } finally {
       setSending(false);
     }
-  }, [sending, user, activeConvId, persona, activeOrgId, activeOrg, messages, reloadConversations]);
+  }, [sending, user, activeConvId, persona, activeOrgId, activeOrg, messages, reloadConversations, navigate, memberships, orgs, isOwner, isRestricted]);
+
+  // Keep ref in sync so triggerDailyBrief can invoke without a dep cycle
+  useEffect(() => { sendMessageRef.current = sendMessage; }, [sendMessage]);
+
+  // Auto-trigger morning brief between 6am–9am once per local day
+  const autoBriefTried = useRef(false);
+  useEffect(() => {
+    if (autoBriefTried.current || !user) return;
+    const hr = new Date().getHours();
+    if (hr < 6 || hr >= 9) return;
+    autoBriefTried.current = true;
+    // Slight delay so initial conversations have loaded first
+    const t = setTimeout(() => { triggerDailyBrief("auto"); }, 800);
+    return () => clearTimeout(t);
+  }, [user, triggerDailyBrief]);
+
+
 
   const switchPersona = (next: PersonaKey) => {
     setPersona(next);
