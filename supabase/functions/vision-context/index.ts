@@ -116,13 +116,13 @@ function header(msg: any, name: string): string {
   return msg?.payload?.headers?.find((h: any) => h.name?.toLowerCase() === name.toLowerCase())?.value ?? "";
 }
 
-async function fetchEmails(userId: string, intent: Intent) {
+async function fetchEmails(userId: string, intent: Intent, contactEmails: Set<string>, orgDomains: Set<string>) {
   try {
     const token = await getFreshGoogleAccessToken(userId);
     let q = "newer_than:2d -category:promotions -category:social";
     if (intent.isDailyBrief) q = "newer_than:2d is:unread -category:promotions -category:social";
     if (intent.mentionedPerson) q = `(from:${intent.mentionedPerson} OR to:${intent.mentionedPerson}) newer_than:30d`;
-    const max = intent.isDailyBrief ? 12 : 8;
+    const max = intent.isDailyBrief ? 20 : 10;
     const url = `https://gmail.googleapis.com/gmail/v1/users/me/threads?maxResults=${max}&q=${encodeURIComponent(q)}`;
     const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!r.ok) return null;
@@ -136,17 +136,34 @@ async function fetchEmails(userId: string, intent: Intent) {
       const td = await tr.json();
       const msg = td.messages?.[td.messages.length - 1];
       const labels: string[] = msg?.labelIds ?? [];
+      const from = header(msg, "From");
+      const fromEmail = (from.match(/<([^>]+)>/)?.[1] ?? from).toLowerCase().trim();
+      const fromDomain = fromEmail.split("@")[1] ?? "";
+      const unread = labels.includes("UNREAD");
+      const starred = labels.includes("STARRED");
+      // Importance: starred (3) + known contact (2) + org domain (2) + unread (1)
+      let importance = 0;
+      if (starred) importance += 3;
+      if (contactEmails.has(fromEmail)) importance += 2;
+      if (fromDomain && orgDomains.has(fromDomain)) importance += 2;
+      if (unread) importance += 1;
       return {
         id: t.id,
         subject: header(msg, "Subject"),
-        from: header(msg, "From"),
+        from,
         date: header(msg, "Date"),
         snippet: (msg?.snippet ?? "").slice(0, 220),
-        unread: labels.includes("UNREAD"),
-        starred: labels.includes("STARRED"),
+        unread,
+        starred,
+        importance,
       };
     }));
-    return detailed.filter(Boolean);
+    const list = detailed.filter(Boolean) as any[];
+    if (intent.isDailyBrief) {
+      list.sort((a, b) => (b.importance ?? 0) - (a.importance ?? 0));
+      return list.slice(0, 12);
+    }
+    return list;
   } catch (e) {
     console.warn("fetchEmails failed", e);
     return null;
