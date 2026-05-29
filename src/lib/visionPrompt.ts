@@ -4,7 +4,7 @@ import { PERSONA_MAP, type PersonaKey } from "./aiPersonas";
 export interface VisionContext {
   intent?: any;
   emails?: { id: string; subject: string; from: string; date: string; snippet: string; unread?: boolean; starred?: boolean }[] | null;
-  calendar?: { id: string; title: string; start: string; end?: string; meetLink?: string | null; location?: string | null; attendees?: { email: string; name?: string; status?: string }[]; source?: "google" | "team"; org_id?: string | null }[] | null;
+  calendar?: { id: string; title: string; start: string; end?: string; meetLink?: string | null; location?: string | null; description?: string | null; attendees?: { email: string; name?: string; status?: string }[]; source?: "google" | "team"; org_id?: string | null }[] | null;
   team_calendar?: { id: string; title: string; start: string; end?: string; org_id?: string | null; created_by?: string | null }[] | null;
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; contentPreview?: string }[] | null;
   contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
@@ -12,6 +12,8 @@ export interface VisionContext {
   chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
   kb?: { id: string; document_id: string; document_title: string; content: string }[];
+  today_busy?: { start: string; end: string; title: string }[];
+  today_free?: { start: string; end: string; minutes: number }[];
   sources?: Record<string, boolean>;
 }
 
@@ -86,8 +88,19 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
       const att = (ev.attendees ?? []).map((a) => a.name || a.email).filter(Boolean).slice(0, 5).join(", ");
       const tag = ev.source === "team" ? " [team]" : "";
       const loc = ev.location ? ` @ ${ev.location}` : "";
-      lines.push(`• ${fmtDate(ev.start)}${ev.end ? `–${fmtDate(ev.end)}` : ""}${tag} — ${ev.title}${loc}${att ? ` | with ${att}` : ""}${ev.meetLink ? ` | Meet: ${ev.meetLink}` : ""}`);
+      const desc = ev.description ? `\n  note: ${ev.description}` : "";
+      lines.push(`• ${fmtDate(ev.start)}${ev.end ? `–${fmtDate(ev.end)}` : ""}${tag} — ${ev.title}${loc}${att ? ` | with ${att}` : ""}${ev.meetLink ? ` | Meet: ${ev.meetLink}` : ""}${desc}`);
     }
+  }
+
+  // Today's free/busy summary (working hours)
+  if (ctx.today_busy && ctx.today_busy.length) {
+    lines.push(`\n⏱ TODAY BUSY (9–17):`);
+    for (const b of ctx.today_busy) lines.push(`• ${fmtDate(b.start)}–${fmtDate(b.end)} — ${b.title}`);
+  }
+  if (ctx.today_free && ctx.today_free.length) {
+    lines.push(`\n🟢 TODAY FREE WINDOWS (9–17, ≥15min):`);
+    for (const f of ctx.today_free) lines.push(`• ${fmtDate(f.start)}–${fmtDate(f.end)} (${f.minutes} min)`);
   }
 
   // Tasks
