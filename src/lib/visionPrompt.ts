@@ -12,7 +12,7 @@ export interface VisionContext {
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; modifiedTime?: string; lastModifiedBy?: string | null; contentPreview?: string | null }[] | null;
   contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
   tasks?: { id?: string; title: string; status?: string; priority?: string; due_at?: string | null; start_date?: string | null; assignee_id?: string | null; org_id?: string | null; project?: { name?: string; emoji?: string } | null; buckets?: string[] }[];
-  chat?: { id: string; channel: string; user_id?: string | null; text: string; ts?: string }[] | null;
+  chat?: { id: string; channel: string; is_dm?: boolean; user_id?: string | null; thread_id?: string | null; text: string; ts?: string; buckets?: string[] }[] | null;
   slack?: { channel: string; user: string; text: string; ts?: string }[] | null;
   kb?: { id: string; document_id: string; document_title: string; content: string; source_type?: string | null; source_integration?: string | null; source_url?: string | null; category?: string | null; file_type?: string | null; updated_at?: string | null; score?: number | null }[];
   today_busy?: { start: string; end: string; title: string }[];
@@ -154,10 +154,16 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   // Chat
   if (ctx.chat && ctx.chat.length) {
-    lines.push(`\n💬 RECENT CHAT (${ctx.chat.length}):`);
-    for (const m of ctx.chat) {
-      lines.push(`• #${m.channel} — "${m.text}"`);
-    }
+    const mentions = ctx.chat.filter((m) => m.buckets?.includes("mention"));
+    const dms = ctx.chat.filter((m) => m.buckets?.includes("dm") && !m.buckets.includes("mention"));
+    const threads = ctx.chat.filter((m) => m.buckets?.includes("thread_reply") && !m.buckets.includes("mention") && !m.buckets.includes("dm"));
+    const rest = ctx.chat.filter((m) => !m.buckets?.some((b) => ["mention", "dm", "thread_reply"].includes(b)));
+    const render = (m: any) => `  • #${m.channel}${m.thread_id ? " (thread)" : ""} — "${m.text}" (${fmtDate(m.ts)})`;
+    lines.push(`\n💬 CHAT (${ctx.chat.length}):`);
+    if (mentions.length) { lines.push(`  @ Mentions of you (${mentions.length}):`); mentions.slice(0, 8).forEach((m) => lines.push(render(m))); }
+    if (dms.length) { lines.push(`  ✉️ DMs (${dms.length}):`); dms.slice(0, 6).forEach((m) => lines.push(render(m))); }
+    if (threads.length) { lines.push(`  🧵 Thread replies (${threads.length}):`); threads.slice(0, 6).forEach((m) => lines.push(render(m))); }
+    if (rest.length) { lines.push(`  📨 Other recent (${rest.length}):`); rest.slice(0, 8).forEach((m) => lines.push(render(m))); }
   }
 
   // Contacts
