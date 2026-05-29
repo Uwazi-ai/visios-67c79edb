@@ -347,15 +347,28 @@ export default function Vision() {
         wait();
       });
 
-      setMessages((prev) => prev.map((m) => m.id === assistantId
-        ? { ...m, content: accumulated, streaming: false, thinking: false } : m));
+      // Extract any trailing action JSON block
+      const { action, cleanedText } = extractActionFromResponse(accumulated);
+      const finalText = action ? cleanedText : accumulated;
 
-      // Persist assistant message
+      setMessages((prev) => prev.map((m) => m.id === assistantId
+        ? { ...m, content: finalText, streaming: false, thinking: false } : m));
+
+      // Persist assistant message (without the JSON block)
       const { data: savedMsg } = await supabase.from("vision_messages").insert({
-        conversation_id: convId, user_id: user.id, role: "assistant", content: accumulated, persona,
+        conversation_id: convId, user_id: user.id, role: "assistant", content: finalText, persona,
       }).select().single();
       if (savedMsg) {
         setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, id: savedMsg.id } : m));
+      }
+
+      // Dispatch action (after persisting)
+      if (action) {
+        try {
+          await handleVisionAction(action, { navigate, userId: user.id, activeOrgId });
+        } catch (err) {
+          console.warn("Vision action failed", err);
+        }
       }
 
       // Bump updated_at
