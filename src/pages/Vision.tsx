@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { VisionCircle } from "@/components/vision/VisionCircle";
 import { StreamingText } from "@/components/vision/StreamingText";
 import { ThinkingIndicator } from "@/components/vision/ThinkingIndicator";
+import { extractActionFromResponse, handleVisionAction } from "@/lib/visionActions";
 
 interface Conversation {
   id: string;
