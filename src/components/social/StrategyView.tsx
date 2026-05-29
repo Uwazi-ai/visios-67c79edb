@@ -165,7 +165,7 @@ export function StrategyView() {
                 onClick={async () => {
                   const { data: { user } } = await supabase.auth.getUser();
                   const { error } = await supabase.from("kb_documents").insert({
-                    user_id: user?.id, title: `90-Day Strategy — ${cfg.label}`,
+                    user_id: user?.id, title: `90-Day Social Strategy — ${cfg.label} — ${new Date().toLocaleString(undefined, { month: "long", year: "numeric" })}`,
                     full_text: strategy90, source_type: "manual", category: "Social Strategy", status: "ready",
                   });
                   if (error) toast.error(error.message); else toast.success("Saved to Knowledge Base");
