@@ -168,9 +168,16 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
 
   // KB
   if (ctx.kb && ctx.kb.length) {
-    lines.push(`\n📚 KNOWLEDGE BASE:`);
+    lines.push(`\n📚 KNOWLEDGE BASE (${ctx.kb.length}):`);
     for (const k of ctx.kb) {
-      lines.push(`[kb:${k.document_id}] ${k.document_title}\n${k.content.slice(0, 600)}`);
+      const meta = [
+        k.source_integration ?? k.source_type,
+        k.category,
+        k.file_type,
+        k.updated_at ? `updated ${fmtDate(k.updated_at)}` : "",
+      ].filter(Boolean).join(" · ");
+      const url = k.source_url ? `\n  url: ${k.source_url}` : "";
+      lines.push(`• [kb:${k.document_id}] ${k.document_title}${meta ? ` (${meta})` : ""}${url}\n  ${k.content.slice(0, 600)}`);
     }
   }
 
