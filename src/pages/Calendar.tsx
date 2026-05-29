@@ -247,8 +247,49 @@ export default function Calendar() {
         my_rsvp: myAttendee?.status ?? null,
       };
     });
-    setTeamEvents(mapped);
+
+    // Also fetch teammates' Google primary calendar events (server-side, uses each
+    // teammate's stored refresh token; private events are skipped).
+    let googleTeam: CalEvent[] = [];
+    const teammateIds = visibleMemberIds.filter((id) => id !== user.id);
+    if (teammateIds.length > 0) {
+      try {
+        const { data: gt } = await supabase.functions.invoke("calendar-list-team-events", {
+          body: { memberIds: teammateIds, timeMin: range.from.toISOString(), timeMax: range.to.toISOString() },
+        });
+        if (gt?.events) {
+          googleTeam = (gt.events as Array<{
+            id: string; owner_id: string; summary: string; start: string; end: string;
+            allDay: boolean; hangoutLink: string | null; htmlLink: string | null; attendees: string[];
+          }>).map((e) => {
+            const owner = teamMap.get(e.owner_id);
+            return {
+              id: e.id,
+              summary: e.summary,
+              description: "",
+              start: e.start,
+              end: e.end,
+              allDay: e.allDay,
+              attendees: e.attendees ?? [],
+              hangoutLink: e.hangoutLink,
+              htmlLink: e.htmlLink,
+              org_id: null,
+              org_color: colorForMember(e.owner_id),
+              owner_id: e.owner_id,
+              owner_name: owner?.display_name ?? owner?.email ?? null,
+              owner_avatar: owner?.avatar_url ?? null,
+              is_team_event: true,
+            } as CalEvent;
+          });
+        }
+      } catch (err) {
+        console.error("team google events", err);
+      }
+    }
+
+    setTeamEvents([...mapped, ...googleTeam]);
   }, [user, range.from, range.to, visibleMemberIds, teammates, me, orgs]);
+
 
   const loadEvents = useCallback(async () => {
     await Promise.all([loadGoogleEvents(), loadTeamEvents()]);
