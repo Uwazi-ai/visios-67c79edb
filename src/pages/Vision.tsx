@@ -582,6 +582,14 @@ export default function Vision() {
         <div className="flex items-center px-3 py-2 gap-2" style={{ borderBottom: "1px solid #1f1f2e" }}>
           <button onClick={() => setSidebarOpen(true)} className="text-gray-300 md:hidden"><Menu size={20} /></button>
           <div className="flex-1 text-center md:text-left text-white font-display font-bold md:pl-2">Vision</div>
+          <button
+            onClick={() => triggerDailyBrief("manual")}
+            disabled={sending}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs text-amber-300 hover:text-white hover:bg-[#1f2937] disabled:opacity-40"
+            title="Get my daily brief"
+          >
+            <Sun size={14} /> <span className="hidden sm:inline">Daily Brief</span>
+          </button>
           <div className="relative">
             <button
               onClick={() => setSourcesOpen((v) => !v)}
