@@ -336,7 +336,6 @@ async function fetchTeamCalendar(admin: any, userId: string, orgIds: string[], i
   }
 }
 
-async function fetchDrive(userId: string, query: string, folderIds: string[]) {
 async function exportDriveFile(token: string, fileId: string, mimeType: string): Promise<string | null> {
   try {
     let url: string;
