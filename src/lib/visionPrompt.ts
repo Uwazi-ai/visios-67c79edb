@@ -106,6 +106,26 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
     for (const f of ctx.today_free) lines.push(`• ${fmtDate(f.start)}–${fmtDate(f.end)} (${f.minutes} min)`);
   }
 
+  // Team availability (per-member load, conflicts, open team slots)
+  if (ctx.team_per_member && ctx.team_per_member.length) {
+    lines.push(`\n👥 TEAM LOAD TODAY:`);
+    for (const m of ctx.team_per_member) {
+      lines.push(`• ${m.name}: ${m.busy_count} event${m.busy_count === 1 ? "" : "s"}`);
+    }
+  }
+  if (ctx.team_conflicts && ctx.team_conflicts.length) {
+    lines.push(`\n⚠️ TEAM CONFLICTS (≥2 members busy):`);
+    for (const c of ctx.team_conflicts.slice(0, 8)) {
+      lines.push(`• ${fmtDate(c.start)}–${fmtDate(c.end)} — ${c.titles.join(" / ")}`);
+    }
+  }
+  if (ctx.team_open_slots && ctx.team_open_slots.length) {
+    lines.push(`\n🟩 TEAM-WIDE OPEN SLOTS TODAY (everyone free, 9–17):`);
+    for (const s of ctx.team_open_slots.slice(0, 8)) {
+      lines.push(`• ${fmtDate(s.start)}–${fmtDate(s.end)} (${s.minutes} min)`);
+    }
+  }
+
   // Tasks
   if (ctx.tasks && ctx.tasks.length) {
     lines.push(`\n✅ OPEN TASKS (${ctx.tasks.length}):`);
