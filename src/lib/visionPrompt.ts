@@ -6,6 +6,9 @@ export interface VisionContext {
   emails?: { id: string; subject: string; from: string; date: string; snippet: string; unread?: boolean; starred?: boolean }[] | null;
   calendar?: { id: string; title: string; start: string; end?: string; meetLink?: string | null; location?: string | null; description?: string | null; attendees?: { email: string; name?: string; status?: string }[]; source?: "google" | "team"; org_id?: string | null }[] | null;
   team_calendar?: { id: string; title: string; start: string; end?: string; org_id?: string | null; created_by?: string | null }[] | null;
+  team_per_member?: { user_id: string; name: string; busy_count: number; busy: { start: string; end?: string; title: string }[] }[];
+  team_conflicts?: { start: string; end: string; members: string[]; titles: string[] }[];
+  team_open_slots?: { start: string; end: string; minutes: number }[];
   drive?: { id: string; name: string; mimeType: string; webViewLink?: string; contentPreview?: string }[] | null;
   contacts?: { name: string; email?: string | null; company?: string | null; role?: string | null; last_touched_at?: string | null }[];
   tasks?: { title: string; status?: string; priority?: string; due_at?: string | null; assignee_id?: string | null }[];
@@ -101,6 +104,26 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   if (ctx.today_free && ctx.today_free.length) {
     lines.push(`\n🟢 TODAY FREE WINDOWS (9–17, ≥15min):`);
     for (const f of ctx.today_free) lines.push(`• ${fmtDate(f.start)}–${fmtDate(f.end)} (${f.minutes} min)`);
+  }
+
+  // Team availability (per-member load, conflicts, open team slots)
+  if (ctx.team_per_member && ctx.team_per_member.length) {
+    lines.push(`\n👥 TEAM LOAD TODAY:`);
+    for (const m of ctx.team_per_member) {
+      lines.push(`• ${m.name}: ${m.busy_count} event${m.busy_count === 1 ? "" : "s"}`);
+    }
+  }
+  if (ctx.team_conflicts && ctx.team_conflicts.length) {
+    lines.push(`\n⚠️ TEAM CONFLICTS (≥2 members busy):`);
+    for (const c of ctx.team_conflicts.slice(0, 8)) {
+      lines.push(`• ${fmtDate(c.start)}–${fmtDate(c.end)} — ${c.titles.join(" / ")}`);
+    }
+  }
+  if (ctx.team_open_slots && ctx.team_open_slots.length) {
+    lines.push(`\n🟩 TEAM-WIDE OPEN SLOTS TODAY (everyone free, 9–17):`);
+    for (const s of ctx.team_open_slots.slice(0, 8)) {
+      lines.push(`• ${fmtDate(s.start)}–${fmtDate(s.end)} (${s.minutes} min)`);
+    }
   }
 
   // Tasks
