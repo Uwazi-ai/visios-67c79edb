@@ -279,8 +279,23 @@ async function fetchContacts(admin: any, orgIds: string[], intent: Intent) {
   } catch (e) { console.warn("fetchContacts failed", e); return []; }
 }
 
-async function fetchKnowledge(admin: any, userId: string, orgIds: string[], query: string) {
+async function fetchKnowledge(admin: any, userId: string, orgIds: string[], query: string, isDailyBrief: boolean) {
   try {
+    // On daily brief without a strong query, surface the most recent ready docs
+    if (isDailyBrief && (!query || query.length < 4)) {
+      let q = admin.from("kb_documents")
+        .select("id, title, description, updated_at, org_id")
+        .eq("status", "ready")
+        .order("updated_at", { ascending: false })
+        .limit(5);
+      if (orgIds.length) q = q.or(`user_id.eq.${userId},org_id.in.(${orgIds.join(",")})`);
+      else q = q.eq("user_id", userId);
+      const { data } = await q;
+      return (data ?? []).map((d: any) => ({
+        id: d.id, document_id: d.id, document_title: d.title,
+        content: (d.description ?? "").slice(0, 400),
+      }));
+    }
     if (!query || query.length < 4) return [];
     const out: any[] = [];
     for (const oid of orgIds.length ? orgIds : [null]) {
