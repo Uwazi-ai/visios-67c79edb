@@ -31,6 +31,7 @@ import AISettings from "./pages/AISettings";
 import Vision from "./pages/Vision";
 import CapitalRaise from "./pages/CapitalRaise";
 import Social from "./pages/Social";
+import Agents from "./pages/Agents";
 import MakeIntegration from "./pages/MakeIntegration";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
@@ -64,6 +65,7 @@ const App = () => (
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
                 <Route path="/social" element={<Social />} />
+                <Route path="/agents" element={<Agents />} />
                 <Route path="/chat" element={<ChatPage />} />
                 <Route path="/notifications" element={<RestrictedGuard><NotificationsPage /></RestrictedGuard>} />
                 <Route path="/contacts" element={<ContactsPage />} />
