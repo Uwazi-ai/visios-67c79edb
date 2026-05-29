@@ -88,8 +88,19 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
       const att = (ev.attendees ?? []).map((a) => a.name || a.email).filter(Boolean).slice(0, 5).join(", ");
       const tag = ev.source === "team" ? " [team]" : "";
       const loc = ev.location ? ` @ ${ev.location}` : "";
-      lines.push(`• ${fmtDate(ev.start)}${ev.end ? `–${fmtDate(ev.end)}` : ""}${tag} — ${ev.title}${loc}${att ? ` | with ${att}` : ""}${ev.meetLink ? ` | Meet: ${ev.meetLink}` : ""}`);
+      const desc = ev.description ? `\n  note: ${ev.description}` : "";
+      lines.push(`• ${fmtDate(ev.start)}${ev.end ? `–${fmtDate(ev.end)}` : ""}${tag} — ${ev.title}${loc}${att ? ` | with ${att}` : ""}${ev.meetLink ? ` | Meet: ${ev.meetLink}` : ""}${desc}`);
     }
+  }
+
+  // Today's free/busy summary (working hours)
+  if (ctx.today_busy && ctx.today_busy.length) {
+    lines.push(`\n⏱ TODAY BUSY (9–17):`);
+    for (const b of ctx.today_busy) lines.push(`• ${fmtDate(b.start)}–${fmtDate(b.end)} — ${b.title}`);
+  }
+  if (ctx.today_free && ctx.today_free.length) {
+    lines.push(`\n🟢 TODAY FREE WINDOWS (9–17, ≥15min):`);
+    for (const f of ctx.today_free) lines.push(`• ${fmtDate(f.start)}–${fmtDate(f.end)} (${f.minutes} min)`);
   }
 
   // Tasks
