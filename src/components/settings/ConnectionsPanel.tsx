@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Mail, Calendar, FolderOpen, Users, CheckSquare, MessageSquare, BookOpen, Ticket, FileText, Eye, EyeOff } from "lucide-react";
 import SharedDrivesPanel from "./SharedDrivesPanel";
+import MCPTokensPanel from "./MCPTokensPanel";
 
 interface IntegrationRow {
   id: string;
@@ -173,6 +174,8 @@ export default function ConnectionsPanel() {
       )}
 
       {hasGoogle && <SharedDrivesPanel />}
+
+      <MCPTokensPanel />
     </div>
   );
 }

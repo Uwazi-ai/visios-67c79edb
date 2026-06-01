@@ -1,19 +1,16 @@
 /**
- * VisiOS MCP Server
- * Supabase Edge Function — Streamable HTTP transport (stateless JSON-RPC)
+ * VisiOS MCP Server — team-wide, Streamable HTTP (stateless JSON-RPC)
  *
- * Exposes VisiOS data as MCP tools so Claude can directly read context,
- * create tasks, fire notifications, and queue agent approval requests.
+ * Auth:
+ *   Authorization: Bearer <token>
+ *   - tokens issued per-user via Settings → MCP Tokens (table: public.mcp_tokens)
+ *   - legacy fallback: VISI_MCP_API_KEY env var maps to VISI_MCP_USER_ID (Myke)
  *
- * Auth: Bearer token in Authorization header (VISI_MCP_API_KEY env var)
- * Scope: All operations are scoped to VISI_MCP_USER_ID env var (Myke's user)
- *
- * Connect in Claude settings:
- *   URL: https://<project>.supabase.co/functions/v1/visi-mcp
- *   Header: Authorization: Bearer <VISI_MCP_API_KEY>
+ * Every tool call is scoped to the caller's user_id and their org memberships.
  */
 
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.45.0";
+import { getFreshGoogleAccessToken } from "../_shared/google.ts";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,316 +48,100 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function mcpOk(id: string | number | null, result: unknown): MCPResponse {
-  return { jsonrpc: "2.0", id, result };
+const mcpOk = (id: any, result: unknown): MCPResponse => ({ jsonrpc: "2.0", id, result });
+const mcpErr = (id: any, code: number, message: string, data?: unknown): MCPResponse =>
+  ({ jsonrpc: "2.0", id, error: { code, message, data } });
+
+const toolResult = (content: unknown) => ({
+  content: [{ type: "text", text: JSON.stringify(content, null, 2) }],
+});
+const toolError = (message: string) => ({
+  content: [{ type: "text", text: `Error: ${message}` }],
+  isError: true,
+});
+
+async function sha256Hex(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function mcpErr(
-  id: string | number | null,
-  code: number,
-  message: string,
-  data?: unknown,
-): MCPResponse {
-  return { jsonrpc: "2.0", id, error: { code, message, data } };
+async function resolveUserId(admin: SupabaseClient, token: string): Promise<string | null> {
+  if (!token) return null;
+  // Legacy env-var token fallback (Myke's existing setup)
+  const envKey = Deno.env.get("VISI_MCP_API_KEY");
+  const envUser = Deno.env.get("VISI_MCP_USER_ID");
+  if (envKey && envUser && token === envKey) return envUser;
+  // Per-user token lookup
+  const hash = await sha256Hex(token);
+  const { data } = await admin.rpc("mcp_token_lookup", { _hash: hash });
+  if (!data) return null;
+  // best-effort last_used_at update
+  admin.from("mcp_tokens").update({ last_used_at: new Date().toISOString() })
+    .eq("token_hash", hash).then(() => {});
+  return data as string;
 }
 
-function toolResult(content: unknown) {
-  return {
-    content: [{ type: "text", text: JSON.stringify(content, null, 2) }],
-  };
+async function allowedOrgIds(admin: SupabaseClient, userId: string): Promise<string[]> {
+  const { data } = await admin.from("org_memberships").select("org_id").eq("user_id", userId);
+  return (data ?? []).map((r: any) => r.org_id);
 }
 
-function toolError(message: string) {
-  return {
-    content: [{ type: "text", text: `Error: ${message}` }],
-    isError: true,
-  };
+function checkOrg(orgIds: string[], orgId: unknown): string | null {
+  if (typeof orgId !== "string") return "org_id is required";
+  if (!orgIds.includes(orgId)) return "You do not have access to that org";
+  return null;
 }
 
 // ─── Tool Definitions ─────────────────────────────────────────────────────────
 
 const TOOLS = [
-  {
-    name: "visi_get_context",
-    description:
-      "Get the full VisiOS context snapshot: active orgs, their projects, open task counts, and recent notifications. Call this first in every agent session to understand the current state of Myke's work.",
-    inputSchema: { type: "object", properties: {}, required: [] },
-  },
-  {
-    name: "visi_get_tasks",
-    description:
-      "Get tasks from VisiOS. Filter by org, project, status, or priority. Returns tasks with title, status, priority, due date, and section.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        org_id: { type: "string", description: "Filter by org ID" },
-        project_id: { type: "string", description: "Filter by project ID" },
-        status: {
-          type: "string",
-          enum: ["todo", "in_progress", "done", "blocked"],
-          description: "Filter by status",
-        },
-        priority: {
-          type: "string",
-          enum: ["urgent", "high", "medium", "low"],
-          description: "Filter by priority",
-        },
-        limit: { type: "number", description: "Max results (default 25, max 50)" },
-      },
-      required: [],
-    },
-  },
-  {
-    name: "visi_get_projects",
-    description: "Get all active projects, optionally filtered by org.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        org_id: { type: "string", description: "Filter by org ID" },
-        include_archived: {
-          type: "boolean",
-          description: "Include archived projects (default false)",
-        },
-      },
-      required: [],
-    },
-  },
-  {
-    name: "visi_get_notifications",
-    description:
-      "Get VisiOS notifications. By default returns only unacknowledged ones.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        include_acknowledged: {
-          type: "boolean",
-          description: "Include already-acknowledged notifications",
-        },
-        app: {
-          type: "string",
-          description: 'Filter by app/agent source (e.g. "bug_patrol", "growth_radar")',
-        },
-        limit: { type: "number", description: "Max results (default 20)" },
-      },
-      required: [],
-    },
-  },
-  {
-    name: "visi_create_task",
-    description:
-      "Create a new task in VisiOS. Always provide org_id. Project and section are optional.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        title: { type: "string", description: "Task title (required)" },
-        description: { type: "string", description: "Task description / body" },
-        org_id: { type: "string", description: "Org this task belongs to (required)" },
-        project_id: { type: "string", description: "Project ID" },
-        section_id: { type: "string", description: "Section ID" },
-        priority: {
-          type: "string",
-          enum: ["urgent", "high", "medium", "low"],
-          description: "Priority level",
-        },
-        due_at: {
-          type: "string",
-          description: "Due date ISO string (e.g. 2026-05-15T00:00:00Z)",
-        },
-        estimate_mins: { type: "number", description: "Time estimate in minutes" },
-      },
-      required: ["title", "org_id"],
-    },
-  },
-  {
-    name: "visi_update_task",
-    description:
-      "Update an existing task. Use this to change status, priority, due date, or description.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        task_id: { type: "string", description: "Task ID to update (required)" },
-        status: { type: "string", enum: ["todo", "in_progress", "done", "blocked"] },
-        priority: { type: "string", enum: ["urgent", "high", "medium", "low"] },
-        title: { type: "string" },
-        description: { type: "string" },
-        due_at: { type: "string", description: "ISO date string" },
-        completed_at: {
-          type: "string",
-          description: "Set to mark as complete (ISO string)",
-        },
-      },
-      required: ["task_id"],
-    },
-  },
-  {
-    name: "visi_notify",
-    description:
-      "Push a read-only notification into VisiOS. Use for alerts that don't require Myke's approval — new users, build completions, milestone hits, FYI events.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        app: {
-          type: "string",
-          description:
-            'Agent source name (e.g. "bug_patrol", "growth_radar", "sprint_commander", "content_studio")',
-        },
-        title: { type: "string", description: "Notification title (required)" },
-        body: { type: "string", description: "Notification body / detail" },
-        severity: {
-          type: "string",
-          enum: ["info", "warning", "critical"],
-          description: "Severity level (default: info)",
-        },
-        metadata: {
-          type: "object",
-          description: "Structured payload (user data, error details, etc.)",
-        },
-        org_id: { type: "string", description: "Org this notification is for" },
-      },
-      required: ["app", "title"],
-    },
-  },
-  {
-    name: "visi_request_approval",
-    description:
-      "Queue an action for Myke's approval inside VisiOS. Use for anything that touches production: opening PRs, publishing content, triggering deploys, sending communications. Creates a pending item Myke must approve or reject.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        title: { type: "string", description: "What is being requested (required)" },
-        body: {
-          type: "string",
-          description: "Full context, diff, script, or plan being approved",
-        },
-        source: {
-          type: "string",
-          description: 'Which agent is requesting (e.g. "bug_patrol", "content_studio")',
-        },
-        org_id: { type: "string", description: "Org this request relates to" },
-        priority: { type: "string", enum: ["urgent", "high", "medium", "low"] },
-        metadata: {
-          type: "object",
-          description: "Structured payload (PR url, content script, deploy config, etc.)",
-        },
-      },
-      required: ["title", "source"],
-    },
-  },
-  {
-    name: "visi_get_pending_approvals",
-    description:
-      "Get all items currently awaiting Myke's approval, sorted by priority then creation date.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        source: { type: "string", description: "Filter by agent source" },
-      },
-      required: [],
-    },
-  },
-  {
-    name: "visi_resolve_approval",
-    description:
-      "Approve or reject a pending approval item. Once resolved, agents can proceed (approved) or abort (rejected).",
-    inputSchema: {
-      type: "object",
-      properties: {
-        item_id: { type: "string", description: "Item ID to resolve (required)" },
-        resolution: {
-          type: "string",
-          enum: ["approved", "rejected"],
-          description: "Resolution decision (required)",
-        },
-        notes: {
-          type: "string",
-          description: "Optional notes from Myke about the decision",
-        },
-      },
-      required: ["item_id", "resolution"],
-    },
-  },
-  {
-    name: "visi_log_activity",
-    description:
-      "Log an activity entry to a task's timeline. Use to record what an agent did (bug triage, PR opened, content generated, etc.).",
-    inputSchema: {
-      type: "object",
-      properties: {
-        task_id: { type: "string", description: "Task ID to log against (required)" },
-        org_id: { type: "string", description: "Org ID (required)" },
-        kind: {
-          type: "string",
-          description:
-            'Activity kind (e.g. "agent_comment", "status_change", "bug_triage", "pr_opened")',
-        },
-        body: { type: "string", description: "Activity message / description" },
-        metadata: { type: "object", description: "Additional structured data" },
-      },
-      required: ["task_id", "org_id", "kind"],
-    },
-  },
-  {
-    name: "visi_search_kb",
-    description:
-      "Full-text search across the VisiOS knowledge base. Use to find playbooks, policies, process docs, and reference material.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        query: { type: "string", description: "Search query (required)" },
-        org_id: { type: "string", description: "Limit search to a specific org" },
-        limit: { type: "number", description: "Max results (default 5)" },
-      },
-      required: ["query"],
-    },
-  },
+  { name: "visi_get_context", description: "Get the full VisiOS context: your orgs, projects, open task counts, recent notifications. Call this first.", inputSchema: { type: "object", properties: {}, required: [] } },
+  { name: "visi_list_orgs", description: "List all orgs you are a member of.", inputSchema: { type: "object", properties: {}, required: [] } },
+  { name: "visi_list_team", description: "List members of an org you belong to.", inputSchema: { type: "object", properties: { org_id: { type: "string" } }, required: ["org_id"] } },
+  { name: "visi_get_tasks", description: "Get tasks. Filter by org, project, status, priority.", inputSchema: { type: "object", properties: { org_id: { type: "string" }, project_id: { type: "string" }, status: { type: "string", enum: ["todo", "in_progress", "done", "blocked"] }, priority: { type: "string", enum: ["urgent", "high", "medium", "low"] }, limit: { type: "number" } }, required: [] } },
+  { name: "visi_get_projects", description: "Get active projects, optionally by org.", inputSchema: { type: "object", properties: { org_id: { type: "string" }, include_archived: { type: "boolean" } }, required: [] } },
+  { name: "visi_get_notifications", description: "Get notifications (unacknowledged by default).", inputSchema: { type: "object", properties: { include_acknowledged: { type: "boolean" }, app: { type: "string" }, limit: { type: "number" } }, required: [] } },
+  { name: "visi_create_task", description: "Create a task. org_id required.", inputSchema: { type: "object", properties: { title: { type: "string" }, description: { type: "string" }, org_id: { type: "string" }, project_id: { type: "string" }, section_id: { type: "string" }, priority: { type: "string", enum: ["urgent", "high", "medium", "low"] }, due_at: { type: "string" }, estimate_mins: { type: "number" } }, required: ["title", "org_id"] } },
+  { name: "visi_update_task", description: "Update an existing task.", inputSchema: { type: "object", properties: { task_id: { type: "string" }, status: { type: "string", enum: ["todo", "in_progress", "done", "blocked"] }, priority: { type: "string", enum: ["urgent", "high", "medium", "low"] }, title: { type: "string" }, description: { type: "string" }, due_at: { type: "string" }, completed_at: { type: "string" } }, required: ["task_id"] } },
+  { name: "visi_notify", description: "Push a notification into VisiOS (FYI-style, no approval needed).", inputSchema: { type: "object", properties: { app: { type: "string" }, title: { type: "string" }, body: { type: "string" }, severity: { type: "string", enum: ["info", "warning", "critical"] }, metadata: { type: "object" }, org_id: { type: "string" } }, required: ["app", "title"] } },
+  { name: "visi_request_approval", description: "Queue an action for human approval inside VisiOS.", inputSchema: { type: "object", properties: { title: { type: "string" }, body: { type: "string" }, source: { type: "string" }, org_id: { type: "string" }, priority: { type: "string", enum: ["urgent", "high", "medium", "low"] }, metadata: { type: "object" } }, required: ["title", "source"] } },
+  { name: "visi_get_pending_approvals", description: "List items awaiting your approval.", inputSchema: { type: "object", properties: { source: { type: "string" } }, required: [] } },
+  { name: "visi_resolve_approval", description: "Approve or reject a pending approval item.", inputSchema: { type: "object", properties: { item_id: { type: "string" }, resolution: { type: "string", enum: ["approved", "rejected"] }, notes: { type: "string" } }, required: ["item_id", "resolution"] } },
+  { name: "visi_log_activity", description: "Append an activity entry to a task's timeline.", inputSchema: { type: "object", properties: { task_id: { type: "string" }, org_id: { type: "string" }, kind: { type: "string" }, body: { type: "string" }, metadata: { type: "object" } }, required: ["task_id", "org_id", "kind"] } },
+  { name: "visi_search_kb", description: "Full-text search across the VisiOS knowledge base.", inputSchema: { type: "object", properties: { query: { type: "string" }, org_id: { type: "string" }, limit: { type: "number" } }, required: ["query"] } },
+  { name: "visi_search_contacts", description: "Search contacts in your orgs by name, email, or company.", inputSchema: { type: "object", properties: { query: { type: "string" }, org_id: { type: "string" }, limit: { type: "number" } }, required: ["query"] } },
+  { name: "visi_get_contact", description: "Get a contact by id.", inputSchema: { type: "object", properties: { contact_id: { type: "string" } }, required: ["contact_id"] } },
+  { name: "visi_get_calendar", description: "Get your Google Calendar events for a date range (defaults to next 7 days).", inputSchema: { type: "object", properties: { time_min: { type: "string", description: "ISO datetime, default = now" }, time_max: { type: "string", description: "ISO datetime, default = now+7d" }, max_results: { type: "number" } }, required: [] } },
+  { name: "visi_create_calendar_event", description: "Create a Google Calendar event on your primary calendar.", inputSchema: { type: "object", properties: { summary: { type: "string" }, description: { type: "string" }, start: { type: "string", description: "ISO datetime" }, end: { type: "string", description: "ISO datetime" }, attendees: { type: "array", items: { type: "string", description: "email" } } }, required: ["summary", "start", "end"] } },
+  { name: "visi_list_emails", description: "List recent Gmail threads. Supports a Gmail search query.", inputSchema: { type: "object", properties: { query: { type: "string", description: "Gmail search syntax (e.g. 'is:unread', 'from:foo@bar.com')" }, limit: { type: "number" } }, required: [] } },
+  { name: "visi_get_email", description: "Get a Gmail thread by id (returns subject, participants, and message bodies).", inputSchema: { type: "object", properties: { thread_id: { type: "string" } }, required: ["thread_id"] } },
+  { name: "visi_search_drive", description: "Search across the shared drives of your orgs.", inputSchema: { type: "object", properties: { query: { type: "string" }, org_id: { type: "string", description: "Limit to one org's drive" }, limit: { type: "number" } }, required: ["query"] } },
+  { name: "visi_list_grants", description: "List grant opportunities. Filter by status (UWAZI grants pipeline).", inputSchema: { type: "object", properties: { status: { type: "string", enum: ["identified", "drafting", "submitted", "awarded", "rejected"] }, limit: { type: "number" } }, required: [] } },
+  { name: "visi_get_grant_proposal", description: "Get the full text of a grant proposal by id.", inputSchema: { type: "object", properties: { proposal_id: { type: "string" } }, required: ["proposal_id"] } },
 ];
 
-// ─── Tool Handlers ────────────────────────────────────────────────────────────
+// ─── Handlers ─────────────────────────────────────────────────────────────────
 
 async function handleGetContext(admin: SupabaseClient, userId: string) {
+  const orgIds = await allowedOrgIds(admin, userId);
   const [orgsRes, projectsRes, tasksRes, notifsRes] = await Promise.all([
-    admin
-      .from("org_memberships")
-      .select(
-        "role, orgs(id, name, short_name, slug, color, is_active, description, success_metric)",
-      )
-      .eq("user_id", userId),
-    admin
-      .from("projects")
-      .select("id, name, status, emoji, org_id, description")
-      .eq("is_archived", false)
-      .order("display_order"),
-    admin
-      .from("tasks")
-      .select("id, title, status, priority, due_at, org_id, project_id")
-      .neq("status", "done")
-      .order("due_at", { ascending: true, nullsFirst: false })
-      .limit(20),
-    admin
-      .from("notifications")
-      .select("id, app, title, body, severity, created_at, org_id")
-      .is("acknowledged_at", null)
-      .order("created_at", { ascending: false })
-      .limit(10),
+    admin.from("orgs").select("id, name, short_name, slug, color, is_active, description").in("id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"]),
+    admin.from("projects").select("id, name, status, emoji, org_id").in("org_id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"]).eq("is_archived", false).order("display_order"),
+    admin.from("tasks").select("id, title, status, priority, due_at, org_id, project_id").in("org_id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"]).neq("status", "done").order("due_at", { ascending: true, nullsFirst: false }).limit(20),
+    admin.from("notifications").select("id, app, title, body, severity, created_at, org_id").is("acknowledged_at", null).order("created_at", { ascending: false }).limit(10),
   ]);
-
-  const orgs = (orgsRes.data ?? []).map((m: any) => m.orgs).filter(Boolean);
+  const orgs = orgsRes.data ?? [];
   const projects = projectsRes.data ?? [];
   const tasks = tasksRes.data ?? [];
   const notifications = notifsRes.data ?? [];
-
-  const orgSummary = orgs.map((org: any) => ({
-    ...org,
-    projects: projects.filter((p: any) => p.org_id === org.id),
-    open_tasks: tasks.filter((t: any) => t.org_id === org.id).length,
-    urgent_tasks: tasks.filter(
-      (t: any) => t.org_id === org.id && t.priority === "urgent",
-    ).length,
-  }));
-
   return toolResult({
     user_id: userId,
-    orgs: orgSummary,
+    orgs: orgs.map((o: any) => ({
+      ...o,
+      projects: projects.filter((p: any) => p.org_id === o.id),
+      open_tasks: tasks.filter((t: any) => t.org_id === o.id).length,
+      urgent_tasks: tasks.filter((t: any) => t.org_id === o.id && t.priority === "urgent").length,
+    })),
     unacknowledged_notifications: notifications.length,
     recent_notifications: notifications.slice(0, 3),
     open_tasks_total: tasks.length,
@@ -368,90 +149,98 @@ async function handleGetContext(admin: SupabaseClient, userId: string) {
   });
 }
 
-async function handleGetTasks(admin: SupabaseClient, args: Record<string, unknown>) {
-  let q = admin
-    .from("tasks")
-    .select(
-      "id, title, description, status, priority, due_at, estimate_mins, org_id, project_id, section_id, created_at, completed_at, task_sections(name), projects(name)",
-    )
+async function handleListOrgs(admin: SupabaseClient, userId: string) {
+  const { data, error } = await admin
+    .from("org_memberships")
+    .select("role, orgs(id, name, short_name, slug, color, description, is_active)")
+    .eq("user_id", userId);
+  if (error) return toolError(error.message);
+  return toolResult((data ?? []).map((m: any) => ({ role: m.role, ...m.orgs })).filter((o: any) => o.id));
+}
+
+async function handleListTeam(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  const orgId = args.org_id as string;
+  if (!orgIds.includes(orgId)) return toolError("You do not have access to that org");
+  const { data, error } = await admin.rpc("get_org_members", { _org_id: orgId });
+  if (error) return toolError(error.message);
+  return toolResult(data ?? []);
+}
+
+async function handleGetTasks(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  let q = admin.from("tasks")
+    .select("id, title, description, status, priority, due_at, estimate_mins, org_id, project_id, section_id, created_at, completed_at, task_sections(name), projects(name)")
+    .in("org_id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"])
     .order("priority", { ascending: true })
     .order("due_at", { ascending: true, nullsFirst: false });
-
-  if (args.org_id) q = q.eq("org_id", args.org_id);
+  if (args.org_id) {
+    if (!orgIds.includes(args.org_id as string)) return toolError("No access to that org");
+    q = q.eq("org_id", args.org_id);
+  }
   if (args.project_id) q = q.eq("project_id", args.project_id);
   if (args.status) q = q.eq("status", args.status);
   if (args.priority) q = q.eq("priority", args.priority);
   q = q.limit(Math.min(Number(args.limit ?? 25), 50));
-
   const { data, error } = await q;
   if (error) return toolError(error.message);
   return toolResult(data ?? []);
 }
 
-async function handleGetProjects(admin: SupabaseClient, args: Record<string, unknown>) {
-  let q = admin
-    .from("projects")
-    .select(
-      "id, name, status, emoji, description, org_id, display_order, is_archived, orgs(name, short_name, color)",
-    )
+async function handleGetProjects(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  let q = admin.from("projects")
+    .select("id, name, status, emoji, description, org_id, display_order, is_archived, orgs(name, short_name, color)")
+    .in("org_id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"])
     .order("display_order");
-
   if (!args.include_archived) q = q.eq("is_archived", false);
-  if (args.org_id) q = q.eq("org_id", args.org_id);
-
+  if (args.org_id) {
+    if (!orgIds.includes(args.org_id as string)) return toolError("No access to that org");
+    q = q.eq("org_id", args.org_id);
+  }
   const { data, error } = await q;
   if (error) return toolError(error.message);
   return toolResult(data ?? []);
 }
 
-async function handleGetNotifications(
-  admin: SupabaseClient,
-  args: Record<string, unknown>,
-) {
-  let q = admin
-    .from("notifications")
-    .select(
-      "id, app, title, body, severity, metadata, org_id, created_at, acknowledged_at",
-    )
+async function handleGetNotifications(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  let q = admin.from("notifications")
+    .select("id, app, title, body, severity, metadata, org_id, created_at, acknowledged_at")
+    .or(`org_id.is.null,org_id.in.(${orgIds.join(",") || "00000000-0000-0000-0000-000000000000"})`)
     .order("created_at", { ascending: false })
     .limit(Math.min(Number(args.limit ?? 20), 50));
-
   if (!args.include_acknowledged) q = q.is("acknowledged_at", null);
   if (args.app) q = q.eq("app", args.app);
-
   const { data, error } = await q;
   if (error) return toolError(error.message);
   return toolResult(data ?? []);
 }
 
-async function handleCreateTask(
-  admin: SupabaseClient,
-  userId: string,
-  args: Record<string, unknown>,
-) {
-  const { data, error } = await admin
-    .from("tasks")
-    .insert({
-      title: args.title as string,
-      description: (args.description as string) ?? null,
-      org_id: args.org_id as string,
-      project_id: (args.project_id as string) ?? null,
-      section_id: (args.section_id as string) ?? null,
-      priority: (args.priority as string) ?? "medium",
-      due_at: (args.due_at as string) ?? null,
-      estimate_mins: (args.estimate_mins as number) ?? null,
-      status: "todo",
-      created_by: userId,
-      sort_order: 0,
-    })
-    .select()
-    .single();
-
+async function handleCreateTask(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  if (!orgIds.includes(args.org_id as string)) return toolError("No access to that org");
+  const { data, error } = await admin.from("tasks").insert({
+    title: args.title as string,
+    description: (args.description as string) ?? null,
+    org_id: args.org_id as string,
+    project_id: (args.project_id as string) ?? null,
+    section_id: (args.section_id as string) ?? null,
+    priority: (args.priority as string) ?? "medium",
+    due_at: (args.due_at as string) ?? null,
+    estimate_mins: (args.estimate_mins as number) ?? null,
+    status: "todo",
+    created_by: userId,
+    sort_order: 0,
+  }).select().single();
   if (error) return toolError(error.message);
   return toolResult({ created: true, task: data });
 }
 
-async function handleUpdateTask(admin: SupabaseClient, args: Record<string, unknown>) {
+async function handleUpdateTask(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  const { data: existing } = await admin.from("tasks").select("org_id").eq("id", args.task_id as string).single();
+  if (!existing || !orgIds.includes(existing.org_id)) return toolError("Task not found or no access");
   const { task_id, ...updates } = args;
   const patch: Record<string, unknown> = {};
   if (updates.status !== undefined) patch.status = updates.status;
@@ -459,277 +248,335 @@ async function handleUpdateTask(admin: SupabaseClient, args: Record<string, unkn
   if (updates.title !== undefined) patch.title = updates.title;
   if (updates.description !== undefined) patch.description = updates.description;
   if (updates.due_at !== undefined) patch.due_at = updates.due_at;
-  if (updates.completed_at !== undefined) {
-    patch.completed_at = updates.completed_at;
-    patch.status = "done";
-  }
-
-  const { data, error } = await admin
-    .from("tasks")
-    .update(patch)
-    .eq("id", task_id as string)
-    .select()
-    .single();
-
+  if (updates.completed_at !== undefined) { patch.completed_at = updates.completed_at; patch.status = "done"; }
+  const { data, error } = await admin.from("tasks").update(patch).eq("id", task_id as string).select().single();
   if (error) return toolError(error.message);
   return toolResult({ updated: true, task: data });
 }
 
-async function handleNotify(admin: SupabaseClient, args: Record<string, unknown>) {
-  const { data, error } = await admin
-    .from("notifications")
-    .insert({
-      app: args.app as string,
-      title: args.title as string,
-      body: (args.body as string) ?? null,
-      severity: (args.severity as string) ?? "info",
-      metadata: (args.metadata as object) ?? {},
-      org_id: (args.org_id as string) ?? null,
-    })
-    .select()
-    .single();
-
+async function handleNotify(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  if (args.org_id) {
+    const orgIds = await allowedOrgIds(admin, userId);
+    if (!orgIds.includes(args.org_id as string)) return toolError("No access to that org");
+  }
+  const { data, error } = await admin.from("notifications").insert({
+    app: args.app, title: args.title, body: (args.body as string) ?? null,
+    severity: (args.severity as string) ?? "info",
+    metadata: (args.metadata as object) ?? {},
+    org_id: (args.org_id as string) ?? null,
+  }).select().single();
   if (error) return toolError(error.message);
   return toolResult({ notified: true, notification: data });
 }
 
-async function handleRequestApproval(
-  admin: SupabaseClient,
-  userId: string,
-  args: Record<string, unknown>,
-) {
-  const { data, error } = await admin
-    .from("items")
-    .insert({
-      title: args.title as string,
-      body: (args.body as string) ?? null,
-      type: "agent_request",
-      source: args.source as string,
-      status: "pending_approval",
-      priority: (args.priority as string) ?? "medium",
-      org_id: (args.org_id as string) ?? null,
-      user_id: userId,
-      metadata: {
-        ...((args.metadata as object) ?? {}),
-        requested_by: args.source,
-        requested_at: new Date().toISOString(),
-      },
-    })
-    .select()
-    .single();
-
+async function handleRequestApproval(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  if (args.org_id) {
+    const orgIds = await allowedOrgIds(admin, userId);
+    if (!orgIds.includes(args.org_id as string)) return toolError("No access to that org");
+  }
+  const { data, error } = await admin.from("items").insert({
+    title: args.title, body: (args.body as string) ?? null,
+    type: "agent_request", source: args.source,
+    status: "pending_approval",
+    priority: (args.priority as string) ?? "medium",
+    org_id: (args.org_id as string) ?? null,
+    user_id: userId,
+    metadata: { ...((args.metadata as object) ?? {}), requested_by: args.source, requested_at: new Date().toISOString() },
+  }).select().single();
   if (error) return toolError(error.message);
-  return toolResult({
-    approval_requested: true,
-    item_id: data.id,
-    item: data,
-    message: "Approval request queued in VisiOS. Myke must approve before proceeding.",
-  });
+  return toolResult({ approval_requested: true, item_id: data.id, item: data });
 }
 
-async function handleGetPendingApprovals(
-  admin: SupabaseClient,
-  userId: string,
-  args: Record<string, unknown>,
-) {
-  let q = admin
-    .from("items")
+async function handleGetPendingApprovals(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  let q = admin.from("items")
     .select("id, title, body, source, priority, org_id, metadata, created_at")
-    .eq("type", "agent_request")
-    .eq("status", "pending_approval")
-    .eq("user_id", userId)
-    .order("priority", { ascending: true })
-    .order("created_at", { ascending: true });
-
+    .eq("type", "agent_request").eq("status", "pending_approval").eq("user_id", userId)
+    .order("priority", { ascending: true }).order("created_at", { ascending: true });
   if (args.source) q = q.eq("source", args.source);
-
   const { data, error } = await q;
   if (error) return toolError(error.message);
   return toolResult({ pending_count: (data ?? []).length, items: data ?? [] });
 }
 
-async function handleResolveApproval(
-  admin: SupabaseClient,
-  args: Record<string, unknown>,
-) {
-  const { data: updated, error: updateErr } = await admin
-    .from("items")
-    .update({ status: args.resolution as string })
-    .eq("id", args.item_id as string)
-    .select()
-    .single();
-
-  if (updateErr) return toolError(updateErr.message);
-  return toolResult({
-    resolved: true,
-    item_id: args.item_id,
-    resolution: args.resolution,
-    notes: args.notes ?? null,
-    item: updated,
-  });
+async function handleResolveApproval(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const { data: existing } = await admin.from("items").select("user_id").eq("id", args.item_id as string).single();
+  if (!existing || existing.user_id !== userId) return toolError("Item not found or no access");
+  const { data, error } = await admin.from("items").update({ status: args.resolution as string })
+    .eq("id", args.item_id as string).select().single();
+  if (error) return toolError(error.message);
+  return toolResult({ resolved: true, item_id: args.item_id, resolution: args.resolution, notes: args.notes ?? null, item: data });
 }
 
-async function handleLogActivity(
-  admin: SupabaseClient,
-  userId: string,
-  args: Record<string, unknown>,
-) {
-  const { data, error } = await admin
-    .from("task_activity")
-    .insert({
-      task_id: args.task_id as string,
-      org_id: args.org_id as string,
-      kind: args.kind as string,
-      body: (args.body as string) ?? null,
-      metadata: (args.metadata as object) ?? {},
-      user_id: userId,
-    })
-    .select()
-    .single();
-
+async function handleLogActivity(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  if (!orgIds.includes(args.org_id as string)) return toolError("No access to that org");
+  const { data, error } = await admin.from("task_activity").insert({
+    task_id: args.task_id, org_id: args.org_id, kind: args.kind,
+    body: (args.body as string) ?? null,
+    metadata: (args.metadata as object) ?? {},
+    user_id: userId,
+  }).select().single();
   if (error) return toolError(error.message);
   return toolResult({ logged: true, activity: data });
 }
 
-async function handleSearchKb(
-  admin: SupabaseClient,
-  userId: string,
-  args: Record<string, unknown>,
-) {
+async function handleSearchKb(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
   const { data, error } = await admin.rpc("search_kb_text", {
     query_text: args.query as string,
     org_filter: (args.org_id as string) ?? null,
     user_filter: userId,
     match_count: Math.min(Number(args.limit ?? 5), 10),
   });
-
   if (error) return toolError(error.message);
   return toolResult(data ?? []);
 }
 
-// ─── MCP Protocol Handler ─────────────────────────────────────────────────────
+async function handleSearchContacts(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  const q = (args.query as string).trim();
+  const pattern = `%${q}%`;
+  let query = admin.from("contacts")
+    .select("id, name, email, company, role, phone, engagement_stage, org_id, last_touched_at")
+    .in("org_id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"])
+    .or(`name.ilike.${pattern},email.ilike.${pattern},company.ilike.${pattern}`)
+    .order("last_touched_at", { ascending: false, nullsFirst: false })
+    .limit(Math.min(Number(args.limit ?? 10), 30));
+  if (args.org_id) query = query.eq("org_id", args.org_id as string);
+  const { data, error } = await query;
+  if (error) return toolError(error.message);
+  return toolResult(data ?? []);
+}
 
-async function dispatchTool(
-  name: string,
-  args: Record<string, unknown>,
-  admin: SupabaseClient,
-  userId: string,
-): Promise<unknown> {
+async function handleGetContact(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  const { data, error } = await admin.from("contacts")
+    .select("*, orgs(name, short_name)")
+    .eq("id", args.contact_id as string).single();
+  if (error) return toolError(error.message);
+  if (!data || (data.org_id && !orgIds.includes(data.org_id))) return toolError("Contact not found or no access");
+  return toolResult(data);
+}
+
+// ─── Google-backed handlers ───────────────────────────────────────────────────
+
+async function handleGetCalendar(userId: string, args: Record<string, unknown>) {
+  let accessToken: string;
+  try { accessToken = await getFreshGoogleAccessToken(userId); }
+  catch { return toolError("Google account not connected. Connect it in Settings → Connections."); }
+  const timeMin = (args.time_min as string) ?? new Date().toISOString();
+  const timeMax = (args.time_max as string) ?? new Date(Date.now() + 7 * 86400000).toISOString();
+  const url = new URL("https://www.googleapis.com/calendar/v3/calendars/primary/events");
+  url.searchParams.set("timeMin", timeMin);
+  url.searchParams.set("timeMax", timeMax);
+  url.searchParams.set("singleEvents", "true");
+  url.searchParams.set("orderBy", "startTime");
+  url.searchParams.set("maxResults", String(Math.min(Number(args.max_results ?? 25), 100)));
+  const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!res.ok) return toolError(`Calendar API ${res.status}: ${await res.text()}`);
+  const j = await res.json();
+  const events = (j.items ?? []).map((e: any) => ({
+    id: e.id, summary: e.summary, description: e.description,
+    start: e.start?.dateTime ?? e.start?.date,
+    end: e.end?.dateTime ?? e.end?.date,
+    location: e.location,
+    attendees: (e.attendees ?? []).map((a: any) => ({ email: a.email, responseStatus: a.responseStatus })),
+    hangoutLink: e.hangoutLink, htmlLink: e.htmlLink,
+  }));
+  return toolResult(events);
+}
+
+async function handleCreateCalendarEvent(userId: string, args: Record<string, unknown>) {
+  let accessToken: string;
+  try { accessToken = await getFreshGoogleAccessToken(userId); }
+  catch { return toolError("Google account not connected."); }
+  const body = {
+    summary: args.summary, description: args.description,
+    start: { dateTime: args.start }, end: { dateTime: args.end },
+    attendees: ((args.attendees as string[]) ?? []).map((email) => ({ email })),
+  };
+  const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=all", {
+    method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return toolError(`Calendar API ${res.status}: ${await res.text()}`);
+  const j = await res.json();
+  return toolResult({ created: true, event_id: j.id, htmlLink: j.htmlLink, hangoutLink: j.hangoutLink });
+}
+
+async function handleListEmails(userId: string, args: Record<string, unknown>) {
+  let accessToken: string;
+  try { accessToken = await getFreshGoogleAccessToken(userId); }
+  catch { return toolError("Google account not connected."); }
+  const url = new URL("https://gmail.googleapis.com/gmail/v1/users/me/threads");
+  if (args.query) url.searchParams.set("q", args.query as string);
+  url.searchParams.set("maxResults", String(Math.min(Number(args.limit ?? 15), 50)));
+  const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!res.ok) return toolError(`Gmail API ${res.status}`);
+  const j = await res.json();
+  const threads = await Promise.all((j.threads ?? []).slice(0, Math.min(Number(args.limit ?? 15), 50)).map(async (t: any) => {
+    const tr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${t.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!tr.ok) return { id: t.id, snippet: t.snippet };
+    const td = await tr.json();
+    const last = td.messages?.[td.messages.length - 1];
+    const headers = last?.payload?.headers ?? [];
+    const h = (k: string) => headers.find((x: any) => x.name?.toLowerCase() === k.toLowerCase())?.value;
+    return { id: t.id, subject: h("Subject"), from: h("From"), date: h("Date"), snippet: last?.snippet, message_count: td.messages?.length };
+  }));
+  return toolResult(threads);
+}
+
+function decodeB64Url(s: string) {
+  try { return new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0))); }
+  catch { return ""; }
+}
+function extractBody(payload: any): string {
+  if (!payload) return "";
+  if (payload.body?.data) return decodeB64Url(payload.body.data);
+  if (payload.parts) {
+    const text = payload.parts.find((p: any) => p.mimeType === "text/plain");
+    if (text?.body?.data) return decodeB64Url(text.body.data);
+    for (const p of payload.parts) { const r = extractBody(p); if (r) return r; }
+  }
+  return "";
+}
+
+async function handleGetEmail(userId: string, args: Record<string, unknown>) {
+  let accessToken: string;
+  try { accessToken = await getFreshGoogleAccessToken(userId); }
+  catch { return toolError("Google account not connected."); }
+  const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${args.thread_id}?format=full`, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!res.ok) return toolError(`Gmail API ${res.status}`);
+  const j = await res.json();
+  const messages = (j.messages ?? []).map((m: any) => {
+    const h = (k: string) => (m.payload?.headers ?? []).find((x: any) => x.name?.toLowerCase() === k.toLowerCase())?.value;
+    return { id: m.id, from: h("From"), to: h("To"), subject: h("Subject"), date: h("Date"), body: extractBody(m.payload).slice(0, 4000) };
+  });
+  return toolResult({ thread_id: args.thread_id, messages });
+}
+
+async function handleSearchDrive(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  let accessToken: string;
+  try { accessToken = await getFreshGoogleAccessToken(userId); }
+  catch { return toolError("Google account not connected."); }
+  const orgIds = await allowedOrgIds(admin, userId);
+  let orgQ = admin.from("orgs").select("id, name, shared_drive_id, shared_drive_name")
+    .in("id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"])
+    .not("shared_drive_id", "is", null);
+  if (args.org_id) orgQ = orgQ.eq("id", args.org_id as string);
+  const { data: orgs } = await orgQ;
+  if (!orgs || orgs.length === 0) return toolResult({ files: [], message: "No shared drives configured for your orgs." });
+
+  const query = (args.query as string).replace(/'/g, "\\'");
+  const limit = Math.min(Number(args.limit ?? 10), 25);
+  const results: any[] = [];
+  for (const org of orgs) {
+    const url = new URL("https://www.googleapis.com/drive/v3/files");
+    url.searchParams.set("q", `(name contains '${query}' or fullText contains '${query}') and trashed = false`);
+    url.searchParams.set("driveId", org.shared_drive_id);
+    url.searchParams.set("corpora", "drive");
+    url.searchParams.set("includeItemsFromAllDrives", "true");
+    url.searchParams.set("supportsAllDrives", "true");
+    url.searchParams.set("pageSize", String(limit));
+    url.searchParams.set("fields", "files(id,name,mimeType,webViewLink,modifiedTime)");
+    const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (res.ok) {
+      const j = await res.json();
+      for (const f of j.files ?? []) results.push({ ...f, org_name: org.name, drive_name: org.shared_drive_name });
+    }
+  }
+  return toolResult(results);
+}
+
+async function handleListGrants(admin: SupabaseClient, args: Record<string, unknown>) {
+  let q = admin.from("grant_opportunities")
+    .select("id, name, funder, amount_min, amount_max, deadline, focus_area, alignment, status, url")
+    .order("deadline", { ascending: true, nullsFirst: false })
+    .limit(Math.min(Number(args.limit ?? 25), 100));
+  if (args.status) q = q.eq("status", args.status);
+  const { data, error } = await q;
+  if (error) return toolError(error.message);
+  return toolResult(data ?? []);
+}
+
+async function handleGetGrantProposal(admin: SupabaseClient, args: Record<string, unknown>) {
+  const { data, error } = await admin.from("grant_proposals")
+    .select("*, grant_opportunities(name, funder, deadline)")
+    .eq("id", args.proposal_id as string).single();
+  if (error) return toolError(error.message);
+  return toolResult(data);
+}
+
+// ─── Dispatcher ───────────────────────────────────────────────────────────────
+
+async function dispatchTool(name: string, args: Record<string, unknown>, admin: SupabaseClient, userId: string): Promise<unknown> {
   switch (name) {
-    case "visi_get_context":
-      return handleGetContext(admin, userId);
-    case "visi_get_tasks":
-      return handleGetTasks(admin, args);
-    case "visi_get_projects":
-      return handleGetProjects(admin, args);
-    case "visi_get_notifications":
-      return handleGetNotifications(admin, args);
-    case "visi_create_task":
-      return handleCreateTask(admin, userId, args);
-    case "visi_update_task":
-      return handleUpdateTask(admin, args);
-    case "visi_notify":
-      return handleNotify(admin, args);
-    case "visi_request_approval":
-      return handleRequestApproval(admin, userId, args);
-    case "visi_get_pending_approvals":
-      return handleGetPendingApprovals(admin, userId, args);
-    case "visi_resolve_approval":
-      return handleResolveApproval(admin, args);
-    case "visi_log_activity":
-      return handleLogActivity(admin, userId, args);
-    case "visi_search_kb":
-      return handleSearchKb(admin, userId, args);
-    default:
-      return toolError(`Unknown tool: ${name}`);
+    case "visi_get_context": return handleGetContext(admin, userId);
+    case "visi_list_orgs": return handleListOrgs(admin, userId);
+    case "visi_list_team": return handleListTeam(admin, userId, args);
+    case "visi_get_tasks": return handleGetTasks(admin, userId, args);
+    case "visi_get_projects": return handleGetProjects(admin, userId, args);
+    case "visi_get_notifications": return handleGetNotifications(admin, userId, args);
+    case "visi_create_task": return handleCreateTask(admin, userId, args);
+    case "visi_update_task": return handleUpdateTask(admin, userId, args);
+    case "visi_notify": return handleNotify(admin, userId, args);
+    case "visi_request_approval": return handleRequestApproval(admin, userId, args);
+    case "visi_get_pending_approvals": return handleGetPendingApprovals(admin, userId, args);
+    case "visi_resolve_approval": return handleResolveApproval(admin, userId, args);
+    case "visi_log_activity": return handleLogActivity(admin, userId, args);
+    case "visi_search_kb": return handleSearchKb(admin, userId, args);
+    case "visi_search_contacts": return handleSearchContacts(admin, userId, args);
+    case "visi_get_contact": return handleGetContact(admin, userId, args);
+    case "visi_get_calendar": return handleGetCalendar(userId, args);
+    case "visi_create_calendar_event": return handleCreateCalendarEvent(userId, args);
+    case "visi_list_emails": return handleListEmails(userId, args);
+    case "visi_get_email": return handleGetEmail(userId, args);
+    case "visi_search_drive": return handleSearchDrive(admin, userId, args);
+    case "visi_list_grants": return handleListGrants(admin, args);
+    case "visi_get_grant_proposal": return handleGetGrantProposal(admin, args);
+    default: return toolError(`Unknown tool: ${name}`);
   }
 }
 
-async function handleMCPRequest(
-  req: MCPRequest,
-  admin: SupabaseClient,
-  userId: string,
-): Promise<MCPResponse> {
+async function handleMCPRequest(req: MCPRequest, admin: SupabaseClient, userId: string): Promise<MCPResponse> {
   const { id, method, params } = req;
-
   switch (method) {
     case "initialize":
-      return mcpOk(id, {
-        protocolVersion: "2024-11-05",
-        capabilities: { tools: {} },
-        serverInfo: { name: "visios-mcp", version: "1.0.0" },
-      });
-
-    case "notifications/initialized":
-      return mcpOk(id, {});
-
-    case "ping":
-      return mcpOk(id, {});
-
-    case "tools/list":
-      return mcpOk(id, { tools: TOOLS });
-
+      return mcpOk(id, { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "visios-mcp", version: "2.0.0" } });
+    case "notifications/initialized": return mcpOk(id, {});
+    case "ping": return mcpOk(id, {});
+    case "tools/list": return mcpOk(id, { tools: TOOLS });
     case "tools/call": {
       const p = params as ToolCallParams | undefined;
       if (!p?.name) return mcpErr(id, -32602, "Missing tool name");
-      const args = p.arguments ?? {};
       try {
-        const result = await dispatchTool(p.name, args, admin, userId);
+        const result = await dispatchTool(p.name, p.arguments ?? {}, admin, userId);
         return mcpOk(id, result);
       } catch (e) {
         return mcpErr(id, -32603, e instanceof Error ? e.message : String(e));
       }
     }
-
-    default:
-      return mcpErr(id, -32601, `Method not found: ${method}`);
+    default: return mcpErr(id, -32601, `Method not found: ${method}`);
   }
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: CORS });
-  }
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-  if (req.method !== "POST") {
-    return json({ error: "Method not allowed" }, 405);
-  }
-
-  const apiKey = Deno.env.get("VISI_MCP_API_KEY");
-  const userId = Deno.env.get("VISI_MCP_USER_ID");
-
-  if (!apiKey || !userId) {
-    return json({ error: "Server misconfigured: missing env vars" }, 500);
-  }
-
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
-
-  if (token !== apiKey) {
-    return json({ error: "Unauthorized" }, 401);
-  }
-
-  const admin = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-  );
+  const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+  const userId = await resolveUserId(admin, token);
+  if (!userId) return json({ error: "Unauthorized" }, 401);
 
   let body: unknown;
-  try {
-    body = await req.json();
-  } catch {
-    return json(mcpErr(null, -32700, "Parse error: invalid JSON"), 400);
-  }
+  try { body = await req.json(); }
+  catch { return json(mcpErr(null, -32700, "Parse error: invalid JSON"), 400); }
 
   if (Array.isArray(body)) {
-    const responses = await Promise.all(
-      body.map((r) => handleMCPRequest(r as MCPRequest, admin, userId)),
-    );
+    const responses = await Promise.all(body.map((r) => handleMCPRequest(r as MCPRequest, admin, userId)));
     return json(responses);
   }
-
-  const response = await handleMCPRequest(body as MCPRequest, admin, userId);
-  return json(response);
+  return json(await handleMCPRequest(body as MCPRequest, admin, userId));
 });

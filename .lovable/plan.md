@@ -1,66 +1,120 @@
-## Capital Raise Page — Implementation Plan
+# Custom MCP for Claude Desktop — Team-wide VisiOS access
 
-Build a new `/capital-raise` page for UWAZI.AI fundraising tracking, plus a "Fundraising" section in the sidebar, two new database tables, seed data, and an edge function exposing the data to the existing Ask Uwazi RAG system.
+## What exists today
 
-### 1. Database (migration)
+There's already a working MCP server at `supabase/functions/visi-mcp/index.ts` (Streamable HTTP, stateless JSON-RPC) with 12 tools covering tasks, projects, notifications, approvals, activity, and KB search.
 
-**Table: `fundraising_opportunities`**
-- order_num (int), name, organization, type ('accelerator'|'vc'|'grant'), entity, target_amount (text), deadline (text), phase (1–4), urgency ('fire'|'now'|'soon'|'build'|'watch'), status (default 'not started'), notes, assigned_to, next_action, committed_amount (numeric default 0), created_at, updated_at, created_by
+**Limitation:** it's hardcoded to a single user via two env vars (`VISI_MCP_API_KEY`, `VISI_MCP_USER_ID`). Every Claude Desktop session connected to it acts as that one user.
 
-**Table: `fundraising_tasks`**
-- opportunity_id (uuid, FK-ish), title, due_at, assigned_to, status ('open'|'done'), created_at, created_by
+To make this work for the whole team and expose "everything", we need three things: per-user tokens, more tools, and a Settings UI.
 
-RLS: authenticated users can read/insert/update/delete (org-wide tool, no per-row owner restriction needed since this is admin-only). Add `update_updated_at_column` trigger.
+---
 
-### 2. Seed data
+## 1. Per-user MCP tokens (team-wide auth)
 
-After migration approval, insert all 18 opportunities via the insert tool.
+New table `mcp_tokens`:
 
-### 3. Edge Function: `fundraising-context`
+- `user_id` → owner of the token
+- `token_hash` → SHA-256 of the secret (raw token is shown once at creation, never stored)
+- `token_prefix` → first 8 chars, for display ("visi_mcp_a1b2c3d4…")
+- `label` → user-supplied name ("Claude Desktop — laptop")
+- `last_used_at`, `created_at`, `revoked_at`
 
-Returns JSON: opportunities (grouped by status), totals (target/committed), open tasks by assignee, phase summary. Used by RAG.
+RLS: each user can only see/create/revoke their own tokens. Service role (used inside the edge function) can read all.
 
-### 4. RAG integration
+Edge function auth flow changes:
+1. Read `Authorization: Bearer <token>` header.
+2. Hash it, look up the row in `mcp_tokens` where `revoked_at IS NULL`.
+3. Resolve to `user_id`; update `last_used_at`.
+4. All tool handlers receive that `user_id` and scope queries to their orgs via existing `org_memberships`.
 
-Patch `supabase/functions/ai-build-context/index.ts` to also fetch fundraising summary when the user query mentions fundraising/raise/capital/opportunity keywords (or always include a compact summary if `org_id` matches UWAZI). Append into response payload as `fundraising`.
+The old `VISI_MCP_API_KEY` / `VISI_MCP_USER_ID` env vars become a fallback for backwards compatibility (Myke's existing setup keeps working).
 
-### 5. Frontend
+## 2. Expand tool coverage ("everything")
 
-**Sidebar (`src/components/visi/Sidebar.tsx`)**: add a "Fundraising" group label + "Capital Raise" nav item (TrendingUp icon) at appropriate spot.
+Add new tools alongside the existing 12, each scoped to the calling user's orgs and Google account:
 
-**Route (`src/App.tsx`)**: `/capital-raise` → `CapitalRaise` page.
+**Calendar & meetings**
+- `visi_get_calendar` — today/upcoming events from Google Calendar (reuses `_shared/google.ts`)
+- `visi_create_calendar_event` — wraps `calendar-create-event`
+- `visi_get_meeting_notes` — recent Granola notes for an attendee or date range
 
-**New page `src/pages/CapitalRaise.tsx`** with sub-components in `src/components/fundraising/`:
-- `StatsBar.tsx` — 4 tiles (target $2.75M, pipeline count, active apps, committed)
-- `TimelineStrip.tsx` — horizontal scroll, months May/Jun/Jul/Aug/Sep–Oct/Q1'27, color-coded pills
-- `FilterBar.tsx` — type / phase / entity / status filters + sort
-- `OpportunityCard.tsx` — inline-editable card with all fields, type badge, urgency badge, status dropdown, "+ Add Task" button
-- `TasksPanel.tsx` — tabbed section listing all fundraising tasks, filter by assignee + due
-- `useFundraising.ts` hook — fetch/update opportunities and tasks with Supabase realtime
+**Gmail**
+- `visi_list_emails` — recent threads, with filters (unread, from, label)
+- `visi_get_email` — full thread by id
+- `visi_draft_email` — uses `ai-draft-email`
+- `visi_send_email` — wraps `gmail-send`
 
-**Workflow logic**:
-- on status → 'applied': prompt to create follow-up task (+14 days)
-- on status → 'awarded': bump committed total (prompt for amount), trigger confetti (use `canvas-confetti` if installed, else simple CSS burst)
-- on status → 'declined': mute styling + sort to bottom
+**Contacts**
+- `visi_search_contacts` — query the contacts table
+- `visi_get_contact` — full contact + linked org
 
-### 6. Design tokens
+**Drive**
+- `visi_search_drive` — searches each org's shared drive via `drive-proxy`
+- `visi_read_drive_file` — pulls file content (capped at 3k chars)
 
-Use existing dark glass classes plus inline hex per spec (#9bd34b, #a78bfa, #5b9cf6, #e5b84a, #e05252) for the type/urgency/status badges only — body uses existing semantic tokens.
+**Grants (UWAZI)**
+- `visi_list_grants` — opportunities + pipeline status
+- `visi_get_grant_proposal` — full proposal text
 
-### Technical notes
-- Inline edit pattern: click field → swap to `<input>` / `<textarea>`, blur or Enter saves via `updateOpportunity(id, patch)`.
-- Mobile: cards stack (grid `md:grid-cols-2 xl:grid-cols-3`, single col on mobile).
-- Realtime: subscribe to both tables on the page.
-- No changes to existing pages beyond sidebar + App.tsx route.
+**People & orgs**
+- `visi_list_team` — members of the caller's orgs (uses `get_org_members`)
+- `visi_list_orgs` — all orgs the caller belongs to
 
-### Files to create
-- `supabase/functions/fundraising-context/index.ts`
-- `src/pages/CapitalRaise.tsx`
-- `src/components/fundraising/{StatsBar,TimelineStrip,FilterBar,OpportunityCard,TasksPanel}.tsx`
-- `src/hooks/useFundraising.ts`
+All new handlers live in the same `visi-mcp/index.ts` and follow the existing `handleX(admin, userId, args)` pattern.
 
-### Files to edit
-- `src/App.tsx` (route)
-- `src/components/visi/Sidebar.tsx` (nav)
-- `supabase/functions/ai-build-context/index.ts` (RAG hook)
-- `supabase/config.toml` (no change — function will use default JWT verification)
+## 3. Settings UI — `MCPTokensPanel`
+
+New section in **Settings → Connections** (and surfaced on the new More panel where the user currently is):
+
+- List of the user's tokens (label, prefix, last used, created, revoke button)
+- "Generate new token" → modal with label input → returns the raw token **once**, with copy button and Claude Desktop config snippet preview
+- Empty state shows setup instructions
+
+Component: `src/components/settings/MCPTokensPanel.tsx`. Mounted from `ConnectionsPanel.tsx`.
+
+## 4. Claude Desktop setup instructions (shown in UI)
+
+Claude Desktop currently supports remote MCP only on paid plans; free Desktop needs the `mcp-remote` stdio bridge. The UI will show both options:
+
+**Option A — Paid Claude (Pro/Team/Enterprise): Custom Connector**
+- URL: `https://qzurwsqecdsgziyvnuul.supabase.co/functions/v1/visi-mcp`
+- Header: `Authorization: Bearer <token>`
+
+**Option B — Any Claude Desktop: `mcp-remote` bridge**
+Snippet rendered with the user's token pre-filled:
+```json
+{
+  "mcpServers": {
+    "visios": {
+      "command": "npx",
+      "args": [
+        "-y", "mcp-remote",
+        "https://qzurwsqecdsgziyvnuul.supabase.co/functions/v1/visi-mcp",
+        "--header", "Authorization: Bearer <token>"
+      ]
+    }
+  }
+}
+```
+
+Saved to `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS or `%APPDATA%\Claude\claude_desktop_config.json` on Windows.
+
+---
+
+## Technical notes
+
+- Migration adds `mcp_tokens` with grants for `authenticated` (own rows) + `service_role` (all), RLS policies, and a `mcp_tokens_lookup(_hash text)` SECURITY DEFINER function used only by the edge function.
+- Token format: `visi_mcp_` + 32 random url-safe bytes generated client-side via `crypto.getRandomValues`, hashed server-side with `crypto.subtle.digest('SHA-256', …)` before insert.
+- `visi-mcp` stays public in `supabase/config.toml` (`verify_jwt = false`) since Claude sends its own bearer token, not a Supabase JWT.
+- Google-backed tools use `getFreshGoogleAccessToken(userId)` from `_shared/google.ts`; if the calling user hasn't connected Google, the tool returns a friendly error telling them to connect it in Settings.
+- Org scoping for every tool: derive `allowed_org_ids = select org_id from org_memberships where user_id = $caller` and filter all queries by that set. This is what makes the same MCP server safe for multiple teammates.
+- No changes to the existing 12 tools' behavior — only the auth-resolution and org-scoping layer changes.
+
+## Files touched
+
+- `supabase/migrations/<timestamp>_mcp_tokens.sql` (new)
+- `supabase/functions/visi-mcp/index.ts` (auth + new tool handlers)
+- `supabase/config.toml` (confirm `verify_jwt = false` block for `visi-mcp`)
+- `src/components/settings/MCPTokensPanel.tsx` (new)
+- `src/components/settings/ConnectionsPanel.tsx` (mount the new panel)
