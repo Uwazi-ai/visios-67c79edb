@@ -32,6 +32,7 @@ import Vision from "./pages/Vision";
 import CapitalRaise from "./pages/CapitalRaise";
 import Social from "./pages/Social";
 import Agents from "./pages/Agents";
+import Grants from "./pages/Grants";
 import MakeIntegration from "./pages/MakeIntegration";
 import OAuthCallback from "./pages/OAuthCallback";
 
@@ -63,6 +64,7 @@ const App = () => (
                 <Route path="/vision" element={<Vision />} />
                 <Route path="/inbox" element={<InboxPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
+                <Route path="/grants" element={<Grants />} />
                 <Route path="/tasks/:id" element={<TaskFullPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />

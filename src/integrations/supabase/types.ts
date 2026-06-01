@@ -1063,6 +1063,122 @@ export type Database = {
           },
         ]
       }
+      grant_opportunities: {
+        Row: {
+          alignment: string | null
+          amount_max: number | null
+          amount_min: number | null
+          created_at: string | null
+          deadline: string | null
+          description: string | null
+          focus_area: string | null
+          funder: string
+          funder_type: string | null
+          id: string
+          name: string
+          notes: string | null
+          status: string | null
+          tags: string[] | null
+          updated_at: string | null
+          url: string | null
+        }
+        Insert: {
+          alignment?: string | null
+          amount_max?: number | null
+          amount_min?: number | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          focus_area?: string | null
+          funder: string
+          funder_type?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Update: {
+          alignment?: string | null
+          amount_max?: number | null
+          amount_min?: number | null
+          created_at?: string | null
+          deadline?: string | null
+          description?: string | null
+          focus_area?: string | null
+          funder?: string
+          funder_type?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
+      grant_proposals: {
+        Row: {
+          amount_requested: string | null
+          created_at: string | null
+          deadline: string | null
+          full_text: string
+          funder: string
+          grant_name: string
+          id: string
+          opportunity_id: string | null
+          project_focus: string | null
+          sections_generated: string[] | null
+          status: string | null
+          tone: string | null
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          amount_requested?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          full_text: string
+          funder: string
+          grant_name: string
+          id?: string
+          opportunity_id?: string | null
+          project_focus?: string | null
+          sections_generated?: string[] | null
+          status?: string | null
+          tone?: string | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          amount_requested?: string | null
+          created_at?: string | null
+          deadline?: string | null
+          full_text?: string
+          funder?: string
+          grant_name?: string
+          id?: string
+          opportunity_id?: string | null
+          project_focus?: string | null
+          sections_generated?: string[] | null
+          status?: string | null
+          tone?: string | null
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grant_proposals_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "grant_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       growth_agent_logs: {
         Row: {
           created_at: string | null
