@@ -240,6 +240,9 @@ export default function ConnectionsTab() {
           <ApiTokenInline provider="granola" title="Granola" tokenLabel="API key" existing={getRow("granola")} onSaved={reload} />
         </div>
       </ConnectionTile>
+
+      {/* MCP Tokens (Claude Desktop) */}
+      <MCPTokensPanel />
     </div>
   );
 }
