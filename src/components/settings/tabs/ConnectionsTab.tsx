@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import SectionCard, { Field, ToggleRow } from "../SectionCard";
 import { ensureIntegrationRow } from "@/lib/settingsHelpers";
+import MCPTokensPanel from "../MCPTokensPanel";
 
 interface IntegrationRow {
   id: string;
