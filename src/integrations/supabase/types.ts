@@ -1482,6 +1482,39 @@ export type Database = {
           },
         ]
       }
+      mcp_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          last_used_at: string | null
+          revoked_at: string | null
+          token_hash: string
+          token_prefix: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          last_used_at?: string | null
+          revoked_at?: string | null
+          token_hash: string
+          token_prefix: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          last_used_at?: string | null
+          revoked_at?: string | null
+          token_hash?: string
+          token_prefix?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           channel_id: string
@@ -2899,6 +2932,7 @@ export type Database = {
         Returns: boolean
       }
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
+      mcp_token_lookup: { Args: { _hash: string }; Returns: string }
       move_to_dlq: {
         Args: {
           dlq_name: string
