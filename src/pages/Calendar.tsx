@@ -479,11 +479,13 @@ function ReconnectBanner() {
 }
 
 // =================== MINI SIDEBAR ===================
-function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, onToggleMember, onSelectSolo, onShowAll }: {
+function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, soloMemberId, unavailableMembers, onToggleMember, onSelectSolo, onShowAll }: {
   cursor: Date; setCursor: (d: Date) => void; events: CalEvent[];
   orgs: { id: string; name: string; slug: string; color: string }[];
   me: Teammate | null; teammates: Teammate[];
   visibleMemberIds: string[];
+  soloMemberId?: string | null;
+  unavailableMembers?: Record<string, string>;
   onToggleMember: (id: string, on: boolean) => void;
   onSelectSolo?: (id: string) => void;
   onShowAll?: () => void;
