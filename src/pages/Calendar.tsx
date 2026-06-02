@@ -283,6 +283,14 @@ export default function Calendar() {
             } as CalEvent;
           });
         }
+        const ua = (gt?.unavailable ?? []) as Array<{ user_id: string; reason: string }>;
+        setUnavailableMembers((prev) => {
+          const next: Record<string, string> = { ...prev };
+          // clear stale entries for currently-queried members
+          teammateIds.forEach((id) => { delete next[id]; });
+          ua.forEach((u) => { next[u.user_id] = u.reason; });
+          return next;
+        });
       } catch (err) {
         console.error("team google events", err);
       }
