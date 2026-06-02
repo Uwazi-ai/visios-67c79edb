@@ -11,8 +11,6 @@ interface ProfileQuery {
   title: string | null;
   company: string | null;
   tagline: string | null;
-  email: string | null;
-  phone: string | null;
   linkedin_url: string | null;
   website_url: string | null;
   card_theme: string | null;
