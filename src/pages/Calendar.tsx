@@ -1104,3 +1104,38 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
     </aside>
   );
 }
+
+function ConnectInviteButton({ email, displayName, inviterName }: { email: string; displayName: string | null; inviterName: string | null }) {
+  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+  const send = async () => {
+    if (state !== "idle") return;
+    setState("sending");
+    const { data, error } = await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "calendar-connect-invite",
+        recipientEmail: email,
+        templateData: {
+          inviterName: inviterName || "A teammate",
+          recipientName: displayName || "",
+          signInUrl: `${window.location.origin}/login`,
+        },
+      },
+    });
+    const errMsg = error?.message || (data as { error?: string } | null)?.error;
+    if (errMsg) {
+      toast.error("Couldn't send invite", { description: errMsg });
+      setState("idle");
+      return;
+    }
+    toast.success("Invite sent", { description: `${displayName || email} will get a one-click connect link.` });
+    setState("sent");
+    setTimeout(() => setState("idle"), 5000);
+  };
+  return (
+    <button onClick={send} disabled={state === "sending"} className="btn-ghost flex items-center gap-1.5" style={{ height: 32 }}>
+      {state === "sending" ? <Loader2 size={12} className="animate-spin" /> :
+       state === "sent" ? <Check size={12} /> : <Send size={12} />}
+      {state === "sent" ? "Invite sent" : state === "sending" ? "Sending…" : "Send connect link"}
+    </button>
+  );
+}
