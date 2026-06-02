@@ -1,6 +1,29 @@
-import { ChevronDown, ChevronRight, AlertCircle, Mail } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertCircle, Send, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { colorForMember } from "@/lib/memberColors";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+
+async function sendConnectInvite(m: { email: string | null; display_name: string | null }, inviterName: string | null) {
+  if (!m.email) return false;
+  const { data, error } = await supabase.functions.invoke("send-transactional-email", {
+    body: {
+      templateName: "calendar-connect-invite",
+      recipientEmail: m.email,
+      templateData: {
+        inviterName: inviterName || "A teammate",
+        recipientName: m.display_name || "",
+        signInUrl: `${window.location.origin}/login`,
+      },
+    },
+  });
+  if (error || (data as { error?: string })?.error) {
+    toast({ title: "Couldn't send invite", description: (error?.message || (data as { error?: string })?.error) ?? "Try again in a moment.", variant: "destructive" });
+    return false;
+  }
+  toast({ title: "Invite sent", description: `${m.display_name || m.email} will get an email with a one-click connect link.` });
+  return true;
+}
 
 export interface Teammate {
   user_id: string;
