@@ -14,7 +14,10 @@ interface Props {
   teammates: Teammate[];
   visibleMemberIds: string[];
   onToggle: (memberId: string, on: boolean) => void;
+  onSelectSolo?: (memberId: string) => void;
+  onShowAll?: () => void;
 }
+
 
 function initials(name: string | null, email: string | null) {
   const src = name || email || "?";
