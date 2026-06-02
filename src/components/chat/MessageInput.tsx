@@ -26,7 +26,7 @@ interface Props {
   summarizing?: boolean;
 }
 
-const MAX_FILE_BYTES = 20 * 1024 * 1024; // 20 MB
+const MAX_FILE_BYTES = 250 * 1024 * 1024; // 250 MB
 const MAX_ATTACHMENTS = 5;
 
 interface MentionState {
@@ -152,9 +152,8 @@ export const MessageInput = ({
         break;
       }
       if (f.size > MAX_FILE_BYTES) {
-        // Skip oversized files
         // eslint-disable-next-line no-console
-        console.warn(`Skipping ${f.name}: exceeds 20 MB`);
+        console.warn(`Skipping ${f.name}: exceeds 250 MB`);
         continue;
       }
       setUploading((n) => n + 1);
@@ -352,7 +351,7 @@ export const MessageInput = ({
         ref={fileRef}
         type="file"
         multiple
-        accept="image/*,application/pdf,.pdf,.doc,.docx,.txt,.csv"
+        accept="image/*,video/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.zip"
         className="hidden"
         onChange={(e) => {
           void handleFiles(e.target.files);
