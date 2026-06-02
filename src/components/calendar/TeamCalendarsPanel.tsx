@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, AlertCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertCircle, Mail } from "lucide-react";
 import { useState } from "react";
 import { colorForMember } from "@/lib/memberColors";
 
