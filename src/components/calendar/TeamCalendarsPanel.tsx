@@ -99,18 +99,28 @@ function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailab
         )}
       </button>
       {unavailableReason && m.email && (
-        <a
-          href={`mailto:${m.email}?subject=${encodeURIComponent("Connect your Google Calendar in Visi")}&body=${encodeURIComponent(`Hey ${m.display_name?.split(" ")[0] || "there"},\n\nI'd like to see your calendar in our team view on Visi so we can coordinate schedules. Could you sign in and connect Google Calendar from Settings → Connections?\n\nThanks!`)}`}
-          title="Send reminder email to connect Google Calendar"
-          onClick={(e) => e.stopPropagation()}
+        <button
+          onClick={async (e) => {
+            e.stopPropagation();
+            if (inviteState !== "idle") return;
+            setInviteState("sending");
+            const ok = await sendConnectInvite(m, inviterName ?? null);
+            setInviteState(ok ? "sent" : "idle");
+            if (ok) setTimeout(() => setInviteState("idle"), 4000);
+          }}
+          disabled={inviteState === "sending"}
+          title={inviteState === "sent" ? "Invite sent" : `Send ${m.display_name?.split(" ")[0] || "them"} a one-click connect link`}
           style={{
             width: 22, height: 22, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
-            color: "var(--text-secondary)", background: "var(--bg-glass-1)",
+            color: inviteState === "sent" ? "var(--sev-ok, #22C55E)" : "var(--text-secondary)",
+            background: "var(--bg-glass-1)",
             border: "1px solid var(--border-glass)", flexShrink: 0,
+            cursor: inviteState === "sending" ? "wait" : "pointer",
           }}
         >
-          <Mail size={11} />
-        </a>
+          {inviteState === "sending" ? <Loader2 size={11} className="animate-spin" /> :
+           inviteState === "sent" ? <Check size={11} /> : <Send size={11} />}
+        </button>
       )}
       {!isMe && onToggle && (
         <button
