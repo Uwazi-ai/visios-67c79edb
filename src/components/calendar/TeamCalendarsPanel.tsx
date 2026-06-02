@@ -77,23 +77,46 @@ function MemberRow({ m, color, on, onToggle, onSolo, isMe }: {
 }
 
 
-export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, onToggle }: Props) {
+export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, onToggle, onSelectSolo, onShowAll }: Props) {
   const [open, setOpen] = useState(true);
   const visible = new Set(visibleMemberIds);
+  const teammateIds = teammates.map((t) => t.user_id);
+  const visibleTeammates = teammateIds.filter((id) => visible.has(id));
+  const isSolo = onSelectSolo && visibleTeammates.length === 1 && teammates.length > 1;
 
   return (
     <div className="flex flex-col gap-1.5 mt-2">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 t-card-title"
-        style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
-      >
-        {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-        Team Calendars
-      </button>
+      <div className="flex items-center justify-between">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className="flex items-center gap-1 t-card-title"
+          style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
+        >
+          {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          Team Calendars
+        </button>
+        {isSolo && onShowAll && (
+          <button
+            onClick={onShowAll}
+            className="t-mono"
+            style={{ fontSize: 9, color: "var(--text-secondary)", background: "transparent", border: 0, cursor: "pointer", padding: 0 }}
+            title="Show all team calendars"
+          >
+            show all
+          </button>
+        )}
+      </div>
       {open && (
         <div className="flex flex-col">
-          {me && <MemberRow m={me} color={colorForMember(me.user_id)} on isMe />}
+          {me && (
+            <MemberRow
+              m={me}
+              color={colorForMember(me.user_id)}
+              on
+              isMe
+              onSolo={onShowAll}
+            />
+          )}
           {teammates.map((t) => (
             <MemberRow
               key={t.user_id}
@@ -101,6 +124,7 @@ export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, on
               color={colorForMember(t.user_id)}
               on={visible.has(t.user_id)}
               onToggle={(v) => onToggle(t.user_id, v)}
+              onSolo={onSelectSolo ? () => onSelectSolo(t.user_id) : undefined}
             />
           ))}
           {teammates.length === 0 && (
@@ -113,3 +137,4 @@ export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, on
     </div>
   );
 }
+
