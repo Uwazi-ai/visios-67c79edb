@@ -571,6 +571,8 @@ function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMe
         me={me}
         teammates={teammates}
         visibleMemberIds={visibleMemberIds}
+        soloMemberId={soloMemberId ?? null}
+        unavailableMembers={unavailableMembers ?? {}}
         onToggle={onToggleMember}
         onSelectSolo={onSelectSolo}
         onShowAll={onShowAll}
