@@ -552,10 +552,13 @@ function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMe
         teammates={teammates}
         visibleMemberIds={visibleMemberIds}
         onToggle={onToggleMember}
+        onSelectSolo={onSelectSolo}
+        onShowAll={onShowAll}
       />
     </aside>
   );
 }
+
 
 // =================== WEEK VIEW ===================
 function WeekView({ events, cursor, now, onSelect }: { events: CalEvent[]; cursor: Date; now: Date; onSelect: (e: CalEvent) => void }) {
