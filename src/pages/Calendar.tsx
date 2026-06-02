@@ -342,8 +342,11 @@ export default function Calendar() {
           teammates={teammates}
           visibleMemberIds={visibleMemberIds}
           onToggleMember={toggleMember}
+          onSelectSolo={(id) => setAll([id])}
+          onShowAll={() => setAll(teammates.map((t) => t.user_id))}
         />
       )}
+
 
       {/* Main calendar */}
       <div className="flex-1 min-w-0 flex flex-col gap-3">
