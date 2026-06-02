@@ -428,6 +428,32 @@ export default function Calendar() {
 
         {needsReconnect && <ReconnectBanner />}
 
+        {soloMember && soloUnavailableReason && (
+          <div
+            className="glass p-3 flex items-start gap-3"
+            style={{ borderColor: `${colorForMember(soloMember.user_id)}66` }}
+          >
+            <CalendarIcon size={16} style={{ color: "var(--sev-warn)", marginTop: 2 }} />
+            <div className="flex-1 min-w-0">
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 12, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: 0.08 }}>
+                {soloMember.display_name || soloMember.email || "Teammate"}'s calendar is unavailable
+              </div>
+              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                {soloUnavailableReason === "not_connected"
+                  ? "They haven't connected Google Calendar yet. Ask them to sign in and grant calendar access from Settings → Connections."
+                  : "We couldn't reach their Google Calendar. Ask them to reconnect Google from Settings → Connections."}
+              </div>
+            </div>
+            <button
+              onClick={() => setAll(teammates.map((t) => t.user_id))}
+              className="btn-ghost"
+              style={{ height: 32 }}
+            >
+              Show all
+            </button>
+          </div>
+        )}
+
         {/* View body */}
         <div className="glass flex-1 overflow-hidden flex flex-col">
           {view === "week" && <WeekView events={events} cursor={cursor} now={now} onSelect={setSelectedEvent} />}
