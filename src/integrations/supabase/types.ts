@@ -269,6 +269,13 @@ export type Database = {
             referencedRelation: "orgs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "bookings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       calendar_preferences: {
@@ -332,6 +339,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channels_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -447,6 +461,13 @@ export type Database = {
             referencedRelation: "orgs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contact_booking_links_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contact_interactions: {
@@ -499,6 +520,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contact_interactions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -572,6 +600,13 @@ export type Database = {
             referencedRelation: "orgs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "contact_review_queue_suggested_org_id_fkey"
+            columns: ["suggested_org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       contacts: {
@@ -632,6 +667,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -701,6 +743,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -879,10 +928,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "event_types_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "event_types_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_types_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -948,10 +1011,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "events_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1309,10 +1386,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "items_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "items_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "items_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1467,8 +1558,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "mcp_approvals_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "mcp_approvals_requested_by_fkey"
             columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mcp_approvals_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mcp_approvals_resolved_by_fkey"
+            columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1477,7 +1589,7 @@ export type Database = {
             foreignKeyName: "mcp_approvals_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1568,6 +1680,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "messages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "messages_thread_id_fkey"
             columns: ["thread_id"]
             isOneToOne: false
@@ -1579,6 +1698,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1629,10 +1755,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "notifications_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "notifications_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1704,10 +1844,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "org_memberships_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "org_memberships_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1883,6 +2037,13 @@ export type Database = {
             referencedRelation: "orgs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "profiles_primary_org_id_fkey"
+            columns: ["primary_org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       projects: {
@@ -1928,6 +2089,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -2379,6 +2547,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "task_activity_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "task_activity_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
@@ -2390,6 +2565,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["id"]
           },
         ]
@@ -2578,6 +2760,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
@@ -2585,10 +2774,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tasks_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
             referencedColumns: ["id"]
           },
           {
@@ -2896,7 +3099,87 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      orgs_public: {
+        Row: {
+          color: string | null
+          id: string | null
+          name: string | null
+          slug: string | null
+        }
+        Insert: {
+          color?: string | null
+          id?: string | null
+          name?: string | null
+          slug?: string | null
+        }
+        Update: {
+          color?: string | null
+          id?: string | null
+          name?: string | null
+          slug?: string | null
+        }
+        Relationships: []
+      }
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          card_theme: string | null
+          company: string | null
+          custom_links: Json | null
+          display_name: string | null
+          id: string | null
+          linkedin_url: string | null
+          primary_org_id: string | null
+          tagline: string | null
+          title: string | null
+          username: string | null
+          website_url: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          card_theme?: string | null
+          company?: string | null
+          custom_links?: Json | null
+          display_name?: string | null
+          id?: string | null
+          linkedin_url?: string | null
+          primary_org_id?: string | null
+          tagline?: string | null
+          title?: string | null
+          username?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          card_theme?: string | null
+          company?: string | null
+          custom_links?: Json | null
+          display_name?: string | null
+          id?: string | null
+          linkedin_url?: string | null
+          primary_org_id?: string | null
+          tagline?: string | null
+          title?: string | null
+          username?: string | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_primary_org_id_fkey"
+            columns: ["primary_org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_primary_org_id_fkey"
+            columns: ["primary_org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       delete_email: {
