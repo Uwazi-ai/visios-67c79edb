@@ -292,7 +292,10 @@ export default function ChatPage() {
     handleTyping();
   }
 
-  async function uploadAttachment(file: File): Promise<ChatAttachment> {
+  async function uploadAttachment(
+    file: File,
+    onProgress?: (ratio: number) => void,
+  ): Promise<ChatAttachment> {
     if (!activeChannel || !user || !activeChannel.org_id) {
       throw new Error("No active channel");
     }
@@ -301,21 +304,50 @@ export default function ChatPage() {
     }
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const path = `${activeChannel.org_id}/${activeChannel.id}/${user.id}/${Date.now()}-${safeName}`;
-    const { error } = await supabase.storage
-      .from("chat-attachments")
-      .upload(path, file, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-    if (error) {
-      toast.error(`Upload failed: ${error.message}`);
-      throw error;
-    }
+    const contentType = file.type || "application/octet-stream";
+
+    // Use XHR against the Storage REST endpoint so we can report real upload progress.
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) throw new Error("Not signed in");
+    const baseUrl = (import.meta.env.VITE_SUPABASE_URL as string).replace(/\/$/, "");
+    const url = `${baseUrl}/storage/v1/object/chat-attachments/${path}`;
+
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", url);
+      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      xhr.setRequestHeader("apikey", import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string);
+      xhr.setRequestHeader("x-upsert", "false");
+      xhr.setRequestHeader("Content-Type", contentType);
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total);
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onProgress?.(1);
+          resolve();
+        } else {
+          let msg = `Upload failed (${xhr.status})`;
+          try {
+            const body = JSON.parse(xhr.responseText);
+            if (body?.message) msg = body.message;
+          } catch {
+            if (xhr.responseText) msg = xhr.responseText.slice(0, 200);
+          }
+          reject(new Error(msg));
+        }
+      };
+      xhr.onerror = () => reject(new Error("Network error during upload"));
+      xhr.onabort = () => reject(new Error("Upload aborted"));
+      xhr.send(file);
+    });
+
     return {
       path,
       name: file.name,
       size: file.size,
-      type: file.type || "application/octet-stream",
+      type: contentType,
     };
   }
 

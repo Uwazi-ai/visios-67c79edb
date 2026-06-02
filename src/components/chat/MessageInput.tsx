@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Paperclip, Sparkles, Send, X, FileText, Image as ImageIcon, Loader2 } from "lucide-react";
+import {
+  Paperclip,
+  Sparkles,
+  Send,
+  X,
+  FileText,
+  Image as ImageIcon,
+  Film,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
+  RotateCw,
+} from "lucide-react";
 
 export interface MentionUser {
   id: string;
@@ -15,12 +27,14 @@ export interface ChatAttachment {
   type: string; // mime type
 }
 
+export type UploadProgressFn = (ratio: number) => void;
+
 interface Props {
   channelName: string;
   disabled?: boolean;
   members: MentionUser[];
   onSend: (text: string, mentions: string[], attachments: ChatAttachment[]) => Promise<void> | void;
-  onUpload?: (file: File) => Promise<ChatAttachment>;
+  onUpload?: (file: File, onProgress: UploadProgressFn) => Promise<ChatAttachment>;
   onTyping?: () => void;
   onSummarize?: () => void;
   summarizing?: boolean;
@@ -29,14 +43,41 @@ interface Props {
 const MAX_FILE_BYTES = 250 * 1024 * 1024; // 250 MB
 const MAX_ATTACHMENTS = 5;
 
+type PendingStatus = "uploading" | "done" | "error";
+
+interface PendingItem {
+  id: string;
+  file: File;
+  name: string;
+  size: number;
+  type: string;
+  status: PendingStatus;
+  progress: number; // 0..1
+  attachment?: ChatAttachment;
+  error?: string;
+}
+
 interface MentionState {
   open: boolean;
   query: string;
-  start: number; // index of '@' in text
-  index: number; // selected suggestion
+  start: number;
+  index: number;
 }
 
 const initialMention: MentionState = { open: false, query: "", start: -1, index: 0 };
+
+function fileKind(type: string): "image" | "video" | "doc" {
+  if (type.startsWith("image/")) return "image";
+  if (type.startsWith("video/")) return "video";
+  return "doc";
+}
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+  if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
 
 export const MessageInput = ({
   channelName,
@@ -50,8 +91,7 @@ export const MessageInput = ({
 }: Props) => {
   const [text, setText] = useState("");
   const [mention, setMention] = useState<MentionState>(initialMention);
-  const [pending, setPending] = useState<ChatAttachment[]>([]);
-  const [uploading, setUploading] = useState(0);
+  const [pending, setPending] = useState<PendingItem[]>([]);
   const taRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -62,17 +102,14 @@ export const MessageInput = ({
     el.style.height = Math.min(el.scrollHeight, 140) + "px";
   }, [text]);
 
-  // Filter members by current @query
   const suggestions = useMemo(() => {
     if (!mention.open) return [];
     const q = mention.query.toLowerCase();
-    const list = members
+    return members
       .filter((m) => !q || m.handle.includes(q) || m.email.toLowerCase().includes(q))
       .slice(0, 6);
-    return list;
   }, [members, mention]);
 
-  // Keep selected index in range
   useEffect(() => {
     if (mention.open && mention.index >= suggestions.length) {
       setMention((s) => ({ ...s, index: 0 }));
@@ -80,7 +117,6 @@ export const MessageInput = ({
   }, [suggestions.length, mention.open, mention.index]);
 
   function detectMention(value: string, caret: number) {
-    // Find an '@' before caret with no whitespace between '@' and caret
     let i = caret - 1;
     while (i >= 0) {
       const ch = value[i];
@@ -131,43 +167,78 @@ export const MessageInput = ({
     return Array.from(ids);
   }
 
+  const uploadingCount = pending.filter((p) => p.status === "uploading").length;
+  const errorCount = pending.filter((p) => p.status === "error").length;
+  const doneItems = pending.filter((p) => p.status === "done");
+
   async function send() {
     const t = text.trim();
-    if ((!t && pending.length === 0) || disabled) return;
-    if (uploading > 0) return;
+    if ((!t && doneItems.length === 0) || disabled) return;
+    if (uploadingCount > 0) return;
+    if (errorCount > 0) return;
     const mentions = extractMentions(t);
-    const atts = pending;
+    const atts = doneItems.map((p) => p.attachment!).filter(Boolean);
     setText("");
     setPending([]);
     setMention(initialMention);
     await onSend(t, mentions, atts);
   }
 
+  function patchItem(id: string, patch: Partial<PendingItem>) {
+    setPending((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  }
+
+  async function runUpload(item: PendingItem) {
+    if (!onUpload) return;
+    patchItem(item.id, { status: "uploading", progress: 0, error: undefined });
+    try {
+      const att = await onUpload(item.file, (ratio) => {
+        patchItem(item.id, { progress: Math.max(0, Math.min(1, ratio)) });
+      });
+      patchItem(item.id, { status: "done", progress: 1, attachment: att });
+    } catch (err: any) {
+      const msg = err?.message ?? "Upload failed";
+      patchItem(item.id, { status: "error", error: msg });
+    }
+  }
+
   async function handleFiles(files: FileList | null) {
     if (!files || !onUpload) return;
     const arr = Array.from(files);
+    const queued: PendingItem[] = [];
     for (const f of arr) {
-      if (pending.length + 1 > MAX_ATTACHMENTS) {
-        // Cap silently after the first overflow
-        break;
-      }
+      if (pending.length + queued.length >= MAX_ATTACHMENTS) break;
       if (f.size > MAX_FILE_BYTES) {
         // eslint-disable-next-line no-console
         console.warn(`Skipping ${f.name}: exceeds 250 MB`);
         continue;
       }
-      setUploading((n) => n + 1);
-      try {
-        const att = await onUpload(f);
-        setPending((prev) => [...prev, att]);
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Upload failed", err);
-      } finally {
-        setUploading((n) => n - 1);
-      }
+      queued.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        file: f,
+        name: f.name,
+        size: f.size,
+        type: f.type || "application/octet-stream",
+        status: "uploading",
+        progress: 0,
+      });
     }
+    if (queued.length === 0) return;
+    setPending((prev) => [...prev, ...queued]);
+    // Upload in parallel
+    await Promise.all(queued.map((q) => runUpload(q)));
   }
+
+  function retry(id: string) {
+    const item = pending.find((p) => p.id === id);
+    if (!item) return;
+    void runUpload(item);
+  }
+
+  function removeItem(id: string) {
+    setPending((prev) => prev.filter((p) => p.id !== id));
+  }
+
   function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (mention.open && suggestions.length > 0) {
       if (e.key === "ArrowDown") {
@@ -208,17 +279,10 @@ export const MessageInput = ({
         background: "rgba(2,2,10,0.55)",
       }}
     >
-      {/* Mention suggestions popover */}
       {mention.open && suggestions.length > 0 && (
         <div
           className="absolute z-20"
-          style={{
-            left: 16,
-            right: 16,
-            bottom: "100%",
-            marginBottom: 6,
-            maxWidth: 320,
-          }}
+          style={{ left: 16, right: 16, bottom: "100%", marginBottom: 6, maxWidth: 320 }}
         >
           <div
             className="rounded-[10px] overflow-hidden"
@@ -231,10 +295,7 @@ export const MessageInput = ({
           >
             <div
               className="t-mono px-3 py-1.5"
-              style={{
-                fontSize: 9,
-                borderBottom: "1px solid var(--border-glass)",
-              }}
+              style={{ fontSize: 9, borderBottom: "1px solid var(--border-glass)" }}
             >
               People · ↑↓ navigate · ↵ insert
             </div>
@@ -297,53 +358,142 @@ export const MessageInput = ({
 
       {pending.length > 0 && (
         <div
-          className="flex flex-wrap gap-2 mb-2 p-2 rounded-[10px]"
+          className="flex flex-col gap-1.5 mb-2 p-2 rounded-[10px]"
           style={{
             background: "var(--bg-glass-1)",
             border: "1px solid var(--border-glass)",
           }}
         >
-          {pending.map((a, i) => {
-            const isImg = a.type.startsWith("image/");
+          {pending.map((p) => {
+            const kind = fileKind(p.type);
+            const Icon = kind === "image" ? ImageIcon : kind === "video" ? Film : FileText;
+            const pct = Math.round(p.progress * 100);
+            const statusColor =
+              p.status === "error"
+                ? "#F87171"
+                : p.status === "done"
+                  ? "#34D399"
+                  : "#60A5FA";
+            const barColor =
+              p.status === "error"
+                ? "rgba(248,113,113,0.85)"
+                : p.status === "done"
+                  ? "rgba(52,211,153,0.85)"
+                  : "rgba(96,165,250,0.85)";
+            const barBg =
+              p.status === "error"
+                ? "rgba(248,113,113,0.15)"
+                : p.status === "done"
+                  ? "rgba(52,211,153,0.15)"
+                  : "rgba(96,165,250,0.15)";
+
             return (
               <div
-                key={a.path}
-                className="flex items-center gap-2 px-2 py-1 rounded-[8px]"
+                key={p.id}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-[8px]"
                 style={{
-                  background: "rgba(96,165,250,0.10)",
-                  border: "1px solid rgba(96,165,250,0.30)",
-                  fontSize: 11,
-                  maxWidth: 220,
+                  background: barBg,
+                  border: `1px solid ${statusColor}55`,
                 }}
               >
-                {isImg ? (
-                  <ImageIcon size={12} strokeWidth={1.5} style={{ color: "#60A5FA" }} />
-                ) : (
-                  <FileText size={12} strokeWidth={1.5} style={{ color: "#60A5FA" }} />
+                <Icon size={13} strokeWidth={1.5} style={{ color: statusColor, flexShrink: 0 }} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="truncate"
+                      style={{
+                        color: "var(--text-primary)",
+                        fontSize: 11,
+                        fontFamily: "var(--font-body)",
+                      }}
+                      title={p.name}
+                    >
+                      {p.name}
+                    </span>
+                    <span
+                      className="t-mono"
+                      style={{ fontSize: 9, color: "var(--text-muted)", flexShrink: 0 }}
+                    >
+                      {formatBytes(p.size)}
+                    </span>
+                  </div>
+                  <div
+                    className="mt-1 relative overflow-hidden rounded-full"
+                    style={{
+                      height: 3,
+                      background: "rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: `${p.status === "error" ? 100 : pct}%`,
+                        background: barColor,
+                        transition: "width 150ms linear",
+                      }}
+                    />
+                  </div>
+                  <div
+                    className="t-mono mt-0.5 flex items-center gap-1.5"
+                    style={{ fontSize: 9, color: statusColor }}
+                  >
+                    {p.status === "uploading" && (
+                      <>
+                        <Loader2 size={9} className="animate-spin" />
+                        <span>Uploading… {pct}%</span>
+                      </>
+                    )}
+                    {p.status === "done" && (
+                      <>
+                        <CheckCircle2 size={9} strokeWidth={2} />
+                        <span>Ready</span>
+                      </>
+                    )}
+                    {p.status === "error" && (
+                      <>
+                        <AlertTriangle size={9} strokeWidth={2} />
+                        <span className="truncate">{p.error ?? "Failed"}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                {p.status === "error" && (
+                  <button
+                    onClick={() => retry(p.id)}
+                    title="Retry upload"
+                    className="flex items-center justify-center"
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: 6,
+                      color: "#F87171",
+                      background: "rgba(248,113,113,0.10)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <RotateCw size={11} strokeWidth={1.8} />
+                  </button>
                 )}
-                <span className="truncate" style={{ color: "var(--text-primary)" }}>
-                  {a.name}
-                </span>
                 <button
-                  onClick={() =>
-                    setPending((prev) => prev.filter((_, idx) => idx !== i))
-                  }
+                  onClick={() => removeItem(p.id)}
                   title="Remove"
-                  style={{ color: "var(--text-muted)" }}
+                  className="flex items-center justify-center"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 6,
+                    color: "var(--text-muted)",
+                    flexShrink: 0,
+                  }}
                 >
                   <X size={11} strokeWidth={1.5} />
                 </button>
               </div>
             );
           })}
-          {uploading > 0 && (
-            <div
-              className="flex items-center gap-2 px-2 py-1 t-mono"
-              style={{ fontSize: 10, color: "var(--text-muted)" }}
-            >
-              <Loader2 size={11} className="animate-spin" /> Uploading {uploading}…
-            </div>
-          )}
         </div>
       )}
 
@@ -427,15 +577,37 @@ export const MessageInput = ({
         </button>
         <button
           onClick={() => void send()}
-          disabled={disabled || uploading > 0 || (!text.trim() && pending.length === 0)}
+          disabled={
+            disabled ||
+            uploadingCount > 0 ||
+            errorCount > 0 ||
+            (!text.trim() && doneItems.length === 0)
+          }
           className="btn-primary"
           style={{ height: 32, padding: "0 12px", flexShrink: 0 }}
+          title={
+            uploadingCount > 0
+              ? "Waiting for uploads to finish"
+              : errorCount > 0
+                ? "Resolve failed uploads first"
+                : "Send"
+          }
         >
           <Send size={12} strokeWidth={2} />
         </button>
       </div>
-      <div className="t-mono mt-1" style={{ fontSize: 9, paddingLeft: 4 }}>
-        Enter to send · Shift+Enter newline · @mention · /todo /meeting · ✦ summarize
+      <div className="t-mono mt-1 flex items-center gap-2" style={{ fontSize: 9, paddingLeft: 4 }}>
+        <span>Enter to send · Shift+Enter newline · @mention · /todo /meeting · ✦ summarize</span>
+        {uploadingCount > 0 && (
+          <span style={{ color: "#60A5FA" }}>
+            · Uploading {uploadingCount} file{uploadingCount === 1 ? "" : "s"}…
+          </span>
+        )}
+        {errorCount > 0 && (
+          <span style={{ color: "#F87171" }}>
+            · {errorCount} failed — retry to continue
+          </span>
+        )}
       </div>
     </div>
   );
