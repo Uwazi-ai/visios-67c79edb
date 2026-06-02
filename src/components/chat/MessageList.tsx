@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Zap, Pencil, Check, X, History, FileText, Download } from "lucide-react";
+import { Zap, Pencil, Check, X, History, FileText, Download, Trash2 } from "lucide-react";
 import type { ChatAttachment, MentionUser } from "./MessageInput";
 import { useTime } from "@/contexts/TimezoneContext";
 import { VisionCircle } from "@/components/vision/VisionCircle";
@@ -37,6 +37,7 @@ interface Props {
   isSystemChannel: boolean;
   typingUsers: { user_id: string }[];
   onEdit?: (messageId: string, newContent: string) => Promise<void> | void;
+  onDelete?: (messageId: string) => Promise<void> | void;
   resolveAttachmentUrl?: (path: string) => Promise<string | null>;
 }
 
@@ -57,6 +58,7 @@ function AttachmentTile({
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const isImg = att.type?.startsWith("image/");
+  const isVideo = att.type?.startsWith("video/");
   const isPdf = att.type === "application/pdf";
 
   useEffect(() => {
@@ -104,6 +106,39 @@ function AttachmentTile({
           </div>
         )}
       </a>
+    );
+  }
+
+  if (isVideo) {
+    return (
+      <div
+        style={{
+          maxWidth: 360,
+          borderRadius: 8,
+          overflow: "hidden",
+          border: "1px solid var(--border-glass)",
+          background: "rgba(0,0,0,0.35)",
+        }}
+      >
+        {url ? (
+          <video
+            src={url}
+            controls
+            preload="metadata"
+            style={{ maxWidth: "100%", maxHeight: 320, display: "block" }}
+          />
+        ) : (
+          <div className="t-mono" style={{ padding: 24, textAlign: "center", fontSize: 10 }}>
+            Loading video…
+          </div>
+        )}
+        <div className="flex items-center justify-between px-2 py-1.5" style={{ borderTop: "1px solid var(--border-glass)" }}>
+          <span className="truncate" style={{ fontSize: 11, color: "var(--text-secondary)" }}>{att.name}</span>
+          <a href={url ?? "#"} target="_blank" rel="noreferrer" className="t-mono" style={{ fontSize: 9, color: "var(--text-muted)" }}>
+            {formatBytes(att.size)}
+          </a>
+        </div>
+      </div>
     );
   }
 
