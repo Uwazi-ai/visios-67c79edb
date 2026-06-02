@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, AlertCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertCircle, Mail } from "lucide-react";
 import { useState } from "react";
 import { colorForMember } from "@/lib/memberColors";
 
@@ -74,6 +74,20 @@ function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailab
           />
         )}
       </button>
+      {unavailableReason && m.email && (
+        <a
+          href={`mailto:${m.email}?subject=${encodeURIComponent("Connect your Google Calendar in Visi")}&body=${encodeURIComponent(`Hey ${m.display_name?.split(" ")[0] || "there"},\n\nI'd like to see your calendar in our team view on Visi so we can coordinate schedules. Could you sign in and connect Google Calendar from Settings → Connections?\n\nThanks!`)}`}
+          title="Send reminder email to connect Google Calendar"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: 22, height: 22, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
+            color: "var(--text-secondary)", background: "var(--bg-glass-1)",
+            border: "1px solid var(--border-glass)", flexShrink: 0,
+          }}
+        >
+          <Mail size={11} />
+        </a>
+      )}
       {!isMe && onToggle && (
         <button
           onClick={() => onToggle(!on)}

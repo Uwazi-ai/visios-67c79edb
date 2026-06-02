@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as CalendarIcon, Video, Users, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as CalendarIcon, Video, Users, Loader2, Mail } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -444,6 +444,15 @@ export default function Calendar() {
                   : "We couldn't reach their Google Calendar. Ask them to reconnect Google from Settings → Connections."}
               </div>
             </div>
+            {soloMember.email && (
+              <a
+                href={`mailto:${soloMember.email}?subject=${encodeURIComponent("Connect your Google Calendar in Visi")}&body=${encodeURIComponent(`Hey ${soloMember.display_name?.split(" ")[0] || "there"},\n\nI'd like to see your calendar in our team view on Visi so we can coordinate schedules. Could you sign in and connect Google Calendar from Settings → Connections?\n\nThanks!`)}`}
+                className="btn-ghost flex items-center gap-1.5"
+                style={{ height: 32 }}
+              >
+                <Mail size={12} /> Send reminder
+              </a>
+            )}
             <button
               onClick={() => setAll(teammates.map((t) => t.user_id))}
               className="btn-ghost"
