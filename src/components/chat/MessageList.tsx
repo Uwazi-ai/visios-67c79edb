@@ -562,27 +562,44 @@ export const MessageList = ({
                       </div>
                     )}
 
-                    {mine && m.id === lastOwnId && editingId !== m.id && onEdit && (
-                      <button
-                        onClick={() => startEdit(m)}
-                        title="Edit message"
-                        className="absolute opacity-0 group-hover/msg:opacity-100 transition-opacity"
-                        style={{
-                          top: -10,
-                          right: -10,
-                          width: 22,
-                          height: 22,
-                          borderRadius: 6,
-                          background: "rgba(15,15,25,0.95)",
-                          border: "1px solid var(--border-glass-hover)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "var(--text-secondary)",
-                        }}
+                    {mine && !isSystemChannel && editingId !== m.id && (onEdit || onDelete) && (
+                      <div
+                        className="absolute flex items-center gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity"
+                        style={{ top: -10, right: -6 }}
                       >
-                        <Pencil size={11} strokeWidth={1.5} />
-                      </button>
+                        {onEdit && m.content?.trim() && (
+                          <button
+                            onClick={() => startEdit(m)}
+                            title="Edit message"
+                            style={{
+                              width: 22, height: 22, borderRadius: 6,
+                              background: "rgba(15,15,25,0.95)",
+                              border: "1px solid var(--border-glass-hover)",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "var(--text-secondary)",
+                            }}
+                          >
+                            <Pencil size={11} strokeWidth={1.5} />
+                          </button>
+                        )}
+                        {onDelete && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm("Delete this message?")) void onDelete(m.id);
+                            }}
+                            title="Delete message"
+                            style={{
+                              width: 22, height: 22, borderRadius: 6,
+                              background: "rgba(15,15,25,0.95)",
+                              border: "1px solid rgba(239,68,68,0.4)",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "#FCA5A5",
+                            }}
+                          >
+                            <Trash2 size={11} strokeWidth={1.5} />
+                          </button>
+                        )}
+                      </div>
                     )}
 
                     {historyOpenId === m.id && Array.isArray(m.metadata?.edits) && m.metadata.edits.length > 0 && (
