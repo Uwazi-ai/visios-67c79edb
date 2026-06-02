@@ -449,6 +449,38 @@ export default function ChatPage() {
     toast.success("Message updated");
   }
 
+  async function deleteMessage(messageId: string) {
+    if (!user || !activeChannel) return;
+    const target = messages.find((m) => m.id === messageId);
+    if (!target) return;
+    if (target.user_id !== user.id) {
+      toast.error("You can only delete your own messages");
+      return;
+    }
+    if (activeChannel.is_system) {
+      toast.error("System channels are read-only");
+      return;
+    }
+    // Optimistic removal
+    setMessages((prev) => prev.filter((m) => m.id !== messageId));
+
+    // Best-effort cleanup of attachment files
+    const atts = Array.isArray(target.metadata?.attachments)
+      ? (target.metadata.attachments as ChatAttachment[])
+      : [];
+    if (atts.length > 0) {
+      void supabase.storage.from("chat-attachments").remove(atts.map((a) => a.path));
+    }
+
+    const { error } = await supabase.from("messages").delete().eq("id", messageId);
+    if (error) {
+      setMessages((prev) => [...prev, target].sort((a, b) => a.created_at.localeCompare(b.created_at)));
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Message deleted");
+  }
+
   async function handleSummarize() {
     if (!activeChannel) return;
     setSummarizing(true);
@@ -592,6 +624,7 @@ export default function ChatPage() {
             isSystemChannel={activeChannel.is_system}
             typingUsers={typingUsers}
             onEdit={editMessage}
+            onDelete={deleteMessage}
             resolveAttachmentUrl={resolveAttachmentUrl}
           />
         ) : (
