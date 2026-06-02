@@ -100,6 +100,7 @@ export default function Calendar() {
   // Team layer
   const [teammates, setTeammates] = useState<Teammate[]>([]);
   const [me, setMe] = useState<Teammate | null>(null);
+  const [unavailableMembers, setUnavailableMembers] = useState<Record<string, string>>({});
   const { visibleMemberIds, toggleMember, setAll, loaded: prefsLoaded } = useCalendarPreferences();
 
   useEffect(() => {
