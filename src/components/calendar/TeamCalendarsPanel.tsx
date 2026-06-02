@@ -148,6 +148,7 @@ function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailab
 
 
 export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, onToggle, onSelectSolo, onShowAll, soloMemberId, unavailableMembers }: Props) {
+  const inviterName = me?.display_name || me?.email || null;
   const [open, setOpen] = useState(true);
   const visible = new Set(visibleMemberIds);
   const ua = unavailableMembers ?? {};
