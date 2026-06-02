@@ -461,13 +461,16 @@ function ReconnectBanner() {
 }
 
 // =================== MINI SIDEBAR ===================
-function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, onToggleMember }: {
+function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, onToggleMember, onSelectSolo, onShowAll }: {
   cursor: Date; setCursor: (d: Date) => void; events: CalEvent[];
   orgs: { id: string; name: string; slug: string; color: string }[];
   me: Teammate | null; teammates: Teammate[];
   visibleMemberIds: string[];
   onToggleMember: (id: string, on: boolean) => void;
+  onSelectSolo?: (id: string) => void;
+  onShowAll?: () => void;
 }) {
+
   const [miniMonth, setMiniMonth] = useState(new Date(cursor.getFullYear(), cursor.getMonth(), 1));
   useEffect(() => { setMiniMonth(new Date(cursor.getFullYear(), cursor.getMonth(), 1)); }, [cursor]);
 
