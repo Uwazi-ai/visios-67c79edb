@@ -357,6 +357,8 @@ export default function Calendar() {
           me={me}
           teammates={teammates}
           visibleMemberIds={visibleMemberIds}
+          soloMemberId={soloMemberId}
+          unavailableMembers={unavailableMembers}
           onToggleMember={toggleMember}
           onSelectSolo={(id) => setAll([id])}
           onShowAll={() => setAll(teammates.map((t) => t.user_id))}
