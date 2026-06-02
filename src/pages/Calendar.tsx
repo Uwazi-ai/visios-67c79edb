@@ -342,8 +342,11 @@ export default function Calendar() {
           teammates={teammates}
           visibleMemberIds={visibleMemberIds}
           onToggleMember={toggleMember}
+          onSelectSolo={(id) => setAll([id])}
+          onShowAll={() => setAll(teammates.map((t) => t.user_id))}
         />
       )}
+
 
       {/* Main calendar */}
       <div className="flex-1 min-w-0 flex flex-col gap-3">
@@ -458,13 +461,16 @@ function ReconnectBanner() {
 }
 
 // =================== MINI SIDEBAR ===================
-function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, onToggleMember }: {
+function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, onToggleMember, onSelectSolo, onShowAll }: {
   cursor: Date; setCursor: (d: Date) => void; events: CalEvent[];
   orgs: { id: string; name: string; slug: string; color: string }[];
   me: Teammate | null; teammates: Teammate[];
   visibleMemberIds: string[];
   onToggleMember: (id: string, on: boolean) => void;
+  onSelectSolo?: (id: string) => void;
+  onShowAll?: () => void;
 }) {
+
   const [miniMonth, setMiniMonth] = useState(new Date(cursor.getFullYear(), cursor.getMonth(), 1));
   useEffect(() => { setMiniMonth(new Date(cursor.getFullYear(), cursor.getMonth(), 1)); }, [cursor]);
 
@@ -546,10 +552,13 @@ function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMe
         teammates={teammates}
         visibleMemberIds={visibleMemberIds}
         onToggle={onToggleMember}
+        onSelectSolo={onSelectSolo}
+        onShowAll={onShowAll}
       />
     </aside>
   );
 }
+
 
 // =================== WEEK VIEW ===================
 function WeekView({ events, cursor, now, onSelect }: { events: CalEvent[]; cursor: Date; now: Date; onSelect: (e: CalEvent) => void }) {
