@@ -258,6 +258,7 @@ export const MessageList = ({
   isSystemChannel,
   typingUsers,
   onEdit,
+  onDelete,
   resolveAttachmentUrl,
 }: Props) => {
   const { tz } = useTime();
