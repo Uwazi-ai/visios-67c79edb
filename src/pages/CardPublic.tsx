@@ -11,8 +11,6 @@ interface ProfileQuery {
   title: string | null;
   company: string | null;
   tagline: string | null;
-  email: string | null;
-  phone: string | null;
   linkedin_url: string | null;
   website_url: string | null;
   card_theme: string | null;
@@ -36,8 +34,8 @@ const CardPublic = () => {
       if (!username) return;
       setLoading(true);
       const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("username, display_name, avatar_url, title, company, tagline, email, phone, linkedin_url, website_url, card_theme, custom_links, primary_org_id")
+        .from("profiles_public")
+        .select("username, display_name, avatar_url, title, company, tagline, linkedin_url, website_url, card_theme, custom_links, primary_org_id")
         .eq("username", username)
         .maybeSingle();
 
@@ -49,12 +47,12 @@ const CardPublic = () => {
         return;
       }
 
-      // Look up org slug if we have one
+      // Look up org slug if we have one (uses the safe public view)
       let orgSlug: string | null = null;
       const p = profile as ProfileQuery;
       if (p.primary_org_id) {
         const { data: org } = await supabase
-          .from("orgs")
+          .from("orgs_public")
           .select("slug")
           .eq("id", p.primary_org_id)
           .maybeSingle();
@@ -70,8 +68,8 @@ const CardPublic = () => {
         title: p.title,
         company: p.company,
         tagline: p.tagline,
-        email: p.email,
-        phone: p.phone,
+        email: null,
+        phone: null,
         linkedin_url: p.linkedin_url,
         website_url: p.website_url,
         card_theme: p.card_theme || "dark",
