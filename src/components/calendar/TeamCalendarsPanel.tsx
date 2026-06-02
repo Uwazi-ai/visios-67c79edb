@@ -50,10 +50,11 @@ function initials(name: string | null, email: string | null) {
   return ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailableReason }: {
+function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailableReason, inviterName }: {
   m: Teammate; color: string; on: boolean; onToggle?: (v: boolean) => void; onSolo?: () => void;
-  isMe?: boolean; isSelected?: boolean; unavailableReason?: string;
+  isMe?: boolean; isSelected?: boolean; unavailableReason?: string; inviterName?: string | null;
 }) {
+  const [inviteState, setInviteState] = useState<"idle" | "sending" | "sent">("idle");
   return (
     <div
       className="flex items-center gap-2 py-1 px-1.5 rounded"
