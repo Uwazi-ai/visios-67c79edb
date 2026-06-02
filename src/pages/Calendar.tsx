@@ -445,13 +445,11 @@ export default function Calendar() {
               </div>
             </div>
             {soloMember.email && (
-              <a
-                href={`mailto:${soloMember.email}?subject=${encodeURIComponent("Connect your Google Calendar in Visi")}&body=${encodeURIComponent(`Hey ${soloMember.display_name?.split(" ")[0] || "there"},\n\nI'd like to see your calendar in our team view on Visi so we can coordinate schedules. Could you sign in and connect Google Calendar from Settings → Connections?\n\nThanks!`)}`}
-                className="btn-ghost flex items-center gap-1.5"
-                style={{ height: 32 }}
-              >
-                <Mail size={12} /> Send reminder
-              </a>
+              <ConnectInviteButton
+                email={soloMember.email}
+                displayName={soloMember.display_name}
+                inviterName={me?.display_name || me?.email || null}
+              />
             )}
             <button
               onClick={() => setAll(teammates.map((t) => t.user_id))}
