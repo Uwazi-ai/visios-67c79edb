@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as CalendarIcon, Video, Users, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as CalendarIcon, Video, Users, Loader2, Mail } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
