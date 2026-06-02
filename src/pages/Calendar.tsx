@@ -375,6 +375,30 @@ export default function Calendar() {
             <button onClick={goToday} className="btn-ghost" style={{ height: 32, padding: "0 12px" }}>Today</button>
             <button onClick={goNext} className="btn-icon" aria-label="Next"><ChevronRight size={16} /></button>
             <span className="t-section ml-3 truncate">{headerLabel}</span>
+            {soloMember && (
+              <span
+                className="ml-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+                style={{
+                  background: `${colorForMember(soloMember.user_id)}1F`,
+                  border: `1px solid ${colorForMember(soloMember.user_id)}66`,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10,
+                  color: "var(--text-primary)",
+                  whiteSpace: "nowrap",
+                }}
+                title="Showing only this teammate's calendar"
+              >
+                <span style={{ width: 6, height: 6, borderRadius: 999, background: colorForMember(soloMember.user_id) }} />
+                Viewing {soloMember.display_name?.split(" ")[0] || soloMember.email || "member"}
+                <button
+                  onClick={() => setAll(teammates.map((t) => t.user_id))}
+                  aria-label="Show all team calendars"
+                  style={{ background: "transparent", border: 0, color: "var(--text-secondary)", cursor: "pointer", padding: 0, marginLeft: 2, lineHeight: 0 }}
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            )}
             {loading && <Loader2 size={14} className="animate-spin ml-2" style={{ color: "var(--text-muted)" }} />}
           </div>
 
