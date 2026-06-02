@@ -100,6 +100,7 @@ export default function Calendar() {
   // Team layer
   const [teammates, setTeammates] = useState<Teammate[]>([]);
   const [me, setMe] = useState<Teammate | null>(null);
+  const [unavailableMembers, setUnavailableMembers] = useState<Record<string, string>>({});
   const { visibleMemberIds, toggleMember, setAll, loaded: prefsLoaded } = useCalendarPreferences();
 
   useEffect(() => {
@@ -282,6 +283,14 @@ export default function Calendar() {
             } as CalEvent;
           });
         }
+        const ua = (gt?.unavailable ?? []) as Array<{ user_id: string; reason: string }>;
+        setUnavailableMembers((prev) => {
+          const next: Record<string, string> = { ...prev };
+          // clear stale entries for currently-queried members
+          teammateIds.forEach((id) => { delete next[id]; });
+          ua.forEach((u) => { next[u.user_id] = u.reason; });
+          return next;
+        });
       } catch (err) {
         console.error("team google events", err);
       }
@@ -329,6 +338,13 @@ export default function Calendar() {
     return `${MONTHS[ws.getMonth()].slice(0, 3)} ${ws.getDate()} – ${MONTHS[we.getMonth()].slice(0, 3)} ${we.getDate()}, ${we.getFullYear()}`;
   }, [view, cursor]);
 
+  const soloMemberId =
+    teammates.length > 0 && visibleMemberIds.length === 1 && visibleMemberIds[0] !== user?.id
+      ? visibleMemberIds[0]
+      : null;
+  const soloMember = soloMemberId ? teammates.find((t) => t.user_id === soloMemberId) ?? null : null;
+  const soloUnavailableReason = soloMemberId ? unavailableMembers[soloMemberId] : undefined;
+
   return (
     <div className="flex gap-4 min-h-[calc(100vh-120px)]">
       {/* Sidebar mini calendar (desktop only) */}
@@ -341,6 +357,8 @@ export default function Calendar() {
           me={me}
           teammates={teammates}
           visibleMemberIds={visibleMemberIds}
+          soloMemberId={soloMemberId}
+          unavailableMembers={unavailableMembers}
           onToggleMember={toggleMember}
           onSelectSolo={(id) => setAll([id])}
           onShowAll={() => setAll(teammates.map((t) => t.user_id))}
@@ -357,6 +375,30 @@ export default function Calendar() {
             <button onClick={goToday} className="btn-ghost" style={{ height: 32, padding: "0 12px" }}>Today</button>
             <button onClick={goNext} className="btn-icon" aria-label="Next"><ChevronRight size={16} /></button>
             <span className="t-section ml-3 truncate">{headerLabel}</span>
+            {soloMember && (
+              <span
+                className="ml-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full"
+                style={{
+                  background: `${colorForMember(soloMember.user_id)}1F`,
+                  border: `1px solid ${colorForMember(soloMember.user_id)}66`,
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 10,
+                  color: "var(--text-primary)",
+                  whiteSpace: "nowrap",
+                }}
+                title="Showing only this teammate's calendar"
+              >
+                <span style={{ width: 6, height: 6, borderRadius: 999, background: colorForMember(soloMember.user_id) }} />
+                Viewing {soloMember.display_name?.split(" ")[0] || soloMember.email || "member"}
+                <button
+                  onClick={() => setAll(teammates.map((t) => t.user_id))}
+                  aria-label="Show all team calendars"
+                  style={{ background: "transparent", border: 0, color: "var(--text-secondary)", cursor: "pointer", padding: 0, marginLeft: 2, lineHeight: 0 }}
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            )}
             {loading && <Loader2 size={14} className="animate-spin ml-2" style={{ color: "var(--text-muted)" }} />}
           </div>
 
@@ -385,6 +427,32 @@ export default function Calendar() {
         </div>
 
         {needsReconnect && <ReconnectBanner />}
+
+        {soloMember && soloUnavailableReason && (
+          <div
+            className="glass p-3 flex items-start gap-3"
+            style={{ borderColor: `${colorForMember(soloMember.user_id)}66` }}
+          >
+            <CalendarIcon size={16} style={{ color: "var(--sev-warn)", marginTop: 2 }} />
+            <div className="flex-1 min-w-0">
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 12, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: 0.08 }}>
+                {soloMember.display_name || soloMember.email || "Teammate"}'s calendar is unavailable
+              </div>
+              <div className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                {soloUnavailableReason === "not_connected"
+                  ? "They haven't connected Google Calendar yet. Ask them to sign in and grant calendar access from Settings → Connections."
+                  : "We couldn't reach their Google Calendar. Ask them to reconnect Google from Settings → Connections."}
+              </div>
+            </div>
+            <button
+              onClick={() => setAll(teammates.map((t) => t.user_id))}
+              className="btn-ghost"
+              style={{ height: 32 }}
+            >
+              Show all
+            </button>
+          </div>
+        )}
 
         {/* View body */}
         <div className="glass flex-1 overflow-hidden flex flex-col">
@@ -461,11 +529,13 @@ function ReconnectBanner() {
 }
 
 // =================== MINI SIDEBAR ===================
-function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, onToggleMember, onSelectSolo, onShowAll }: {
+function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMemberIds, soloMemberId, unavailableMembers, onToggleMember, onSelectSolo, onShowAll }: {
   cursor: Date; setCursor: (d: Date) => void; events: CalEvent[];
   orgs: { id: string; name: string; slug: string; color: string }[];
   me: Teammate | null; teammates: Teammate[];
   visibleMemberIds: string[];
+  soloMemberId?: string | null;
+  unavailableMembers?: Record<string, string>;
   onToggleMember: (id: string, on: boolean) => void;
   onSelectSolo?: (id: string) => void;
   onShowAll?: () => void;
@@ -551,6 +621,8 @@ function MiniSidebar({ cursor, setCursor, events, orgs, me, teammates, visibleMe
         me={me}
         teammates={teammates}
         visibleMemberIds={visibleMemberIds}
+        soloMemberId={soloMemberId ?? null}
+        unavailableMembers={unavailableMembers ?? {}}
         onToggle={onToggleMember}
         onSelectSolo={onSelectSolo}
         onShowAll={onShowAll}

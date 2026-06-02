@@ -68,12 +68,16 @@ Deno.serve(async (req) => {
       return u.toString();
     };
 
+    const unavailable: Array<{ user_id: string; reason: string }> = [];
     const results = await Promise.all(
       allowed.map(async (memberId): Promise<TeamEvent[]> => {
         try {
           const token = await getFreshGoogleAccessToken(memberId);
           const r = await googleFetch(url(memberId), token);
-          if (!r.ok) return [];
+          if (!r.ok) {
+            unavailable.push({ user_id: memberId, reason: `google_api_${r.status}` });
+            return [];
+          }
           const data = await r.json() as { items?: Array<Record<string, unknown> & {
             start?: Record<string, string>; end?: Record<string, string>;
             attendees?: Array<{ email?: string }>; visibility?: string;
@@ -92,14 +96,18 @@ Deno.serve(async (req) => {
               attendees: (e.attendees ?? []).map((a) => a.email).filter((x): x is string => Boolean(x)),
             }))
             .filter((e) => e.start && e.end);
-        } catch (_err) {
-          // Member hasn't connected Google or token revoked — skip silently
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          unavailable.push({
+            user_id: memberId,
+            reason: /refresh token/i.test(msg) ? "not_connected" : "token_error",
+          });
           return [];
         }
       }),
     );
 
-    return jsonResponse({ events: results.flat() });
+    return jsonResponse({ events: results.flat(), unavailable });
   } catch (e) {
     return jsonResponse({ error: e instanceof Error ? e.message : String(e), events: [] }, 500);
   }

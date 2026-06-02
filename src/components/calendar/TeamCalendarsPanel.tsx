@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { colorForMember } from "@/lib/memberColors";
 
@@ -16,6 +16,8 @@ interface Props {
   onToggle: (memberId: string, on: boolean) => void;
   onSelectSolo?: (memberId: string) => void;
   onShowAll?: () => void;
+  soloMemberId?: string | null;
+  unavailableMembers?: Record<string, string>;
 }
 
 
@@ -25,11 +27,20 @@ function initials(name: string | null, email: string | null) {
   return ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-function MemberRow({ m, color, on, onToggle, onSolo, isMe }: {
-  m: Teammate; color: string; on: boolean; onToggle?: (v: boolean) => void; onSolo?: () => void; isMe?: boolean;
+function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailableReason }: {
+  m: Teammate; color: string; on: boolean; onToggle?: (v: boolean) => void; onSolo?: () => void;
+  isMe?: boolean; isSelected?: boolean; unavailableReason?: string;
 }) {
   return (
-    <div className="flex items-center gap-2 py-1">
+    <div
+      className="flex items-center gap-2 py-1 px-1.5 rounded"
+      style={{
+        background: isSelected ? `${color}22` : "transparent",
+        border: isSelected ? `1px solid ${color}66` : "1px solid transparent",
+        boxShadow: isSelected ? `0 0 8px ${color}33` : "none",
+        transition: "background 0.15s, border-color 0.15s, box-shadow 0.15s",
+      }}
+    >
       <span style={{ width: 8, height: 8, borderRadius: 999, background: color, flexShrink: 0, boxShadow: `0 0 6px ${color}66` }} />
       {m.avatar_url ? (
         <img src={m.avatar_url} alt="" style={{ width: 18, height: 18, borderRadius: 999, objectFit: "cover" }} />
@@ -44,13 +55,24 @@ function MemberRow({ m, color, on, onToggle, onSolo, isMe }: {
         onClick={onSolo}
         disabled={!onSolo}
         title={onSolo ? `Show only ${m.display_name || m.email || "this member"}'s calendar` : undefined}
-        className="flex-1 truncate text-xs text-left"
+        className="flex-1 truncate text-xs text-left flex items-center gap-1.5"
         style={{
-          color: "var(--text-primary)", background: "transparent", border: 0, padding: 0,
+          color: isSelected ? "var(--text-primary)" : "var(--text-primary)",
+          background: "transparent", border: 0, padding: 0,
           cursor: onSolo ? "pointer" : "default",
+          fontWeight: isSelected ? 600 : 400,
         }}
       >
-        {isMe ? `You${m.display_name ? ` (${m.display_name.split(" ")[0]})` : ""}` : (m.display_name || m.email || "Unknown")}
+        <span className="truncate">
+          {isMe ? `You${m.display_name ? ` (${m.display_name.split(" ")[0]})` : ""}` : (m.display_name || m.email || "Unknown")}
+        </span>
+        {unavailableReason && (
+          <AlertCircle
+            size={11}
+            style={{ color: "var(--sev-warn)", flexShrink: 0 }}
+            aria-label={unavailableReason === "not_connected" ? "Google not connected" : "Calendar unavailable"}
+          />
+        )}
       </button>
       {!isMe && onToggle && (
         <button
@@ -77,12 +99,14 @@ function MemberRow({ m, color, on, onToggle, onSolo, isMe }: {
 }
 
 
-export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, onToggle, onSelectSolo, onShowAll }: Props) {
+export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, onToggle, onSelectSolo, onShowAll, soloMemberId, unavailableMembers }: Props) {
   const [open, setOpen] = useState(true);
   const visible = new Set(visibleMemberIds);
-  const teammateIds = teammates.map((t) => t.user_id);
-  const visibleTeammates = teammateIds.filter((id) => visible.has(id));
-  const isSolo = onSelectSolo && visibleTeammates.length === 1 && teammates.length > 1;
+  const ua = unavailableMembers ?? {};
+  const solo = soloMemberId ?? null;
+  const soloMember = solo ? teammates.find((t) => t.user_id === solo) ?? null : null;
+  const soloReason = solo ? ua[solo] : undefined;
+  const soloColor = solo ? colorForMember(solo) : undefined;
 
   return (
     <div className="flex flex-col gap-1.5 mt-2">
@@ -95,7 +119,7 @@ export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, on
           {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
           Team Calendars
         </button>
-        {isSolo && onShowAll && (
+        {soloMember && onShowAll && (
           <button
             onClick={onShowAll}
             className="t-mono"
@@ -106,6 +130,38 @@ export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, on
           </button>
         )}
       </div>
+
+      {soloMember && (
+        <div
+          className="flex flex-col gap-1 px-2 py-1.5 rounded"
+          style={{
+            background: `${soloColor}1A`,
+            border: `1px solid ${soloColor}55`,
+            boxShadow: `0 0 10px ${soloColor}22`,
+          }}
+        >
+          <div className="flex items-center gap-1.5">
+            <span style={{ width: 6, height: 6, borderRadius: 999, background: soloColor, boxShadow: `0 0 6px ${soloColor}` }} />
+            <span className="t-mono" style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.08 }}>
+              Viewing
+            </span>
+            <span className="truncate" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 11, color: "var(--text-primary)" }}>
+              {soloMember.display_name || soloMember.email || "Member"}
+            </span>
+          </div>
+          {soloReason && (
+            <div className="flex items-start gap-1.5 t-mono" style={{ fontSize: 9, color: "var(--sev-warn)" }}>
+              <AlertCircle size={10} style={{ marginTop: 1, flexShrink: 0 }} />
+              <span style={{ lineHeight: 1.3 }}>
+                {soloReason === "not_connected"
+                  ? "They haven't connected Google Calendar yet — no events to show."
+                  : "Their calendar couldn't be reached. Ask them to reconnect Google."}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
       {open && (
         <div className="flex flex-col">
           {me && (
@@ -125,6 +181,8 @@ export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, on
               on={visible.has(t.user_id)}
               onToggle={(v) => onToggle(t.user_id, v)}
               onSolo={onSelectSolo ? () => onSelectSolo(t.user_id) : undefined}
+              isSelected={solo === t.user_id}
+              unavailableReason={ua[t.user_id]}
             />
           ))}
           {teammates.length === 0 && (
@@ -137,4 +195,3 @@ export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, on
     </div>
   );
 }
-
