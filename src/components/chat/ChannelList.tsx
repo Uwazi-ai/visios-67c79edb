@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Plus, Hash, Zap, Rocket, MessageSquarePlus } from "lucide-react";
+import { Search, Plus, Hash, Zap, Rocket, MessageSquarePlus, Trash2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrg } from "@/contexts/OrgContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +22,37 @@ interface Props {
   onSelect: (id: string) => void;
   onCreated: () => void;
   onNewDm?: () => void;
+}
+
+async function deleteChannel(c: ChatChannel, onDone: () => void) {
+  if (c.is_system) {
+    toast.error("System channels can't be deleted");
+    return;
+  }
+  const label = c.is_dm ? "this conversation" : `#${c.name}`;
+  if (!window.confirm(`Delete ${label}? All messages will be removed.`)) return;
+  const { error } = await supabase.from("channels").delete().eq("id", c.id);
+  if (error) {
+    toast.error(error.message);
+    return;
+  }
+  toast.success("Deleted");
+  onDone();
+}
+
+async function renameChannel(c: ChatChannel, onDone: () => void) {
+  if (c.is_system || c.is_dm) return;
+  const next = window.prompt("Rename channel", c.name ?? "");
+  if (!next) return;
+  const name = next.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
+  if (!name || name === c.name) return;
+  const { error } = await supabase.from("channels").update({ name }).eq("id", c.id);
+  if (error) {
+    toast.error(error.message);
+    return;
+  }
+  toast.success(`Renamed to #${name}`);
+  onDone();
 }
 
 export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }: Props) => {
@@ -159,6 +190,8 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }
                 active={c.id === activeId}
                 onClick={() => onSelect(c.id)}
                 color={ORG_COLORS[org.slug] ?? org.color}
+                onRename={() => renameChannel(c, onCreated)}
+                onDelete={() => deleteChannel(c, onCreated)}
               />
             ))}
             {systems.length > 0 && (
@@ -209,6 +242,7 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }
                 active={c.id === activeId}
                 onClick={() => onSelect(c.id)}
                 color={undefined}
+                onDelete={() => deleteChannel(c, onCreated)}
               />
             ))
           )}
@@ -223,51 +257,93 @@ function ChannelRow({
   active,
   onClick,
   color,
+  onRename,
+  onDelete,
 }: {
   channel: ChatChannel;
   active: boolean;
   onClick: () => void;
   color?: string;
+  onRename?: () => void;
+  onDelete?: () => void;
 }) {
   return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-2 mx-2 px-2 py-1.5 rounded-[8px] transition-colors"
+    <div
+      className="group/ch relative mx-2 rounded-[8px] transition-colors"
       style={{
         background: active ? "var(--bg-glass-active)" : "transparent",
         border: active ? "1px solid var(--border-active)" : "1px solid transparent",
-        color: active ? "var(--text-primary)" : "var(--text-secondary)",
-        width: "calc(100% - 16px)",
       }}
     >
-      <Hash size={12} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
-      <span
+      <button
+        onClick={onClick}
+        className="w-full flex items-center gap-2 px-2 py-1.5"
         style={{
-          fontFamily: "var(--font-body)",
-          fontSize: 12,
-          fontWeight: 500,
-          flex: 1,
-          textAlign: "left",
+          color: active ? "var(--text-primary)" : "var(--text-secondary)",
         }}
       >
-        {channel.name}
-      </span>
-      {channel.unread ? (
+        <Hash size={12} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
         <span
-          className="font-mono"
           style={{
-            background: "rgba(37,99,235,0.85)",
-            color: "white",
-            fontSize: 9,
-            fontWeight: 600,
-            padding: "1px 6px",
-            borderRadius: 999,
+            fontFamily: "var(--font-body)",
+            fontSize: 12,
+            fontWeight: 500,
+            flex: 1,
+            textAlign: "left",
+            paddingRight: onDelete ? 36 : 0,
           }}
         >
-          {channel.unread}
+          {channel.name}
         </span>
-      ) : null}
-    </button>
+        {channel.unread ? (
+          <span
+            className="font-mono"
+            style={{
+              background: "rgba(37,99,235,0.85)",
+              color: "white",
+              fontSize: 9,
+              fontWeight: 600,
+              padding: "1px 6px",
+              borderRadius: 999,
+            }}
+          >
+            {channel.unread}
+          </span>
+        ) : null}
+      </button>
+      {(onRename || onDelete) && (
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover/ch:opacity-100 transition-opacity">
+          {onRename && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onRename(); }}
+              title="Rename"
+              style={{
+                width: 18, height: 18, borderRadius: 4,
+                background: "rgba(15,15,25,0.95)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "var(--text-muted)",
+              }}
+            >
+              <Pencil size={9} strokeWidth={1.5} />
+            </button>
+          )}
+          {onDelete && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              title="Delete"
+              style={{
+                width: 18, height: 18, borderRadius: 4,
+                background: "rgba(15,15,25,0.95)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#FCA5A5",
+              }}
+            >
+              <Trash2 size={9} strokeWidth={1.5} />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 

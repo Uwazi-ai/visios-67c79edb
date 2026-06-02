@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Zap, Pencil, Check, X, History, FileText, Download } from "lucide-react";
+import { Zap, Pencil, Check, X, History, FileText, Download, Trash2 } from "lucide-react";
 import type { ChatAttachment, MentionUser } from "./MessageInput";
 import { useTime } from "@/contexts/TimezoneContext";
 import { VisionCircle } from "@/components/vision/VisionCircle";
@@ -37,6 +37,7 @@ interface Props {
   isSystemChannel: boolean;
   typingUsers: { user_id: string }[];
   onEdit?: (messageId: string, newContent: string) => Promise<void> | void;
+  onDelete?: (messageId: string) => Promise<void> | void;
   resolveAttachmentUrl?: (path: string) => Promise<string | null>;
 }
 
@@ -57,6 +58,7 @@ function AttachmentTile({
 }) {
   const [url, setUrl] = useState<string | null>(null);
   const isImg = att.type?.startsWith("image/");
+  const isVideo = att.type?.startsWith("video/");
   const isPdf = att.type === "application/pdf";
 
   useEffect(() => {
@@ -104,6 +106,39 @@ function AttachmentTile({
           </div>
         )}
       </a>
+    );
+  }
+
+  if (isVideo) {
+    return (
+      <div
+        style={{
+          maxWidth: 360,
+          borderRadius: 8,
+          overflow: "hidden",
+          border: "1px solid var(--border-glass)",
+          background: "rgba(0,0,0,0.35)",
+        }}
+      >
+        {url ? (
+          <video
+            src={url}
+            controls
+            preload="metadata"
+            style={{ maxWidth: "100%", maxHeight: 320, display: "block" }}
+          />
+        ) : (
+          <div className="t-mono" style={{ padding: 24, textAlign: "center", fontSize: 10 }}>
+            Loading video…
+          </div>
+        )}
+        <div className="flex items-center justify-between px-2 py-1.5" style={{ borderTop: "1px solid var(--border-glass)" }}>
+          <span className="truncate" style={{ fontSize: 11, color: "var(--text-secondary)" }}>{att.name}</span>
+          <a href={url ?? "#"} target="_blank" rel="noreferrer" className="t-mono" style={{ fontSize: 9, color: "var(--text-muted)" }}>
+            {formatBytes(att.size)}
+          </a>
+        </div>
+      </div>
     );
   }
 
@@ -223,6 +258,7 @@ export const MessageList = ({
   isSystemChannel,
   typingUsers,
   onEdit,
+  onDelete,
   resolveAttachmentUrl,
 }: Props) => {
   const { tz } = useTime();
@@ -242,14 +278,6 @@ export const MessageList = ({
   const [saving, setSaving] = useState(false);
   const [historyOpenId, setHistoryOpenId] = useState<string | null>(null);
 
-  // Last own non-system message (only this one is editable)
-  const lastOwnId = useMemo(() => {
-    if (isSystemChannel) return null;
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].user_id === currentUserId) return messages[i].id;
-    }
-    return null;
-  }, [messages, currentUserId, isSystemChannel]);
 
   function startEdit(m: ChatMessage) {
     setEditingId(m.id);
@@ -526,27 +554,44 @@ export const MessageList = ({
                       </div>
                     )}
 
-                    {mine && m.id === lastOwnId && editingId !== m.id && onEdit && (
-                      <button
-                        onClick={() => startEdit(m)}
-                        title="Edit message"
-                        className="absolute opacity-0 group-hover/msg:opacity-100 transition-opacity"
-                        style={{
-                          top: -10,
-                          right: -10,
-                          width: 22,
-                          height: 22,
-                          borderRadius: 6,
-                          background: "rgba(15,15,25,0.95)",
-                          border: "1px solid var(--border-glass-hover)",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "var(--text-secondary)",
-                        }}
+                    {mine && !isSystemChannel && editingId !== m.id && (onEdit || onDelete) && (
+                      <div
+                        className="absolute flex items-center gap-1 opacity-0 group-hover/msg:opacity-100 transition-opacity"
+                        style={{ top: -10, right: -6 }}
                       >
-                        <Pencil size={11} strokeWidth={1.5} />
-                      </button>
+                        {onEdit && m.content?.trim() && (
+                          <button
+                            onClick={() => startEdit(m)}
+                            title="Edit message"
+                            style={{
+                              width: 22, height: 22, borderRadius: 6,
+                              background: "rgba(15,15,25,0.95)",
+                              border: "1px solid var(--border-glass-hover)",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "var(--text-secondary)",
+                            }}
+                          >
+                            <Pencil size={11} strokeWidth={1.5} />
+                          </button>
+                        )}
+                        {onDelete && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm("Delete this message?")) void onDelete(m.id);
+                            }}
+                            title="Delete message"
+                            style={{
+                              width: 22, height: 22, borderRadius: 6,
+                              background: "rgba(15,15,25,0.95)",
+                              border: "1px solid rgba(239,68,68,0.4)",
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "#FCA5A5",
+                            }}
+                          >
+                            <Trash2 size={11} strokeWidth={1.5} />
+                          </button>
+                        )}
+                      </div>
                     )}
 
                     {historyOpenId === m.id && Array.isArray(m.metadata?.edits) && m.metadata.edits.length > 0 && (
