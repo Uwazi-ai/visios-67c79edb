@@ -232,6 +232,7 @@ export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, on
               onSolo={onSelectSolo ? () => onSelectSolo(t.user_id) : undefined}
               isSelected={solo === t.user_id}
               unavailableReason={ua[t.user_id]}
+              inviterName={inviterName}
             />
           ))}
           {teammates.length === 0 && (
