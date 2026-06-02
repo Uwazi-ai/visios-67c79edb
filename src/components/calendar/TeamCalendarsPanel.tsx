@@ -1,6 +1,29 @@
-import { ChevronDown, ChevronRight, AlertCircle, Mail } from "lucide-react";
+import { ChevronDown, ChevronRight, AlertCircle, Send, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { colorForMember } from "@/lib/memberColors";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+
+async function sendConnectInvite(m: { email: string | null; display_name: string | null }, inviterName: string | null) {
+  if (!m.email) return false;
+  const { data, error } = await supabase.functions.invoke("send-transactional-email", {
+    body: {
+      templateName: "calendar-connect-invite",
+      recipientEmail: m.email,
+      templateData: {
+        inviterName: inviterName || "A teammate",
+        recipientName: m.display_name || "",
+        signInUrl: `${window.location.origin}/login`,
+      },
+    },
+  });
+  if (error || (data as { error?: string })?.error) {
+    toast({ title: "Couldn't send invite", description: (error?.message || (data as { error?: string })?.error) ?? "Try again in a moment.", variant: "destructive" });
+    return false;
+  }
+  toast({ title: "Invite sent", description: `${m.display_name || m.email} will get an email with a one-click connect link.` });
+  return true;
+}
 
 export interface Teammate {
   user_id: string;
@@ -27,10 +50,11 @@ function initials(name: string | null, email: string | null) {
   return ((parts[0]?.[0] ?? "?") + (parts[1]?.[0] ?? "")).toUpperCase();
 }
 
-function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailableReason }: {
+function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailableReason, inviterName }: {
   m: Teammate; color: string; on: boolean; onToggle?: (v: boolean) => void; onSolo?: () => void;
-  isMe?: boolean; isSelected?: boolean; unavailableReason?: string;
+  isMe?: boolean; isSelected?: boolean; unavailableReason?: string; inviterName?: string | null;
 }) {
+  const [inviteState, setInviteState] = useState<"idle" | "sending" | "sent">("idle");
   return (
     <div
       className="flex items-center gap-2 py-1 px-1.5 rounded"
@@ -75,18 +99,28 @@ function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailab
         )}
       </button>
       {unavailableReason && m.email && (
-        <a
-          href={`mailto:${m.email}?subject=${encodeURIComponent("Connect your Google Calendar in Visi")}&body=${encodeURIComponent(`Hey ${m.display_name?.split(" ")[0] || "there"},\n\nI'd like to see your calendar in our team view on Visi so we can coordinate schedules. Could you sign in and connect Google Calendar from Settings → Connections?\n\nThanks!`)}`}
-          title="Send reminder email to connect Google Calendar"
-          onClick={(e) => e.stopPropagation()}
+        <button
+          onClick={async (e) => {
+            e.stopPropagation();
+            if (inviteState !== "idle") return;
+            setInviteState("sending");
+            const ok = await sendConnectInvite(m, inviterName ?? null);
+            setInviteState(ok ? "sent" : "idle");
+            if (ok) setTimeout(() => setInviteState("idle"), 4000);
+          }}
+          disabled={inviteState === "sending"}
+          title={inviteState === "sent" ? "Invite sent" : `Send ${m.display_name?.split(" ")[0] || "them"} a one-click connect link`}
           style={{
             width: 22, height: 22, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center",
-            color: "var(--text-secondary)", background: "var(--bg-glass-1)",
+            color: inviteState === "sent" ? "var(--sev-ok, #22C55E)" : "var(--text-secondary)",
+            background: "var(--bg-glass-1)",
             border: "1px solid var(--border-glass)", flexShrink: 0,
+            cursor: inviteState === "sending" ? "wait" : "pointer",
           }}
         >
-          <Mail size={11} />
-        </a>
+          {inviteState === "sending" ? <Loader2 size={11} className="animate-spin" /> :
+           inviteState === "sent" ? <Check size={11} /> : <Send size={11} />}
+        </button>
       )}
       {!isMe && onToggle && (
         <button
@@ -114,6 +148,7 @@ function MemberRow({ m, color, on, onToggle, onSolo, isMe, isSelected, unavailab
 
 
 export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, onToggle, onSelectSolo, onShowAll, soloMemberId, unavailableMembers }: Props) {
+  const inviterName = me?.display_name || me?.email || null;
   const [open, setOpen] = useState(true);
   const visible = new Set(visibleMemberIds);
   const ua = unavailableMembers ?? {};
@@ -197,6 +232,7 @@ export default function TeamCalendarsPanel({ me, teammates, visibleMemberIds, on
               onSolo={onSelectSolo ? () => onSelectSolo(t.user_id) : undefined}
               isSelected={solo === t.user_id}
               unavailableReason={ua[t.user_id]}
+              inviterName={inviterName}
             />
           ))}
           {teammates.length === 0 && (

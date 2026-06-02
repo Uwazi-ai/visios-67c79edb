@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as CalendarIcon, Video, Users, Loader2, Mail } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as CalendarIcon, Video, Users, Loader2, Send, Check } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -445,13 +445,11 @@ export default function Calendar() {
               </div>
             </div>
             {soloMember.email && (
-              <a
-                href={`mailto:${soloMember.email}?subject=${encodeURIComponent("Connect your Google Calendar in Visi")}&body=${encodeURIComponent(`Hey ${soloMember.display_name?.split(" ")[0] || "there"},\n\nI'd like to see your calendar in our team view on Visi so we can coordinate schedules. Could you sign in and connect Google Calendar from Settings → Connections?\n\nThanks!`)}`}
-                className="btn-ghost flex items-center gap-1.5"
-                style={{ height: 32 }}
-              >
-                <Mail size={12} /> Send reminder
-              </a>
+              <ConnectInviteButton
+                email={soloMember.email}
+                displayName={soloMember.display_name}
+                inviterName={me?.display_name || me?.email || null}
+              />
             )}
             <button
               onClick={() => setAll(teammates.map((t) => t.user_id))}
@@ -1104,5 +1102,40 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
         </button>
       </div>
     </aside>
+  );
+}
+
+function ConnectInviteButton({ email, displayName, inviterName }: { email: string; displayName: string | null; inviterName: string | null }) {
+  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+  const send = async () => {
+    if (state !== "idle") return;
+    setState("sending");
+    const { data, error } = await supabase.functions.invoke("send-transactional-email", {
+      body: {
+        templateName: "calendar-connect-invite",
+        recipientEmail: email,
+        templateData: {
+          inviterName: inviterName || "A teammate",
+          recipientName: displayName || "",
+          signInUrl: `${window.location.origin}/login`,
+        },
+      },
+    });
+    const errMsg = error?.message || (data as { error?: string } | null)?.error;
+    if (errMsg) {
+      toast.error("Couldn't send invite", { description: errMsg });
+      setState("idle");
+      return;
+    }
+    toast.success("Invite sent", { description: `${displayName || email} will get a one-click connect link.` });
+    setState("sent");
+    setTimeout(() => setState("idle"), 5000);
+  };
+  return (
+    <button onClick={send} disabled={state === "sending"} className="btn-ghost flex items-center gap-1.5" style={{ height: 32 }}>
+      {state === "sending" ? <Loader2 size={12} className="animate-spin" /> :
+       state === "sent" ? <Check size={12} /> : <Send size={12} />}
+      {state === "sent" ? "Invite sent" : state === "sending" ? "Sending…" : "Send connect link"}
+    </button>
   );
 }
