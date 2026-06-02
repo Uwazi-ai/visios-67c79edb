@@ -338,6 +338,13 @@ export default function Calendar() {
     return `${MONTHS[ws.getMonth()].slice(0, 3)} ${ws.getDate()} – ${MONTHS[we.getMonth()].slice(0, 3)} ${we.getDate()}, ${we.getFullYear()}`;
   }, [view, cursor]);
 
+  const soloMemberId =
+    teammates.length > 0 && visibleMemberIds.length === 1 && visibleMemberIds[0] !== user?.id
+      ? visibleMemberIds[0]
+      : null;
+  const soloMember = soloMemberId ? teammates.find((t) => t.user_id === soloMemberId) ?? null : null;
+  const soloUnavailableReason = soloMemberId ? unavailableMembers[soloMemberId] : undefined;
+
   return (
     <div className="flex gap-4 min-h-[calc(100vh-120px)]">
       {/* Sidebar mini calendar (desktop only) */}
