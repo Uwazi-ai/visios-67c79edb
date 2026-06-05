@@ -16,12 +16,21 @@ export interface ChatChannel {
   unread?: number;
 }
 
+interface ProfileLite {
+  id: string;
+  display_name: string | null;
+  email: string;
+  avatar_url: string | null;
+}
+
 interface Props {
   channels: ChatChannel[];
   activeId: string | null;
   onSelect: (id: string) => void;
   onCreated: () => void;
   onNewDm?: () => void;
+  profiles?: Record<string, ProfileLite>;
+  currentUserId?: string | null;
 }
 
 async function deleteChannel(c: ChatChannel, onDone: () => void) {
