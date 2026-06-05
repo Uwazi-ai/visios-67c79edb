@@ -64,7 +64,7 @@ async function renameChannel(c: ChatChannel, onDone: () => void) {
   onDone();
 }
 
-export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm }: Props) => {
+export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm, profiles, currentUserId }: Props) => {
   const { orgs, activeOrgId } = useOrg();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
