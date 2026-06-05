@@ -257,6 +257,7 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm, 
                   color={undefined}
                   onDelete={() => deleteChannel(c, onCreated)}
                   dmPeer={peer ?? (peerId ? { id: peerId, display_name: null, email: "", avatar_url: null } : undefined)}
+                  presence={peerId ? presenceMap?.[peerId] : undefined}
                 />
               );
             })
