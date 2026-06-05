@@ -276,6 +276,7 @@ function ChannelRow({
   onRename,
   onDelete,
   dmPeer,
+  presence,
 }: {
   channel: ChatChannel;
   active: boolean;
@@ -284,6 +285,7 @@ function ChannelRow({
   onRename?: () => void;
   onDelete?: () => void;
   dmPeer?: ProfileLite;
+  presence?: "online" | "away";
 }) {
   const isDm = channel.is_dm;
   const peerName =
