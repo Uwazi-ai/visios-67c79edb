@@ -96,6 +96,7 @@ export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState<CalEvent | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [teamEventOpen, setTeamEventOpen] = useState(false);
   const [now, setNow] = useState(new Date());
 
   // Team layer
