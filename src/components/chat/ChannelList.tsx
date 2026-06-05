@@ -244,16 +244,21 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm, 
               No conversations yet
             </div>
           ) : (
-            dms.map((c) => (
-              <ChannelRow
-                key={c.id}
-                channel={c}
-                active={c.id === activeId}
-                onClick={() => onSelect(c.id)}
-                color={undefined}
-                onDelete={() => deleteChannel(c, onCreated)}
-              />
-            ))
+            dms.map((c) => {
+              const peerId = (c.dm_participants ?? []).find((id) => id !== currentUserId) ?? null;
+              const peer = peerId && profiles ? profiles[peerId] : undefined;
+              return (
+                <ChannelRow
+                  key={c.id}
+                  channel={c}
+                  active={c.id === activeId}
+                  onClick={() => onSelect(c.id)}
+                  color={undefined}
+                  onDelete={() => deleteChannel(c, onCreated)}
+                  dmPeer={peer ?? (peerId ? { id: peerId, display_name: null, email: "", avatar_url: null } : undefined)}
+                />
+              );
+            })
           )}
         </div>
       </div>
