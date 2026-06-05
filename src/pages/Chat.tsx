@@ -50,6 +50,10 @@ export default function ChatPage() {
     const list = (data ?? []) as ChatChannel[];
     setChannels(list);
     setLoading(false);
+    const dmIds = Array.from(
+      new Set(list.filter((c) => c.is_dm).flatMap((c) => c.dm_participants ?? [])),
+    ).filter(Boolean);
+    if (dmIds.length) ensureProfiles(dmIds);
   };
 
   useEffect(() => {
