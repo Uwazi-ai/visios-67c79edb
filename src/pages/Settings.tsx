@@ -55,11 +55,15 @@ interface CompletionMap {
 export default function SettingsPage() {
   const { user } = useAuth();
   const { isRestricted } = useOrg();
+  const isSuperAdmin = (user?.email ?? "").toLowerCase() === SUPER_ADMIN_EMAIL;
   const [tab, setTab] = useState<TabKey>("profile");
-  const NAV_VISIBLE = NAV.filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "team" && n.key !== "danger"));
+  const NAV_VISIBLE = NAV
+    .filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "team" && n.key !== "danger"))
+    .concat(isSuperAdmin ? [{ key: "updates", label: "Updates", icon: Rocket }] : []);
   useEffect(() => {
     if (isRestricted && (tab === "orgs" || tab === "team" || tab === "danger")) setTab("profile");
-  }, [isRestricted, tab]);
+    if (!isSuperAdmin && tab === "updates") setTab("profile");
+  }, [isRestricted, isSuperAdmin, tab]);
   const [completion, setCompletion] = useState<CompletionMap | null>(null);
 
   // Compute completion indicators
