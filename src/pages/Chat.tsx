@@ -33,6 +33,7 @@ export default function ChatPage() {
   const [dmOpen, setDmOpen] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState("");
+  const [presenceMap, setPresenceMap] = useState<Record<string, "online" | "away">>({});
 
   // Load channels
   const loadChannels = async () => {
