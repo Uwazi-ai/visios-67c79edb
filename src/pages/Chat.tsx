@@ -599,12 +599,56 @@ export default function ChatPage() {
               ) : (
                 <Hash size={16} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
               )}
-              <div
-                className="font-display"
-                style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)" }}
-              >
-                {activeChannel.name}
-              </div>
+              {renaming && !activeChannel.is_system ? (
+                <input
+                  autoFocus
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveRename();
+                    if (e.key === "Escape") setRenaming(false);
+                  }}
+                  onBlur={() => saveRename()}
+                  className="input-glass"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    fontSize: 16,
+                    padding: "2px 8px",
+                    width: Math.max(160, renameValue.length * 10 + 20),
+                    minWidth: 120,
+                  }}
+                />
+              ) : (
+                <button
+                  className="group flex items-center gap-1.5"
+                  onClick={() => {
+                    if (activeChannel.is_system) return;
+                    setRenameValue(activeChannel.name ?? "");
+                    setRenaming(true);
+                  }}
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    fontSize: 16,
+                    color: "var(--text-primary)",
+                    background: "transparent",
+                    border: "none",
+                    cursor: activeChannel.is_system ? "default" : "pointer",
+                    padding: 0,
+                  }}
+                >
+                  {activeChannel.name}
+                  {!activeChannel.is_system && (
+                    <Pencil
+                      size={11}
+                      strokeWidth={1.5}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: "var(--text-muted)" }}
+                    />
+                  )}
+                </button>
+              )}
               {activeOrg && (
                 <div className="flex items-center gap-2">
                   <span className="slash" style={{ fontSize: 14 }}>
