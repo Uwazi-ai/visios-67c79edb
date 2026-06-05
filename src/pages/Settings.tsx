@@ -15,8 +15,11 @@ import NotificationsTab from "@/components/settings/tabs/NotificationsTab";
 import PrivacyTab from "@/components/settings/tabs/PrivacyTab";
 import AccountTab from "@/components/settings/tabs/AccountTab";
 import TeamTab from "@/components/settings/tabs/TeamTab";
+import UpdatesTab from "@/components/settings/tabs/UpdatesTab";
 
-type TabKey = "profile" | "orgs" | "team" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger";
+const SUPER_ADMIN_EMAIL = "myke@uwazi.ai";
+
+type TabKey = "profile" | "orgs" | "team" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger" | "updates";
 
 interface NavItem {
   key: TabKey;
