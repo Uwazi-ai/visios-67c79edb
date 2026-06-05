@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   User as UserIcon, Building2, Plug, Sparkles, CreditCard, Bell, Lock, Settings as SettingsIcon,
-  Trash2, Users,
+  Trash2, Users, Rocket,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -15,8 +15,11 @@ import NotificationsTab from "@/components/settings/tabs/NotificationsTab";
 import PrivacyTab from "@/components/settings/tabs/PrivacyTab";
 import AccountTab from "@/components/settings/tabs/AccountTab";
 import TeamTab from "@/components/settings/tabs/TeamTab";
+import UpdatesTab from "@/components/settings/tabs/UpdatesTab";
 
-type TabKey = "profile" | "orgs" | "team" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger";
+const SUPER_ADMIN_EMAIL = "myke@uwazi.ai";
+
+type TabKey = "profile" | "orgs" | "team" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger" | "updates";
 
 interface NavItem {
   key: TabKey;
@@ -52,11 +55,15 @@ interface CompletionMap {
 export default function SettingsPage() {
   const { user } = useAuth();
   const { isRestricted } = useOrg();
+  const isSuperAdmin = (user?.email ?? "").toLowerCase() === SUPER_ADMIN_EMAIL;
   const [tab, setTab] = useState<TabKey>("profile");
-  const NAV_VISIBLE = NAV.filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "team" && n.key !== "danger"));
+  const NAV_VISIBLE = NAV
+    .filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "team" && n.key !== "danger"))
+    .concat(isSuperAdmin ? [{ key: "updates", label: "Updates", icon: Rocket }] : []);
   useEffect(() => {
     if (isRestricted && (tab === "orgs" || tab === "team" || tab === "danger")) setTab("profile");
-  }, [isRestricted, tab]);
+    if (!isSuperAdmin && tab === "updates") setTab("profile");
+  }, [isRestricted, isSuperAdmin, tab]);
   const [completion, setCompletion] = useState<CompletionMap | null>(null);
 
   // Compute completion indicators
@@ -100,6 +107,7 @@ export default function SettingsPage() {
       case "privacy": return <PrivacyTab />;
       case "account": return <AccountTab />;
       case "danger": return <AccountTab dangerOnly />;
+      case "updates": return <UpdatesTab />;
       default: return null;
     }
   }, [tab]);

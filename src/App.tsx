@@ -37,6 +37,7 @@ import MakeIntegration from "./pages/MakeIntegration";
 import OAuthCallback from "./pages/OAuthCallback";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
+import { AppUpdateListener } from "@/components/AppUpdateListener";
 import { RestrictedGuard } from "@/components/RestrictedGuard";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
@@ -86,6 +87,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <InstallBanner />
+            <AppUpdateListener />
             </TimezoneProvider>
           </OrgProvider>
         </AuthProvider>
