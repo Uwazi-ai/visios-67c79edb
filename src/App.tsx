@@ -87,6 +87,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <InstallBanner />
+            <AppUpdateListener />
             </TimezoneProvider>
           </OrgProvider>
         </AuthProvider>
