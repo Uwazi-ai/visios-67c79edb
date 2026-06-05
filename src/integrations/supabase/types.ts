@@ -211,6 +211,33 @@ export type Database = {
         }
         Relationships: []
       }
+      app_versions: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          released_at: string
+          released_by: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          released_at?: string
+          released_by?: string | null
+          version: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          released_at?: string
+          released_by?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string
@@ -3215,6 +3242,7 @@ export type Database = {
         Returns: boolean
       }
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       mcp_token_lookup: { Args: { _hash: string }; Returns: string }
       move_to_dlq: {
         Args: {
