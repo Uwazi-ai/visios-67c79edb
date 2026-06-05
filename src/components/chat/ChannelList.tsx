@@ -273,6 +273,7 @@ function ChannelRow({
   color,
   onRename,
   onDelete,
+  dmPeer,
 }: {
   channel: ChatChannel;
   active: boolean;
@@ -280,7 +281,15 @@ function ChannelRow({
   color?: string;
   onRename?: () => void;
   onDelete?: () => void;
+  dmPeer?: ProfileLite;
 }) {
+  const isDm = channel.is_dm;
+  const peerName =
+    dmPeer?.display_name ||
+    (dmPeer?.email ? dmPeer.email.split("@")[0] : null) ||
+    channel.name ||
+    "Direct message";
+  const initial = (peerName || "?").trim().charAt(0).toUpperCase();
   return (
     <div
       className="group/ch relative mx-2 rounded-[8px] transition-colors"
@@ -296,7 +305,42 @@ function ChannelRow({
           color: active ? "var(--text-primary)" : "var(--text-secondary)",
         }}
       >
-        <Hash size={12} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
+        {isDm ? (
+          dmPeer?.avatar_url ? (
+            <img
+              src={dmPeer.avatar_url}
+              alt={peerName}
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: 999,
+                objectFit: "cover",
+                flexShrink: 0,
+              }}
+            />
+          ) : (
+            <span
+              aria-hidden
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: 999,
+                background: "rgba(99,102,241,0.35)",
+                color: "var(--text-primary)",
+                fontSize: 9,
+                fontWeight: 600,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              {initial}
+            </span>
+          )
+        ) : (
+          <Hash size={12} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
+        )}
         <span
           style={{
             fontFamily: "var(--font-body)",
@@ -305,10 +349,14 @@ function ChannelRow({
             flex: 1,
             textAlign: "left",
             paddingRight: onDelete ? 36 : 0,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
-          {channel.name}
+          {isDm ? peerName : channel.name}
         </span>
+
         {channel.unread ? (
           <span
             className="font-mono"
