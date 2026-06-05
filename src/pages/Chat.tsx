@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Hash, Sparkles, X, Zap } from "lucide-react";
+import { Hash, Pencil, Sparkles, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -31,6 +31,8 @@ export default function ChatPage() {
   const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimer = useRef<number | null>(null);
   const [dmOpen, setDmOpen] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
 
   // Load channels
   const loadChannels = async () => {
@@ -513,6 +515,26 @@ export default function ChatPage() {
     toast.success("Message deleted");
   }
 
+  async function saveRename() {
+    if (!activeChannel || !renameValue.trim()) return;
+    const next = renameValue.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
+    if (!next || next === activeChannel.name) {
+      setRenaming(false);
+      return;
+    }
+    const { error } = await supabase
+      .from("channels")
+      .update({ name: next })
+      .eq("id", activeChannel.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Renamed to #${next}`);
+    setRenaming(false);
+    await loadChannels();
+  }
+
   async function handleSummarize() {
     if (!activeChannel) return;
     setSummarizing(true);
@@ -577,12 +599,56 @@ export default function ChatPage() {
               ) : (
                 <Hash size={16} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
               )}
-              <div
-                className="font-display"
-                style={{ fontWeight: 700, fontSize: 16, color: "var(--text-primary)" }}
-              >
-                {activeChannel.name}
-              </div>
+              {renaming && !activeChannel.is_system ? (
+                <input
+                  autoFocus
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveRename();
+                    if (e.key === "Escape") setRenaming(false);
+                  }}
+                  onBlur={() => saveRename()}
+                  className="input-glass"
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    fontSize: 16,
+                    padding: "2px 8px",
+                    width: Math.max(160, renameValue.length * 10 + 20),
+                    minWidth: 120,
+                  }}
+                />
+              ) : (
+                <button
+                  className="group flex items-center gap-1.5"
+                  onClick={() => {
+                    if (activeChannel.is_system) return;
+                    setRenameValue(activeChannel.name ?? "");
+                    setRenaming(true);
+                  }}
+                  style={{
+                    fontFamily: "var(--font-display)",
+                    fontWeight: 700,
+                    fontSize: 16,
+                    color: "var(--text-primary)",
+                    background: "transparent",
+                    border: "none",
+                    cursor: activeChannel.is_system ? "default" : "pointer",
+                    padding: 0,
+                  }}
+                >
+                  {activeChannel.name}
+                  {!activeChannel.is_system && (
+                    <Pencil
+                      size={11}
+                      strokeWidth={1.5}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: "var(--text-muted)" }}
+                    />
+                  )}
+                </button>
+              )}
               {activeOrg && (
                 <div className="flex items-center gap-2">
                   <span className="slash" style={{ fontSize: 14 }}>
