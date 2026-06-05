@@ -507,6 +507,13 @@ export default function Calendar() {
         onClose={() => setCreateOpen(false)}
         onCreated={loadEvents}
       />
+
+      {/* Team event modal */}
+      <NewTeamEventModal
+        open={teamEventOpen}
+        onClose={() => setTeamEventOpen(false)}
+        onCreated={loadEvents}
+      />
     </div>
   );
 }
