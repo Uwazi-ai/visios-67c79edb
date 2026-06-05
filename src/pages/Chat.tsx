@@ -173,6 +173,54 @@ export default function ChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId, user?.id]);
 
+  // Global presence — track who's online/away across the app
+  useEffect(() => {
+    if (!user?.id) return;
+    const key = user.id;
+    const channel = supabase.channel("presence:global", {
+      config: { presence: { key } },
+    });
+
+    const computeMap = () => {
+      const state = channel.presenceState() as Record<string, Array<{ status?: string }>>;
+      const next: Record<string, "online" | "away"> = {};
+      for (const [uid, metas] of Object.entries(state)) {
+        const meta = metas[metas.length - 1];
+        next[uid] = meta?.status === "away" ? "away" : "online";
+      }
+      setPresenceMap(next);
+    };
+
+    channel
+      .on("presence", { event: "sync" }, computeMap)
+      .on("presence", { event: "join" }, computeMap)
+      .on("presence", { event: "leave" }, computeMap)
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({
+            user_id: key,
+            status: document.hidden ? "away" : "online",
+            at: Date.now(),
+          });
+        }
+      });
+
+    const onVisibility = () => {
+      channel.track({
+        user_id: key,
+        status: document.hidden ? "away" : "online",
+        at: Date.now(),
+      });
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
+
+
   async function ensureProfiles(ids: string[]) {
     const need = Array.from(new Set(ids)).filter((id) => !profiles[id]);
     if (need.length === 0) return;
