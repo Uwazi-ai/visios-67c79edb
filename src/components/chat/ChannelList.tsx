@@ -31,6 +31,7 @@ interface Props {
   onNewDm?: () => void;
   profiles?: Record<string, ProfileLite>;
   currentUserId?: string | null;
+  presenceMap?: Record<string, "online" | "away">;
 }
 
 async function deleteChannel(c: ChatChannel, onDone: () => void) {
