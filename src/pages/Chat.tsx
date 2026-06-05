@@ -515,6 +515,26 @@ export default function ChatPage() {
     toast.success("Message deleted");
   }
 
+  async function saveRename() {
+    if (!activeChannel || !renameValue.trim()) return;
+    const next = renameValue.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
+    if (!next || next === activeChannel.name) {
+      setRenaming(false);
+      return;
+    }
+    const { error } = await supabase
+      .from("channels")
+      .update({ name: next })
+      .eq("id", activeChannel.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Renamed to #${next}`);
+    setRenaming(false);
+    await loadChannels();
+  }
+
   async function handleSummarize() {
     if (!activeChannel) return;
     setSummarizing(true);
