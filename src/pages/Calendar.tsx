@@ -423,6 +423,20 @@ export default function Calendar() {
           <button onClick={() => setCreateOpen(true)} className="btn-ghost flex items-center gap-1.5" style={{ height: 36 }}>
             <Plus size={14} /> New event
           </button>
+          <button
+            onClick={() => setTeamEventOpen(true)}
+            className="btn-ghost flex items-center gap-1.5"
+            style={{
+              height: 36,
+              background: "rgba(245,158,11,0.10)",
+              border: "1px solid rgba(245,158,11,0.45)",
+              color: "#F59E0B",
+              boxShadow: "0 0 10px rgba(245,158,11,0.18)",
+            }}
+            title="Add an event visible to the whole team"
+          >
+            <CalendarPlus size={14} /> Team Event
+          </button>
           <button onClick={() => setPlanOpen(true)} className="btn-primary" style={{ height: 36 }}>
             <Sparkles size={14} /> Plan My Day
           </button>
