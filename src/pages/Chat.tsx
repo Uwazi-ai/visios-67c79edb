@@ -630,6 +630,7 @@ export default function ChatPage() {
         onNewDm={() => setDmOpen(true)}
         profiles={profiles}
         currentUserId={user?.id ?? null}
+        presenceMap={presenceMap}
       />
 
 
