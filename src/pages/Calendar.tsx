@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as CalendarIcon, Video, Users, Loader2, Send, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, X, Plus, RefreshCw, Calendar as CalendarIcon, CalendarPlus, Video, Users, Loader2, Send, Check } from "lucide-react";
+import NewTeamEventModal from "@/components/calendar/NewTeamEventModal";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -95,6 +96,7 @@ export default function Calendar() {
   const [selectedEvent, setSelectedEvent] = useState<CalEvent | null>(null);
   const [planOpen, setPlanOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [teamEventOpen, setTeamEventOpen] = useState(false);
   const [now, setNow] = useState(new Date());
 
   // Team layer
@@ -421,6 +423,20 @@ export default function Calendar() {
           <button onClick={() => setCreateOpen(true)} className="btn-ghost flex items-center gap-1.5" style={{ height: 36 }}>
             <Plus size={14} /> New event
           </button>
+          <button
+            onClick={() => setTeamEventOpen(true)}
+            className="btn-ghost flex items-center gap-1.5"
+            style={{
+              height: 36,
+              background: "rgba(245,158,11,0.10)",
+              border: "1px solid rgba(245,158,11,0.45)",
+              color: "#F59E0B",
+              boxShadow: "0 0 10px rgba(245,158,11,0.18)",
+            }}
+            title="Add an event visible to the whole team"
+          >
+            <CalendarPlus size={14} /> Team Event
+          </button>
           <button onClick={() => setPlanOpen(true)} className="btn-primary" style={{ height: 36 }}>
             <Sparkles size={14} /> Plan My Day
           </button>
@@ -489,6 +505,13 @@ export default function Calendar() {
       <ScheduleMeetingModal
         open={createOpen}
         onClose={() => setCreateOpen(false)}
+        onCreated={loadEvents}
+      />
+
+      {/* Team event modal */}
+      <NewTeamEventModal
+        open={teamEventOpen}
+        onClose={() => setTeamEventOpen(false)}
         onCreated={loadEvents}
       />
     </div>
