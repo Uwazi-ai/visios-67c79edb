@@ -579,7 +579,10 @@ export default function ChatPage() {
         onSelect={setActiveId}
         onCreated={loadChannels}
         onNewDm={() => setDmOpen(true)}
+        profiles={profiles}
+        currentUserId={user?.id ?? null}
       />
+
 
       <NewDmModal
         open={dmOpen}
