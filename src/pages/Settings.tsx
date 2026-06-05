@@ -107,6 +107,7 @@ export default function SettingsPage() {
       case "privacy": return <PrivacyTab />;
       case "account": return <AccountTab />;
       case "danger": return <AccountTab dangerOnly />;
+      case "updates": return <UpdatesTab />;
       default: return null;
     }
   }, [tab]);
