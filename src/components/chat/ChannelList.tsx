@@ -31,6 +31,7 @@ interface Props {
   onNewDm?: () => void;
   profiles?: Record<string, ProfileLite>;
   currentUserId?: string | null;
+  presenceMap?: Record<string, "online" | "away">;
 }
 
 async function deleteChannel(c: ChatChannel, onDone: () => void) {
@@ -64,7 +65,7 @@ async function renameChannel(c: ChatChannel, onDone: () => void) {
   onDone();
 }
 
-export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm, profiles, currentUserId }: Props) => {
+export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm, profiles, currentUserId, presenceMap }: Props) => {
   const { orgs, activeOrgId } = useOrg();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -256,6 +257,7 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm, 
                   color={undefined}
                   onDelete={() => deleteChannel(c, onCreated)}
                   dmPeer={peer ?? (peerId ? { id: peerId, display_name: null, email: "", avatar_url: null } : undefined)}
+                  presence={peerId ? presenceMap?.[peerId] : undefined}
                 />
               );
             })
@@ -274,6 +276,7 @@ function ChannelRow({
   onRename,
   onDelete,
   dmPeer,
+  presence,
 }: {
   channel: ChatChannel;
   active: boolean;
@@ -282,6 +285,7 @@ function ChannelRow({
   onRename?: () => void;
   onDelete?: () => void;
   dmPeer?: ProfileLite;
+  presence?: "online" | "away";
 }) {
   const isDm = channel.is_dm;
   const peerName =
@@ -306,38 +310,54 @@ function ChannelRow({
         }}
       >
         {isDm ? (
-          dmPeer?.avatar_url ? (
-            <img
-              src={dmPeer.avatar_url}
-              alt={peerName}
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: 999,
-                objectFit: "cover",
-                flexShrink: 0,
-              }}
-            />
-          ) : (
-            <span
-              aria-hidden
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: 999,
-                background: "rgba(99,102,241,0.35)",
-                color: "var(--text-primary)",
-                fontSize: 9,
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              {initial}
-            </span>
-          )
+          <span style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
+            {dmPeer?.avatar_url ? (
+              <img
+                src={dmPeer.avatar_url}
+                alt={peerName}
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 999,
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <span
+                aria-hidden
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 999,
+                  background: "rgba(99,102,241,0.35)",
+                  color: "var(--text-primary)",
+                  fontSize: 9,
+                  fontWeight: 600,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {initial}
+              </span>
+            )}
+            {presence && (
+              <span
+                aria-label={presence === "online" ? "Online" : "Away"}
+                title={presence === "online" ? "Online" : "Away"}
+                style={{
+                  position: "absolute",
+                  right: -1,
+                  bottom: -1,
+                  width: 7,
+                  height: 7,
+                  borderRadius: 999,
+                  background: presence === "online" ? "#22C55E" : "#F59E0B",
+                  boxShadow: "0 0 0 1.5px rgba(2,2,10,0.95)",
+                }}
+              />
+            )}
+          </span>
         ) : (
           <Hash size={12} strokeWidth={1.5} style={{ color: "var(--text-muted)" }} />
         )}
