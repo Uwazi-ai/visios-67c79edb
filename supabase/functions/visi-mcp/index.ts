@@ -646,6 +646,47 @@ async function handleGetDailyReport(admin: SupabaseClient, userId: string) {
   });
 }
 
+async function handleGetUwaziMetrics(admin: SupabaseClient, userId: string) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  const { data: org } = await admin.from("orgs").select("id").eq("slug", "uwazi").maybeSingle();
+  if (!org || !orgIds.includes(org.id)) return toolError("You do not have access to UWAZI.AI");
+  const orgId = org.id as string;
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const [
+    totalUsersR, newUsersR, waitlistR, askSessionsR,
+  ] = await Promise.all([
+    admin.from("profiles").select("id", { count: "exact", head: true }),
+    admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since),
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("is_restricted", true),
+    admin.from("ai_conversations").select("id", { count: "exact", head: true }).eq("org_id", orgId).gte("created_at", since),
+  ]);
+
+  // User queries in UWAZI AI conversations (last 24h)
+  let askQueries = 0;
+  const { data: orgConvs } = await admin.from("ai_conversations").select("id").eq("org_id", orgId);
+  const convIds = (orgConvs ?? []).map((c: any) => c.id);
+  if (convIds.length) {
+    const { count } = await admin.from("ai_messages")
+      .select("id", { count: "exact", head: true })
+      .in("conversation_id", convIds)
+      .eq("role", "user")
+      .gte("created_at", since);
+    askQueries = count ?? 0;
+  }
+
+  return toolResult({
+    total_users: totalUsersR.count ?? 0,
+    new_signups_24h: newUsersR.count ?? 0,
+    waitlist_count: waitlistR.count ?? 0,
+    active_users: Math.max((totalUsersR.count ?? 0) - (waitlistR.count ?? 0), 0),
+    ask_uwazi_sessions_24h: askSessionsR.count ?? 0,
+    ask_uwazi_user_queries_24h: askQueries,
+    uwazi_org_members: (await admin.from("org_memberships").select("user_id", { count: "exact", head: true }).eq("org_id", orgId)).count ?? 0,
+    as_of: new Date().toISOString(),
+  });
+}
+
 
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
