@@ -688,6 +688,68 @@ async function handleGetUwaziMetrics(admin: SupabaseClient, userId: string) {
   });
 }
 
+async function handleGetSprintStatus(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  const slug = (typeof args.org_slug === "string" && args.org_slug.trim()) ? String(args.org_slug).trim().toLowerCase() : "uwazi";
+  const days = Number.isFinite(args.days as number) && (args.days as number) > 0 ? Math.min(Number(args.days), 90) : 14;
+
+  const { data: org } = await admin.from("orgs").select("id, name, slug").eq("slug", slug).maybeSingle();
+  if (!org || !orgIds.includes(org.id)) return toolError(`You do not have access to org '${slug}'`);
+  const orgId = org.id as string;
+
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+  const upcomingEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const nowIso = now.toISOString();
+
+  const [todoR, inProgR, blockedR, doneInWindowR] = await Promise.all([
+    admin.from("tasks").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "todo"),
+    admin.from("tasks").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "in_progress"),
+    admin.from("tasks").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "blocked"),
+    admin.from("tasks").select("id", { count: "exact", head: true }).eq("org_id", orgId).eq("status", "done").gte("completed_at", windowStart),
+  ]);
+
+  const taskSelect = "id, title, status, priority, due_at, completed_at, assignee_id, project_id, projects(name, emoji), assignee:profiles!tasks_assignee_id_fkey(display_name, email, avatar_url)";
+
+  const [inProgressList, recentlyCompleted, overdue, upcoming] = await Promise.all([
+    admin.from("tasks").select(taskSelect).eq("org_id", orgId).eq("status", "in_progress").order("priority", { ascending: true }).limit(25),
+    admin.from("tasks").select(taskSelect).eq("org_id", orgId).eq("status", "done").gte("completed_at", windowStart).order("completed_at", { ascending: false }).limit(25),
+    admin.from("tasks").select(taskSelect).eq("org_id", orgId).in("status", ["todo", "in_progress", "blocked"]).not("due_at", "is", null).lt("due_at", nowIso).order("due_at", { ascending: true }).limit(25),
+    admin.from("tasks").select(taskSelect).eq("org_id", orgId).in("status", ["todo", "in_progress"]).gte("due_at", nowIso).lte("due_at", upcomingEnd).order("due_at", { ascending: true }).limit(25),
+  ]);
+
+  const shape = (t: any) => ({
+    id: t.id, title: t.title, status: t.status, priority: t.priority,
+    due_at: t.due_at, completed_at: t.completed_at,
+    project: t.projects ? { name: t.projects.name, emoji: t.projects.emoji } : null,
+    assignee: t.assignee ? { name: t.assignee.display_name, email: t.assignee.email, avatar_url: t.assignee.avatar_url } : null,
+  });
+
+  const open = (todoR.count ?? 0) + (inProgR.count ?? 0) + (blockedR.count ?? 0);
+  const completed = doneInWindowR.count ?? 0;
+  const total = open + completed;
+  const completion_rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return toolResult({
+    org: { id: orgId, name: org.name, slug: org.slug },
+    window: { days, start: windowStart, end: nowIso },
+    counts: {
+      todo: todoR.count ?? 0,
+      in_progress: inProgR.count ?? 0,
+      blocked: blockedR.count ?? 0,
+      done_in_window: completed,
+      overdue: overdue.data?.length ?? 0,
+      upcoming_7d: upcoming.data?.length ?? 0,
+    },
+    completion_rate_pct: completion_rate,
+    in_progress: (inProgressList.data ?? []).map(shape),
+    recently_completed: (recentlyCompleted.data ?? []).map(shape),
+    overdue: (overdue.data ?? []).map(shape),
+    upcoming: (upcoming.data ?? []).map(shape),
+    as_of: nowIso,
+  });
+}
+
 
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
