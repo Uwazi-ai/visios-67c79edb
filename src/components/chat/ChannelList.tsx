@@ -193,6 +193,16 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm, 
               />
               {org.name}
             </div>
+            {systems
+              .filter((c) => c.name === "dailyreports")
+              .map((c) => (
+                <SystemRow
+                  key={c.id}
+                  channel={c}
+                  active={c.id === activeId}
+                  onClick={() => onSelect(c.id)}
+                />
+              ))}
             {chs.map((c) => (
               <ChannelRow
                 key={c.id}
@@ -204,16 +214,18 @@ export const ChannelList = ({ channels, activeId, onSelect, onCreated, onNewDm, 
                 onDelete={() => deleteChannel(c, onCreated)}
               />
             ))}
-            {systems.length > 0 && (
+            {systems.filter((c) => c.name !== "dailyreports").length > 0 && (
               <div className="mt-2">
-                {systems.map((c) => (
-                  <SystemRow
-                    key={c.id}
-                    channel={c}
-                    active={c.id === activeId}
-                    onClick={() => onSelect(c.id)}
-                  />
-                ))}
+                {systems
+                  .filter((c) => c.name !== "dailyreports")
+                  .map((c) => (
+                    <SystemRow
+                      key={c.id}
+                      channel={c}
+                      active={c.id === activeId}
+                      onClick={() => onSelect(c.id)}
+                    />
+                  ))}
               </div>
             )}
           </div>
