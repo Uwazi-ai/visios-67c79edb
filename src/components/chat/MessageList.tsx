@@ -5,10 +5,14 @@ import { useTime } from "@/contexts/TimezoneContext";
 import { VisionCircle } from "@/components/vision/VisionCircle";
 
 const VISION_COLOR = "#9bd34b";
+const BOT_COLOR = "#2563EB";
 function isVisionMessage(m: { user_id: string | null; metadata?: any }, isSystemChannel: boolean) {
   if (isSystemChannel) return false;
   if (m.metadata?.source === "vision" || m.metadata?.sender === "vision") return true;
   return false;
+}
+function isBotMessage(m: { metadata?: any }) {
+  return m.metadata?.sender === "tech-team" || m.metadata?.bot === "tech-team";
 }
 
 export interface ChatMessage {
