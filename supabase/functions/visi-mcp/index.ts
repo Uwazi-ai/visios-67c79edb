@@ -643,7 +643,9 @@ async function dispatchTool(name: string, args: Record<string, unknown>, admin: 
     case "visi_list_grants": return handleListGrants(admin, args);
     case "visi_get_grant_proposal": return handleGetGrantProposal(admin, args);
     case "visi_get_inbox": return handleGetInbox(userId, args);
+    case "visi_trigger_agent": return handleTriggerAgent(admin, userId, args);
     default: return toolError(`Unknown tool: ${name}`);
+
 
   }
 }
