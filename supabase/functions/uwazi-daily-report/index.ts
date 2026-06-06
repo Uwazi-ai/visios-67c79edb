@@ -12,6 +12,13 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+  let ensureOnly = false;
+  if (req.method === "POST") {
+    try {
+      const body = await req.json();
+      ensureOnly = !!body?.ensure_only;
+    } catch { /* no body */ }
+  }
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const generatedAt = new Date();
   const dateLabel = generatedAt.toLocaleDateString("en-US", {
