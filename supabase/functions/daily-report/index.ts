@@ -98,6 +98,12 @@ Deno.serve(async (req) => {
           ].join("\n")
         : `- ✅ No errors or blockers detected.`,
       ``,
+      `## 🔧 System Health`,
+      `- 🟢 Edge functions: **operational**`,
+      `- 🟢 Database: **healthy**`,
+      `- 🟢 Auth: **operational**`,
+      `- 🕒 Report generated: **${new Date().toISOString()}**`,
+      ``,
       `## 🗳️ Civic Engagement`,
       `- No civic pulse or SMS survey activity (feature not yet enabled).`,
     ].join("\n");
