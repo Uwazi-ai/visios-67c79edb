@@ -122,6 +122,7 @@ const TOOLS = [
   { name: "visi_trigger_agent", description: "Fire a named VisiOS agent (e.g. bug-patrol, growth-radar, sprint-commander, content-studio). Matches by template_key or name (case-insensitive). Logs a run and POSTs to the agent's webhook if configured.", inputSchema: { type: "object", properties: { agent_name: { type: "string", description: "Agent identifier: template_key or display name. Examples: 'bug-patrol', 'growth-radar', 'sprint-commander', 'content-studio'" }, payload: { type: "object", description: "Optional JSON payload to send to the agent webhook" } }, required: ["agent_name"] } },
   { name: "visi_get_daily_report", description: "Get the latest message from the dailyreports system channel for UWAZI.AI.", inputSchema: { type: "object", properties: {}, required: [] } },
   { name: "visi_get_uwazi_metrics", description: "Get UWAZI.AI growth metrics: total users, new signups last 24h, waitlist count, and Ask UWAZI sessions.", inputSchema: { type: "object", properties: {}, required: [] } },
+  { name: "visi_get_sprint_status", description: "Get current sprint status for an org: task counts by status, in-progress items, recently completed, overdue, and upcoming due. Defaults to UWAZI.AI and a 14-day window.", inputSchema: { type: "object", properties: { org_slug: { type: "string", description: "Org slug (defaults to 'uwazi')" }, days: { type: "number", description: "Sprint window in days (default 14)" } }, required: [] } },
 ];
 
 
