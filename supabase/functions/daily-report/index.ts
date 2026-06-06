@@ -81,6 +81,17 @@ Deno.serve(async (req) => {
     const newUsers = newUsersRes.count ?? 0;
     const orgMembers = orgMembersRes.count ?? 0;
 
+    // ✅ Dev activity (last 24h)
+    const [taskActivityRes, edgeLogsRes] = await Promise.all([
+      supabase.from("task_activity").select("id", { count: "exact", head: true })
+        .eq("org_id", orgId).gte("created_at", since),
+      supabase.from("messages").select("id", { count: "exact", head: true })
+        .eq("org_id", orgId).gte("created_at", since)
+        .contains("metadata", { kind: "deploy" }),
+    ]);
+    const devActivity = taskActivityRes.count ?? 0;
+    const deploys = edgeLogsRes.count ?? 0;
+
     const content = [
       `# 📊 Daily Report — ${dateLabel}`,
       ``,
