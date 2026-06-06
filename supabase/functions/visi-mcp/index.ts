@@ -118,7 +118,9 @@ const TOOLS = [
   { name: "visi_search_drive", description: "Search across the shared drives of your orgs.", inputSchema: { type: "object", properties: { query: { type: "string" }, org_id: { type: "string", description: "Limit to one org's drive" }, limit: { type: "number" } }, required: ["query"] } },
   { name: "visi_list_grants", description: "List grant opportunities. Filter by status (UWAZI grants pipeline).", inputSchema: { type: "object", properties: { status: { type: "string", enum: ["identified", "drafting", "submitted", "awarded", "rejected"] }, limit: { type: "number" } }, required: [] } },
   { name: "visi_get_grant_proposal", description: "Get the full text of a grant proposal by id.", inputSchema: { type: "object", properties: { proposal_id: { type: "string" } }, required: ["proposal_id"] } },
+  { name: "visi_get_inbox", description: "Get unread messages from your VisiOS Inbox (Gmail). Returns subject, sender, snippet, and date for each unread thread.", inputSchema: { type: "object", properties: { limit: { type: "number", description: "Max threads, default 20, max 50" }, include_read: { type: "boolean", description: "If true, includes read threads too (default false)" } }, required: [] } },
 ];
+
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -506,7 +508,34 @@ async function handleGetGrantProposal(admin: SupabaseClient, args: Record<string
   return toolResult(data);
 }
 
+async function handleGetInbox(userId: string, args: Record<string, unknown>) {
+  let accessToken: string;
+  try { accessToken = await getFreshGoogleAccessToken(userId); }
+  catch { return toolError("Google account not connected. Connect Google in Settings → Connections."); }
+  const limit = Math.min(Number(args.limit ?? 20), 50);
+  const includeRead = Boolean(args.include_read);
+  const q = includeRead ? "in:inbox" : "is:unread in:inbox";
+  const url = new URL("https://gmail.googleapis.com/gmail/v1/users/me/threads");
+  url.searchParams.set("q", q);
+  url.searchParams.set("maxResults", String(limit));
+  const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!res.ok) return toolError(`Gmail API ${res.status}: ${await res.text()}`);
+  const j = await res.json();
+  const threads = await Promise.all((j.threads ?? []).map(async (t: any) => {
+    const tr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${t.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!tr.ok) return { id: t.id, snippet: t.snippet };
+    const td = await tr.json();
+    const last = td.messages?.[td.messages.length - 1];
+    const headers = last?.payload?.headers ?? [];
+    const h = (k: string) => headers.find((x: any) => x.name?.toLowerCase() === k.toLowerCase())?.value;
+    const isUnread = (last?.labelIds ?? []).includes("UNREAD");
+    return { id: t.id, subject: h("Subject"), from: h("From"), date: h("Date"), snippet: last?.snippet, message_count: td.messages?.length, unread: isUnread };
+  }));
+  return toolResult({ count: threads.length, threads });
+}
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
+
 
 async function dispatchTool(name: string, args: Record<string, unknown>, admin: SupabaseClient, userId: string): Promise<unknown> {
   switch (name) {
@@ -533,7 +562,9 @@ async function dispatchTool(name: string, args: Record<string, unknown>, admin: 
     case "visi_search_drive": return handleSearchDrive(admin, userId, args);
     case "visi_list_grants": return handleListGrants(admin, args);
     case "visi_get_grant_proposal": return handleGetGrantProposal(admin, args);
+    case "visi_get_inbox": return handleGetInbox(userId, args);
     default: return toolError(`Unknown tool: ${name}`);
+
   }
 }
 
