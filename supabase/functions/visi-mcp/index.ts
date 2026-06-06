@@ -508,7 +508,34 @@ async function handleGetGrantProposal(admin: SupabaseClient, args: Record<string
   return toolResult(data);
 }
 
+async function handleGetInbox(userId: string, args: Record<string, unknown>) {
+  let accessToken: string;
+  try { accessToken = await getFreshGoogleAccessToken(userId); }
+  catch { return toolError("Google account not connected. Connect Google in Settings → Connections."); }
+  const limit = Math.min(Number(args.limit ?? 20), 50);
+  const includeRead = Boolean(args.include_read);
+  const q = includeRead ? "in:inbox" : "is:unread in:inbox";
+  const url = new URL("https://gmail.googleapis.com/gmail/v1/users/me/threads");
+  url.searchParams.set("q", q);
+  url.searchParams.set("maxResults", String(limit));
+  const res = await fetch(url.toString(), { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!res.ok) return toolError(`Gmail API ${res.status}: ${await res.text()}`);
+  const j = await res.json();
+  const threads = await Promise.all((j.threads ?? []).map(async (t: any) => {
+    const tr = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${t.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`, { headers: { Authorization: `Bearer ${accessToken}` } });
+    if (!tr.ok) return { id: t.id, snippet: t.snippet };
+    const td = await tr.json();
+    const last = td.messages?.[td.messages.length - 1];
+    const headers = last?.payload?.headers ?? [];
+    const h = (k: string) => headers.find((x: any) => x.name?.toLowerCase() === k.toLowerCase())?.value;
+    const isUnread = (last?.labelIds ?? []).includes("UNREAD");
+    return { id: t.id, subject: h("Subject"), from: h("From"), date: h("Date"), snippet: last?.snippet, message_count: td.messages?.length, unread: isUnread };
+  }));
+  return toolResult({ count: threads.length, threads });
+}
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
+
 
 async function dispatchTool(name: string, args: Record<string, unknown>, admin: SupabaseClient, userId: string): Promise<unknown> {
   switch (name) {
