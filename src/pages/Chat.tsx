@@ -58,7 +58,17 @@ export default function ChatPage() {
   };
 
   useEffect(() => {
-    loadChannels();
+    // Ensure UWAZI #dailyreports channel exists, then load channels.
+    (async () => {
+      try {
+        await supabase.functions.invoke("uwazi-daily-report", {
+          body: { ensure_only: true },
+        });
+      } catch {
+        /* non-fatal — channel will load if it already exists */
+      }
+      loadChannels();
+    })();
   }, []);
 
   // Pick default active channel when channels load
