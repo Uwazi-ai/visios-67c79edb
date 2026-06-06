@@ -118,7 +118,9 @@ const TOOLS = [
   { name: "visi_search_drive", description: "Search across the shared drives of your orgs.", inputSchema: { type: "object", properties: { query: { type: "string" }, org_id: { type: "string", description: "Limit to one org's drive" }, limit: { type: "number" } }, required: ["query"] } },
   { name: "visi_list_grants", description: "List grant opportunities. Filter by status (UWAZI grants pipeline).", inputSchema: { type: "object", properties: { status: { type: "string", enum: ["identified", "drafting", "submitted", "awarded", "rejected"] }, limit: { type: "number" } }, required: [] } },
   { name: "visi_get_grant_proposal", description: "Get the full text of a grant proposal by id.", inputSchema: { type: "object", properties: { proposal_id: { type: "string" } }, required: ["proposal_id"] } },
+  { name: "visi_get_inbox", description: "Get unread messages from your VisiOS Inbox (Gmail). Returns subject, sender, snippet, and date for each unread thread.", inputSchema: { type: "object", properties: { limit: { type: "number", description: "Max threads, default 20, max 50" }, include_read: { type: "boolean", description: "If true, includes read threads too (default false)" } }, required: [] } },
 ];
+
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────
 
