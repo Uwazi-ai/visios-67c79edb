@@ -120,6 +120,7 @@ const TOOLS = [
   { name: "visi_get_grant_proposal", description: "Get the full text of a grant proposal by id.", inputSchema: { type: "object", properties: { proposal_id: { type: "string" } }, required: ["proposal_id"] } },
   { name: "visi_get_inbox", description: "Get unread messages from your VisiOS Inbox (Gmail). Returns subject, sender, snippet, and date for each unread thread.", inputSchema: { type: "object", properties: { limit: { type: "number", description: "Max threads, default 20, max 50" }, include_read: { type: "boolean", description: "If true, includes read threads too (default false)" } }, required: [] } },
   { name: "visi_trigger_agent", description: "Fire a named VisiOS agent (e.g. bug-patrol, growth-radar, sprint-commander, content-studio). Matches by template_key or name (case-insensitive). Logs a run and POSTs to the agent's webhook if configured.", inputSchema: { type: "object", properties: { agent_name: { type: "string", description: "Agent identifier: template_key or display name. Examples: 'bug-patrol', 'growth-radar', 'sprint-commander', 'content-studio'" }, payload: { type: "object", description: "Optional JSON payload to send to the agent webhook" } }, required: ["agent_name"] } },
+  { name: "visi_get_daily_report", description: "Get the latest message from the dailyreports system channel for UWAZI.AI.", inputSchema: { type: "object", properties: {}, required: [] } },
 ];
 
 
@@ -613,6 +614,38 @@ async function handleTriggerAgent(admin: SupabaseClient, userId: string, args: R
   });
 }
 
+async function handleGetDailyReport(admin: SupabaseClient, userId: string) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  // Find UWAZI.AI org
+  const { data: org } = await admin.from("orgs").select("id").or("slug.eq.uwazi,name.eq.UWAZI.AI").single();
+  if (!org || !orgIds.includes(org.id)) return toolError("You do not have access to UWAZI.AI");
+
+  // Find dailyreports system channel
+  const { data: channel } = await admin.from("channels").select("id").eq("org_id", org.id).eq("name", "dailyreports").eq("is_system", true).single();
+  if (!channel) return toolError("dailyreports channel not found");
+
+  // Get latest message with sender info
+  const { data: message } = await admin.from("messages")
+    .select("id, content, created_at, user_id, metadata, profiles(display_name, email, avatar_url)")
+    .eq("channel_id", channel.id)
+    .eq("org_id", org.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!message) return toolResult({ message: null, note: "No daily report available yet." });
+
+  const profile = (message.profiles as any) ?? {};
+  return toolResult({
+    id: message.id,
+    content: message.content,
+    created_at: message.created_at,
+    sender: { id: message.user_id, name: profile.display_name ?? null, email: profile.email ?? null, avatar_url: profile.avatar_url ?? null },
+    metadata: message.metadata,
+  });
+}
+
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
 
@@ -644,6 +677,7 @@ async function dispatchTool(name: string, args: Record<string, unknown>, admin: 
     case "visi_get_grant_proposal": return handleGetGrantProposal(admin, args);
     case "visi_get_inbox": return handleGetInbox(userId, args);
     case "visi_trigger_agent": return handleTriggerAgent(admin, userId, args);
+    case "visi_get_daily_report": return handleGetDailyReport(admin, userId);
     default: return toolError(`Unknown tool: ${name}`);
 
 
