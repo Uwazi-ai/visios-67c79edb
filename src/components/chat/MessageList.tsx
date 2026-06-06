@@ -1,14 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Zap, Pencil, Check, X, History, FileText, Download, Trash2 } from "lucide-react";
+import { Zap, Pencil, Check, X, History, FileText, Download, Trash2, Bot } from "lucide-react";
 import type { ChatAttachment, MentionUser } from "./MessageInput";
 import { useTime } from "@/contexts/TimezoneContext";
 import { VisionCircle } from "@/components/vision/VisionCircle";
 
 const VISION_COLOR = "#9bd34b";
+const BOT_COLOR = "#2563EB";
 function isVisionMessage(m: { user_id: string | null; metadata?: any }, isSystemChannel: boolean) {
   if (isSystemChannel) return false;
   if (m.metadata?.source === "vision" || m.metadata?.sender === "vision") return true;
   return false;
+}
+function isBotMessage(m: { metadata?: any }) {
+  return m.metadata?.sender === "tech-team" || m.metadata?.bot === "tech-team";
 }
 
 export interface ChatMessage {
@@ -317,26 +321,33 @@ export const MessageList = ({
         const showDay = day !== lastDay;
         lastDay = day;
         const mine = m.user_id === currentUserId;
-        const isSystem = (isSystemChannel || m.user_id === null) && !isVisionMessage(m, isSystemChannel);
+        const isBot = isBotMessage(m);
+        const isSystem = (isSystemChannel || m.user_id === null) && !isVisionMessage(m, isSystemChannel) && !isBot;
         const isVision = isVisionMessage(m, isSystemChannel);
         const profile = m.user_id ? profiles[m.user_id] : undefined;
-        const name = isVision
-          ? "Vision"
-          : profile?.display_name ?? profile?.email ?? "System";
-        const nameColor = isVision
-          ? VISION_COLOR
-          : m.user_id
-            ? colorFor(m.user_id)
-            : "#818cf8";
+        const name = isBot
+          ? "Tech Team 🤖"
+          : isVision
+            ? "Vision"
+            : profile?.display_name ?? profile?.email ?? "System";
+        const nameColor = isBot
+          ? BOT_COLOR
+          : isVision
+            ? VISION_COLOR
+            : m.user_id
+              ? colorFor(m.user_id)
+              : "#818cf8";
 
         // Group consecutive messages from the same sender within 5 min on the same day
         const prev = i > 0 ? messages[i - 1] : null;
         const prevIsVision = prev ? isVisionMessage(prev, isSystemChannel) : false;
+        const prevIsBot = prev ? isBotMessage(prev) : false;
         const sameSender =
           !!prev &&
           !showDay &&
           prev.user_id === m.user_id &&
           prevIsVision === isVision &&
+          prevIsBot === isBot &&
           new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() < 5 * 60 * 1000;
         const showHeader = !sameSender;
 
@@ -383,7 +394,22 @@ export const MessageList = ({
                 style={{ alignItems: "flex-start" }}
               >
                 {showHeader ? (
-                  isVision ? (
+                  isBot ? (
+                    <div
+                      className="flex items-center justify-center"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: "50%",
+                        background: `${BOT_COLOR}18`,
+                        color: BOT_COLOR,
+                        flexShrink: 0,
+                        border: `1px solid ${BOT_COLOR}44`,
+                      }}
+                    >
+                      <Bot size={16} strokeWidth={1.5} />
+                    </div>
+                  ) : isVision ? (
                     <div style={{ flexShrink: 0 }}>
                       <VisionCircle size={32} />
                     </div>
@@ -439,6 +465,24 @@ export const MessageList = ({
                       >
                         {mine ? "You" : name}
                       </span>
+                      {isBot && (
+                        <span
+                          className="t-mono"
+                          style={{
+                            fontSize: 8,
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            padding: "1px 5px",
+                            borderRadius: 4,
+                            background: "rgba(37,99,235,0.15)",
+                            border: "1px solid rgba(37,99,235,0.35)",
+                            color: "#2563EB",
+                            lineHeight: 1,
+                          }}
+                        >
+                          Bot
+                        </span>
+                      )}
                       {m.edited_at && (
                         <button
                           onClick={() =>
