@@ -130,6 +130,10 @@ Deno.serve(async (req) => {
       `- 🟢 Auth: **operational**`,
       `- 🕒 Report generated: **${new Date().toISOString()}**`,
       ``,
+      `## ✅ Dev Activity`,
+      `- 🛠️ Task activity events: **${devActivity}**`,
+      `- 🚢 Deploys logged: **${deploys}**`,
+      ``,
       `## 🗳️ Civic Engagement`,
       `- No civic pulse or SMS survey activity (feature not yet enabled).`,
     ].join("\n");
