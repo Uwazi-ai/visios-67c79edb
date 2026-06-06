@@ -133,6 +133,7 @@ const TOOLS = [
   { name: "visi_get_sprint_status", description: "Get current sprint status for an org: task counts by status, in-progress items, recently completed, overdue, and upcoming due. Defaults to UWAZI.AI and a 14-day window.", inputSchema: { type: "object", properties: { org_slug: { type: "string", description: "Org slug (defaults to 'uwazi')" }, days: { type: "number", description: "Sprint window in days (default 14)" } }, required: [] } },
   { name: "visi_get_open_tasks", description: "Get all open tasks (status != done) across UWAZI.AI, BIN, and Culture Club, grouped by org with priority, status, due date, overdue flag, project and assignee.", inputSchema: { type: "object", properties: { limit_per_org: { type: "number", description: "Max tasks per org (default 50, max 200)" } }, required: [] } },
   { name: "visi_send_chat_message", description: "Post a message to a named Visi OS channel.", inputSchema: { type: "object", properties: { channel: { type: "string", description: "Channel name (e.g. 'general', 'dailyreports')" }, message: { type: "string", description: "Message content" }, org_id: { type: "string", description: "Optional org_id to scope channel lookup" } }, required: ["channel", "message"] } },
+  { name: "visi_get_org_context", description: "Get a high-level executive status summary for UWAZI.AI, BIN, and Culture Club. Returns task counts, active projects, team size, overdue items, and upcoming deadlines per org.", inputSchema: { type: "object", properties: {}, required: [] } },
 ];
 
 
@@ -865,6 +866,135 @@ async function handleSendChatMessage(admin: SupabaseClient, userId: string, args
   return toolResult({ sent: true, message: data, channel: { id: target.id, name: target.name, is_system: target.is_system } });
 }
 
+async function handleGetOrgContext(admin: SupabaseClient, userId: string) {
+  const allowed = await allowedOrgIds(admin, userId);
+  if (!allowed.length) return toolResult({ orgs: [], note: "No org memberships found.", as_of: new Date().toISOString() });
+
+  const targetSlugs = ["uwazi", "bin", "cultureclub", "culture-club", "culture_club"];
+  const { data: orgs, error: orgErr } = await admin
+    .from("orgs")
+    .select("id, name, short_name, slug, color, description")
+    .in("id", allowed);
+  if (orgErr) return toolError(orgErr.message);
+
+  const targetOrgs = (orgs ?? []).filter((o) => {
+    const s = (o.slug ?? "").toLowerCase();
+    const n = (o.name ?? "").toLowerCase();
+    return targetSlugs.includes(s) || n.includes("uwazi") || n.includes("bin") || n.includes("culture club");
+  });
+
+  if (!targetOrgs.length) {
+    return toolResult({ orgs: [], note: "No matching orgs (UWAZI.AI / BIN / Culture Club) in your memberships.", as_of: new Date().toISOString() });
+  }
+
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const weekFuture = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+  const orgIds = targetOrgs.map((o) => o.id);
+
+  // Bulk queries across all target orgs
+  const [
+    tasksRes,
+    projectsRes,
+    membersRes,
+    notificationsRes,
+  ] = await Promise.all([
+    admin.from("tasks")
+      .select("id, title, status, priority, due_at, completed_at, org_id, project_id, projects(name, emoji)")
+      .in("org_id", orgIds)
+      .order("due_at", { ascending: true, nullsFirst: false }),
+    admin.from("projects")
+      .select("id, name, status, emoji, org_id")
+      .in("org_id", orgIds)
+      .eq("is_archived", false),
+    Promise.all(orgIds.map(async (orgId) => {
+      const { data, error } = await admin.rpc("get_org_members", { _org_id: orgId });
+      return { orgId, members: data ?? [], error: error?.message ?? null };
+    })),
+    admin.from("notifications")
+      .select("id, app, title, body, severity, created_at, org_id")
+      .in("org_id", orgIds)
+      .is("acknowledged_at", null)
+      .order("created_at", { ascending: false })
+      .limit(50),
+  ]);
+
+  const allTasks = tasksRes.data ?? [];
+  const allProjects = projectsRes.data ?? [];
+  const allNotifications = notificationsRes.data ?? [];
+
+  const perOrg = targetOrgs.map((org) => {
+    const orgTasks = allTasks.filter((t: any) => t.org_id === org.id);
+    const orgProjects = allProjects.filter((p: any) => p.org_id === org.id);
+    const orgNotifs = allNotifications.filter((n: any) => n.org_id === org.id);
+    const orgMembers = membersRes.find((m) => m.orgId === org.id)?.members ?? [];
+
+    const openTasks = orgTasks.filter((t: any) => t.status !== "done");
+    const doneTasks = orgTasks.filter((t: any) => t.status === "done" && t.completed_at && t.completed_at >= weekAgo);
+    const overdue = openTasks.filter((t: any) => t.due_at && new Date(t.due_at) < now);
+    const upcoming = openTasks.filter((t: any) => t.due_at && t.due_at >= nowIso && t.due_at <= weekFuture);
+    const urgent = openTasks.filter((t: any) => t.priority === "urgent");
+
+    const statusCounts = orgTasks.reduce((acc: Record<string, number>, t: any) => {
+      acc[t.status] = (acc[t.status] ?? 0) + 1;
+      return acc;
+    }, {});
+
+    const shapeTask = (t: any) => ({
+      id: t.id,
+      title: t.title,
+      status: t.status,
+      priority: t.priority,
+      due_at: t.due_at,
+      project: t.projects ? { name: t.projects.name, emoji: t.projects.emoji } : null,
+    });
+
+    return {
+      org: {
+        id: org.id,
+        name: org.name,
+        short_name: org.short_name,
+        slug: org.slug,
+        color: org.color,
+      },
+      summary: {
+        open_tasks: openTasks.length,
+        urgent_tasks: urgent.length,
+        overdue_tasks: overdue.length,
+        completed_this_week: doneTasks.length,
+        upcoming_7d: upcoming.length,
+        active_projects: orgProjects.length,
+        team_size: orgMembers.length,
+        unacknowledged_notifications: orgNotifs.length,
+      },
+      status_counts: statusCounts,
+      top_priorities: urgent.slice(0, 5).map(shapeTask),
+      overdue: overdue.slice(0, 5).map(shapeTask),
+      upcoming: upcoming.slice(0, 5).map(shapeTask),
+      recently_completed: doneTasks.slice(0, 5).map(shapeTask),
+      recent_notifications: orgNotifs.slice(0, 3).map((n: any) => ({
+        id: n.id,
+        app: n.app,
+        title: n.title,
+        severity: n.severity,
+        created_at: n.created_at,
+      })),
+    };
+  });
+
+  const totalOpen = perOrg.reduce((sum, o) => sum + o.summary.open_tasks, 0);
+  const totalOverdue = perOrg.reduce((sum, o) => sum + o.summary.overdue_tasks, 0);
+  const totalUrgent = perOrg.reduce((sum, o) => sum + o.summary.urgent_tasks, 0);
+
+  return toolResult({
+    orgs: perOrg,
+    totals: { open_tasks: totalOpen, overdue_tasks: totalOverdue, urgent_tasks: totalUrgent },
+    as_of: nowIso,
+  });
+}
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
 
@@ -903,6 +1033,7 @@ async function dispatchTool(name: string, args: Record<string, unknown>, admin: 
     case "visi_get_sprint_status": return handleGetSprintStatus(admin, userId, args);
     case "visi_get_open_tasks": return handleGetOpenTasks(admin, userId, args);
     case "visi_send_chat_message": return handleSendChatMessage(admin, userId, args);
+    case "visi_get_org_context": return handleGetOrgContext(admin, userId);
     default: return toolError(`Unknown tool: ${name}`);
 
 
