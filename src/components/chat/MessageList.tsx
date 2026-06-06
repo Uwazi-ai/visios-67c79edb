@@ -583,6 +583,8 @@ export const MessageList = ({
                             </button>
                           </div>
                         </div>
+                      ) : isBot ? (
+                        <BotMessageContent content={m.content} />
                       ) : (
                         renderContent(m.content, handles, meHandle)
                       )}
