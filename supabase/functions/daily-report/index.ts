@@ -71,6 +71,16 @@ Deno.serve(async (req) => {
     const blockedTasks = blockedTasksRes.count ?? 0;
     const hasIssues = overdueTasks + cancelledBookings + blockedTasks > 0;
 
+    // 👥 Growth & users
+    const [totalUsersRes, newUsersRes, orgMembersRes] = await Promise.all([
+      supabase.from("profiles").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since),
+      supabase.from("org_memberships").select("user_id", { count: "exact", head: true }).eq("org_id", orgId),
+    ]);
+    const totalUsers = totalUsersRes.count ?? 0;
+    const newUsers = newUsersRes.count ?? 0;
+    const orgMembers = orgMembersRes.count ?? 0;
+
     const content = [
       `# 📊 Daily Report — ${dateLabel}`,
       ``,
@@ -97,6 +107,11 @@ Deno.serve(async (req) => {
             `- ❌ Cancelled bookings (24h): **${cancelledBookings}**`,
           ].join("\n")
         : `- ✅ No errors or blockers detected.`,
+      ``,
+      `## 👥 Growth & Users`,
+      `- 🧑 Total users: **${totalUsers}**`,
+      `- ✨ New sign-ups (24h): **${newUsers}**`,
+      `- 🏢 Org members: **${orgMembers}**`,
       ``,
       `## 🔧 System Health`,
       `- 🟢 Edge functions: **operational**`,
