@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Zap, Pencil, Check, X, History, FileText, Download, Trash2 } from "lucide-react";
+import { Zap, Pencil, Check, X, History, FileText, Download, Trash2, Bot } from "lucide-react";
 import type { ChatAttachment, MentionUser } from "./MessageInput";
 import { useTime } from "@/contexts/TimezoneContext";
 import { VisionCircle } from "@/components/vision/VisionCircle";
