@@ -133,6 +133,7 @@ const TOOLS = [
   { name: "visi_get_sprint_status", description: "Get current sprint status for an org: task counts by status, in-progress items, recently completed, overdue, and upcoming due. Defaults to UWAZI.AI and a 14-day window.", inputSchema: { type: "object", properties: { org_slug: { type: "string", description: "Org slug (defaults to 'uwazi')" }, days: { type: "number", description: "Sprint window in days (default 14)" } }, required: [] } },
   { name: "visi_get_open_tasks", description: "Get all open tasks (status != done) across UWAZI.AI, BIN, and Culture Club, grouped by org with priority, status, due date, overdue flag, project and assignee.", inputSchema: { type: "object", properties: { limit_per_org: { type: "number", description: "Max tasks per org (default 50, max 200)" } }, required: [] } },
   { name: "visi_send_chat_message", description: "Post a message to a named Visi OS channel.", inputSchema: { type: "object", properties: { channel: { type: "string", description: "Channel name (e.g. 'general', 'dailyreports')" }, message: { type: "string", description: "Message content" }, org_id: { type: "string", description: "Optional org_id to scope channel lookup" } }, required: ["channel", "message"] } },
+  { name: "visi_get_org_context", description: "Get a high-level executive status summary for UWAZI.AI, BIN, and Culture Club. Returns task counts, active projects, team size, overdue items, and upcoming deadlines per org.", inputSchema: { type: "object", properties: {}, required: [] } },
 ];
 
 
