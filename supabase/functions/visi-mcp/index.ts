@@ -614,6 +614,38 @@ async function handleTriggerAgent(admin: SupabaseClient, userId: string, args: R
   });
 }
 
+async function handleGetDailyReport(admin: SupabaseClient, userId: string) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  // Find UWAZI.AI org
+  const { data: org } = await admin.from("orgs").select("id").or("slug.eq.uwazi,name.eq.UWAZI.AI").single();
+  if (!org || !orgIds.includes(org.id)) return toolError("You do not have access to UWAZI.AI");
+
+  // Find dailyreports system channel
+  const { data: channel } = await admin.from("channels").select("id").eq("org_id", org.id).eq("name", "dailyreports").eq("is_system", true).single();
+  if (!channel) return toolError("dailyreports channel not found");
+
+  // Get latest message with sender info
+  const { data: message } = await admin.from("messages")
+    .select("id, content, created_at, user_id, metadata, profiles(display_name, email, avatar_url)")
+    .eq("channel_id", channel.id)
+    .eq("org_id", org.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!message) return toolResult({ message: null, note: "No daily report available yet." });
+
+  const profile = (message.profiles as any) ?? {};
+  return toolResult({
+    id: message.id,
+    content: message.content,
+    created_at: message.created_at,
+    sender: { id: message.user_id, name: profile.display_name ?? null, email: profile.email ?? null, avatar_url: profile.avatar_url ?? null },
+    metadata: message.metadata,
+  });
+}
+
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
 
