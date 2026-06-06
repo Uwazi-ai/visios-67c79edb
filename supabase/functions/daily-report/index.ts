@@ -56,6 +56,21 @@ Deno.serve(async (req) => {
       askQueries = count ?? 0;
     }
 
+    // 🚨 Errors & blockers
+    const nowIso = new Date().toISOString();
+    const [overdueRes, cancelledBookingsRes, blockedTasksRes] = await Promise.all([
+      supabase.from("tasks").select("id", { count: "exact", head: true })
+        .eq("org_id", orgId).neq("status", "done").not("due_at", "is", null).lt("due_at", nowIso),
+      supabase.from("bookings").select("id", { count: "exact", head: true })
+        .eq("org_id", orgId).eq("status", "cancelled").gte("created_at", since),
+      supabase.from("tasks").select("id", { count: "exact", head: true })
+        .eq("org_id", orgId).eq("status", "blocked"),
+    ]);
+    const overdueTasks = overdueRes.count ?? 0;
+    const cancelledBookings = cancelledBookingsRes.count ?? 0;
+    const blockedTasks = blockedTasksRes.count ?? 0;
+    const hasIssues = overdueTasks + cancelledBookings + blockedTasks > 0;
+
     const content = [
       `# 📊 Daily Report — ${dateLabel}`,
       ``,
@@ -74,9 +89,19 @@ Deno.serve(async (req) => {
       `- 🧵 New sessions: **${askSessions}**`,
       `- ❓ User queries: **${askQueries}**`,
       ``,
+      `## 🚨 Errors & Blockers`,
+      hasIssues
+        ? [
+            `- ⏰ Overdue tasks: **${overdueTasks}**`,
+            `- 🛑 Blocked tasks: **${blockedTasks}**`,
+            `- ❌ Cancelled bookings (24h): **${cancelledBookings}**`,
+          ].join("\n")
+        : `- ✅ No errors or blockers detected.`,
+      ``,
       `## 🗳️ Civic Engagement`,
       `- No civic pulse or SMS survey activity (feature not yet enabled).`,
     ].join("\n");
+
 
 
     const { error: insErr } = await supabase.from("messages").insert({
