@@ -4,6 +4,7 @@ import botAvatar from "@/assets/bot-avatar.png";
 import type { ChatAttachment, MentionUser } from "./MessageInput";
 import { useTime } from "@/contexts/TimezoneContext";
 import { VisionCircle } from "@/components/vision/VisionCircle";
+import { BotMessageContent } from "./BotMessageContent";
 
 const VISION_COLOR = "#9bd34b";
 const BOT_COLOR = "#2563EB";
@@ -582,6 +583,8 @@ export const MessageList = ({
                             </button>
                           </div>
                         </div>
+                      ) : isBot ? (
+                        <BotMessageContent content={m.content} />
                       ) : (
                         renderContent(m.content, handles, meHandle)
                       )}
