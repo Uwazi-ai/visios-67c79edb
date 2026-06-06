@@ -62,6 +62,10 @@ Deno.serve(async (req) => {
       channel = created;
     }
 
+    if (ensureOnly) {
+      return json({ ok: true, ensured: true, channel_id: channel.id });
+    }
+
     // 3. Gather metrics in parallel
     const [
       newContactsR, newDealsR, tasksDoneR, tasksCreatedR, msgsR, bookingsR, eventsR,
