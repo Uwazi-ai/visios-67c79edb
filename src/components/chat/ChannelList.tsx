@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, Plus, Hash, Zap, Rocket, MessageSquarePlus, Trash2, Pencil } from "lucide-react";
+import { Search, Plus, Hash, Zap, Rocket, Bot, MessageSquarePlus, Trash2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrg } from "@/contexts/OrgContext";
 import { useAuth } from "@/contexts/AuthContext";
