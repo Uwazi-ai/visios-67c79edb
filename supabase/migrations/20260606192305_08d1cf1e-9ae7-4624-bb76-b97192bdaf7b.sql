@@ -1,0 +1,1 @@
+DELETE FROM public.channels WHERE id = 'f8efda5d-45d9-4694-b7b4-33e30915c229';
