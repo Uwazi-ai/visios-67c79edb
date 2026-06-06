@@ -450,29 +450,41 @@ function SystemRow({
   active: boolean;
   onClick: () => void;
 }) {
-  const Icon = channel.name === "deploys" ? Rocket : Zap;
+  const isDailyReports = channel.name === "dailyreports";
+  const Icon = isDailyReports ? Bot : channel.name === "deploys" ? Rocket : Zap;
+  const iconColor = isDailyReports ? "#2563EB" : "#818cf8";
+  const label = isDailyReports ? "dailyreports" : channel.name;
   return (
     <button
       onClick={onClick}
       className="w-full flex items-center gap-2 mx-2 px-2 py-1.5 rounded-[8px] transition-colors"
       style={{
-        background: active ? "var(--bg-glass-active)" : "transparent",
-        border: active ? "1px solid var(--border-active)" : "1px solid transparent",
+        background: active
+          ? "var(--bg-glass-active)"
+          : isDailyReports
+            ? "rgba(37,99,235,0.08)"
+            : "transparent",
+        border: active
+          ? "1px solid var(--border-active)"
+          : isDailyReports
+            ? "1px solid rgba(37,99,235,0.35)"
+            : "1px solid transparent",
         color: active ? "var(--text-primary)" : "var(--text-secondary)",
         width: "calc(100% - 16px)",
       }}
     >
-      <Icon size={12} strokeWidth={1.5} style={{ color: "#818cf8" }} />
+      <Icon size={12} strokeWidth={1.5} style={{ color: iconColor }} />
       <span
         style={{
           fontFamily: "var(--font-body)",
           fontSize: 12,
-          fontWeight: 500,
+          fontWeight: isDailyReports ? 600 : 500,
           flex: 1,
           textAlign: "left",
+          color: isDailyReports && !active ? "#2563EB" : undefined,
         }}
       >
-        {channel.name}
+        {label}
       </span>
     </button>
   );
