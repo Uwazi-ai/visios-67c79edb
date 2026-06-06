@@ -792,6 +792,7 @@ async function dispatchTool(name: string, args: Record<string, unknown>, admin: 
     case "visi_get_daily_report": return handleGetDailyReport(admin, userId);
     case "visi_get_uwazi_metrics": return handleGetUwaziMetrics(admin, userId);
     case "visi_get_sprint_status": return handleGetSprintStatus(admin, userId, args);
+    case "visi_get_open_tasks": return handleGetOpenTasks(admin, userId, args);
     default: return toolError(`Unknown tool: ${name}`);
 
 
