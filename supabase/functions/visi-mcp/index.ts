@@ -758,7 +758,83 @@ async function handleGetSprintStatus(admin: SupabaseClient, userId: string, args
 }
 
 
+async function handleGetOpenTasks(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const allowed = await allowedOrgIds(admin, userId);
+  if (!allowed.length) return toolResult({ orgs: [], totals: { open: 0 }, as_of: new Date().toISOString() });
+
+  const targetSlugs = ["uwazi", "bin", "cultureclub", "culture-club", "culture_club"];
+  const { data: orgs, error: orgErr } = await admin
+    .from("orgs")
+    .select("id, name, short_name, slug, color")
+    .in("id", allowed);
+  if (orgErr) return toolError(orgErr.message);
+
+  const targetOrgs = (orgs ?? []).filter((o) => {
+    const s = (o.slug ?? "").toLowerCase();
+    const n = (o.name ?? "").toLowerCase();
+    return targetSlugs.includes(s) ||
+      n.includes("uwazi") || n.includes("bin") || n.includes("culture club");
+  });
+  if (!targetOrgs.length) {
+    return toolResult({ orgs: [], totals: { open: 0 }, note: "No matching orgs (UWAZI.AI / BIN / Culture Club) in your memberships.", as_of: new Date().toISOString() });
+  }
+
+  const limitPerOrg = Math.min(Number(args.limit_per_org ?? 50), 200);
+  const nowIso = new Date().toISOString();
+
+  const priorityRank: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 };
+
+  const perOrg = await Promise.all(targetOrgs.map(async (org) => {
+    const { data, error } = await admin
+      .from("tasks")
+      .select("id, title, status, priority, due_at, assignee_id, project_id, section_id, created_at, projects(name, emoji)")
+      .eq("org_id", org.id)
+      .neq("status", "done")
+      .order("priority", { ascending: true })
+      .order("due_at", { ascending: true, nullsFirst: false })
+      .limit(limitPerOrg);
+    if (error) return { org, error: error.message, tasks: [] as any[] };
+
+    const tasks = (data ?? []).map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      status: t.status,
+      priority: t.priority,
+      due_at: t.due_at,
+      overdue: t.due_at ? new Date(t.due_at) < new Date() : false,
+      assignee_id: t.assignee_id,
+      project: t.projects ? { id: t.project_id, name: t.projects.name, emoji: t.projects.emoji } : null,
+      created_at: t.created_at,
+    }));
+
+    const counts = {
+      total: tasks.length,
+      by_status: tasks.reduce((acc: Record<string, number>, t) => { acc[t.status] = (acc[t.status] ?? 0) + 1; return acc; }, {}),
+      by_priority: tasks.reduce((acc: Record<string, number>, t) => { const p = t.priority ?? "unset"; acc[p] = (acc[p] ?? 0) + 1; return acc; }, {}),
+      overdue: tasks.filter((t) => t.overdue).length,
+    };
+
+    return {
+      org: { id: org.id, name: org.name, short_name: org.short_name, slug: org.slug, color: org.color },
+      counts,
+      tasks: tasks.sort((a, b) => (priorityRank[a.priority] ?? 9) - (priorityRank[b.priority] ?? 9)),
+    };
+  }));
+
+  const totalOpen = perOrg.reduce((sum, o) => sum + (o.counts?.total ?? 0), 0);
+  const totalOverdue = perOrg.reduce((sum, o) => sum + (o.counts?.overdue ?? 0), 0);
+
+  return toolResult({
+    orgs: perOrg,
+    totals: { open: totalOpen, overdue: totalOverdue },
+    as_of: nowIso,
+  });
+}
+
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
+
+
 
 
 async function dispatchTool(name: string, args: Record<string, unknown>, admin: SupabaseClient, userId: string): Promise<unknown> {
