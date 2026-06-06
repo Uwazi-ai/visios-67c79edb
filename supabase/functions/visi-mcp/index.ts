@@ -121,6 +121,7 @@ const TOOLS = [
   { name: "visi_get_inbox", description: "Get unread messages from your VisiOS Inbox (Gmail). Returns subject, sender, snippet, and date for each unread thread.", inputSchema: { type: "object", properties: { limit: { type: "number", description: "Max threads, default 20, max 50" }, include_read: { type: "boolean", description: "If true, includes read threads too (default false)" } }, required: [] } },
   { name: "visi_trigger_agent", description: "Fire a named VisiOS agent (e.g. bug-patrol, growth-radar, sprint-commander, content-studio). Matches by template_key or name (case-insensitive). Logs a run and POSTs to the agent's webhook if configured.", inputSchema: { type: "object", properties: { agent_name: { type: "string", description: "Agent identifier: template_key or display name. Examples: 'bug-patrol', 'growth-radar', 'sprint-commander', 'content-studio'" }, payload: { type: "object", description: "Optional JSON payload to send to the agent webhook" } }, required: ["agent_name"] } },
   { name: "visi_get_daily_report", description: "Get the latest message from the dailyreports system channel for UWAZI.AI.", inputSchema: { type: "object", properties: {}, required: [] } },
+  { name: "visi_get_uwazi_metrics", description: "Get UWAZI.AI growth metrics: total users, new signups last 24h, waitlist count, and Ask UWAZI sessions.", inputSchema: { type: "object", properties: {}, required: [] } },
 ];
 
 
@@ -645,6 +646,47 @@ async function handleGetDailyReport(admin: SupabaseClient, userId: string) {
   });
 }
 
+async function handleGetUwaziMetrics(admin: SupabaseClient, userId: string) {
+  const orgIds = await allowedOrgIds(admin, userId);
+  const { data: org } = await admin.from("orgs").select("id").eq("slug", "uwazi").maybeSingle();
+  if (!org || !orgIds.includes(org.id)) return toolError("You do not have access to UWAZI.AI");
+  const orgId = org.id as string;
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+  const [
+    totalUsersR, newUsersR, waitlistR, askSessionsR,
+  ] = await Promise.all([
+    admin.from("profiles").select("id", { count: "exact", head: true }),
+    admin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since),
+    admin.from("profiles").select("id", { count: "exact", head: true }).eq("is_restricted", true),
+    admin.from("ai_conversations").select("id", { count: "exact", head: true }).eq("org_id", orgId).gte("created_at", since),
+  ]);
+
+  // User queries in UWAZI AI conversations (last 24h)
+  let askQueries = 0;
+  const { data: orgConvs } = await admin.from("ai_conversations").select("id").eq("org_id", orgId);
+  const convIds = (orgConvs ?? []).map((c: any) => c.id);
+  if (convIds.length) {
+    const { count } = await admin.from("ai_messages")
+      .select("id", { count: "exact", head: true })
+      .in("conversation_id", convIds)
+      .eq("role", "user")
+      .gte("created_at", since);
+    askQueries = count ?? 0;
+  }
+
+  return toolResult({
+    total_users: totalUsersR.count ?? 0,
+    new_signups_24h: newUsersR.count ?? 0,
+    waitlist_count: waitlistR.count ?? 0,
+    active_users: Math.max((totalUsersR.count ?? 0) - (waitlistR.count ?? 0), 0),
+    ask_uwazi_sessions_24h: askSessionsR.count ?? 0,
+    ask_uwazi_user_queries_24h: askQueries,
+    uwazi_org_members: (await admin.from("org_memberships").select("user_id", { count: "exact", head: true }).eq("org_id", orgId)).count ?? 0,
+    as_of: new Date().toISOString(),
+  });
+}
+
 
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
@@ -678,6 +720,7 @@ async function dispatchTool(name: string, args: Record<string, unknown>, admin: 
     case "visi_get_inbox": return handleGetInbox(userId, args);
     case "visi_trigger_agent": return handleTriggerAgent(admin, userId, args);
     case "visi_get_daily_report": return handleGetDailyReport(admin, userId);
+    case "visi_get_uwazi_metrics": return handleGetUwaziMetrics(admin, userId);
     default: return toolError(`Unknown tool: ${name}`);
 
 
