@@ -130,6 +130,7 @@ const TOOLS = [
   { name: "visi_get_uwazi_metrics", description: "Get UWAZI.AI growth metrics: total users, new signups last 24h, waitlist count, and Ask UWAZI sessions.", inputSchema: { type: "object", properties: {}, required: [] } },
   { name: "visi_get_sprint_status", description: "Get current sprint status for an org: task counts by status, in-progress items, recently completed, overdue, and upcoming due. Defaults to UWAZI.AI and a 14-day window.", inputSchema: { type: "object", properties: { org_slug: { type: "string", description: "Org slug (defaults to 'uwazi')" }, days: { type: "number", description: "Sprint window in days (default 14)" } }, required: [] } },
   { name: "visi_get_open_tasks", description: "Get all open tasks (status != done) across UWAZI.AI, BIN, and Culture Club, grouped by org with priority, status, due date, overdue flag, project and assignee.", inputSchema: { type: "object", properties: { limit_per_org: { type: "number", description: "Max tasks per org (default 50, max 200)" } }, required: [] } },
+  { name: "visi_send_chat_message", description: "Post a message to a named Visi OS channel.", inputSchema: { type: "object", properties: { channel: { type: "string", description: "Channel name (e.g. 'general', 'dailyreports')" }, message: { type: "string", description: "Message content" }, org_id: { type: "string", description: "Optional org_id to scope channel lookup" } }, required: ["channel", "message"] } },
 ];
 
 
@@ -832,6 +833,36 @@ async function handleGetOpenTasks(admin: SupabaseClient, userId: string, args: R
 }
 
 
+async function handleSendChatMessage(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const channelName = String(args.channel ?? "").trim();
+  const messageText = String(args.message ?? "").trim();
+  if (!channelName) return toolError("channel is required");
+  if (!messageText) return toolError("message is required");
+
+  const orgIds = await allowedOrgIds(admin, userId);
+  let q = admin.from("channels").select("id, name, org_id, is_system").eq("name", channelName);
+  if (args.org_id) {
+    if (!orgIds.includes(args.org_id as string)) return toolError("No access to that org");
+    q = q.eq("org_id", args.org_id as string);
+  } else {
+    q = q.in("org_id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"]);
+  }
+  const { data: channels, error: chErr } = await q;
+  if (chErr) return toolError(chErr.message);
+  if (!channels || channels.length === 0) return toolError(`Channel '${channelName}' not found or no access`);
+
+  const target = channels[0];
+  const { data, error } = await admin.from("messages").insert({
+    channel_id: target.id,
+    org_id: target.org_id,
+    user_id: userId,
+    content: messageText,
+    metadata: { source: "mcp" },
+  }).select("id, content, created_at, channel_id, org_id").single();
+  if (error) return toolError(error.message);
+  return toolResult({ sent: true, message: data, channel: { id: target.id, name: target.name, is_system: target.is_system } });
+}
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
 
@@ -869,6 +900,7 @@ async function dispatchTool(name: string, args: Record<string, unknown>, admin: 
     case "visi_get_uwazi_metrics": return handleGetUwaziMetrics(admin, userId);
     case "visi_get_sprint_status": return handleGetSprintStatus(admin, userId, args);
     case "visi_get_open_tasks": return handleGetOpenTasks(admin, userId, args);
+    case "visi_send_chat_message": return handleSendChatMessage(admin, userId, args);
     default: return toolError(`Unknown tool: ${name}`);
 
 
