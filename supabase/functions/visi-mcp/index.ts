@@ -945,6 +945,10 @@ async function handleMCPRequest(req: MCPRequest, admin: SupabaseClient, userId: 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(origin) });
+  if (req.method === "GET") {
+    // Streamable HTTP: server-initiated SSE not used; respond 405 per spec.
+    return new Response("Method Not Allowed", { status: 405, headers: { ...corsHeaders(origin), "Allow": "POST, OPTIONS" } });
+  }
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, origin);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
