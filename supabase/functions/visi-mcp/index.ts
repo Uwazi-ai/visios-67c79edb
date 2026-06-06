@@ -1086,7 +1086,11 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, origin);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (!/^Bearer\s+\S+/i.test(authHeader)) {
+    return json({ error: "Unauthorized: missing Bearer token" }, 401, origin);
+  }
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
   const userId = await resolveUserId(admin, token);
   if (!userId) return json({ error: "Unauthorized" }, 401, origin);
 
