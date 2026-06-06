@@ -121,6 +121,7 @@ const TOOLS = [
   { name: "visi_get_inbox", description: "Get unread messages from your VisiOS Inbox (Gmail). Returns subject, sender, snippet, and date for each unread thread.", inputSchema: { type: "object", properties: { limit: { type: "number", description: "Max threads, default 20, max 50" }, include_read: { type: "boolean", description: "If true, includes read threads too (default false)" } }, required: [] } },
   { name: "visi_trigger_agent", description: "Fire a named VisiOS agent (e.g. bug-patrol, growth-radar, sprint-commander, content-studio). Matches by template_key or name (case-insensitive). Logs a run and POSTs to the agent's webhook if configured.", inputSchema: { type: "object", properties: { agent_name: { type: "string", description: "Agent identifier: template_key or display name. Examples: 'bug-patrol', 'growth-radar', 'sprint-commander', 'content-studio'" }, payload: { type: "object", description: "Optional JSON payload to send to the agent webhook" } }, required: ["agent_name"] } },
   { name: "visi_get_daily_report", description: "Get the latest message from the dailyreports system channel for UWAZI.AI.", inputSchema: { type: "object", properties: {}, required: [] } },
+  { name: "visi_get_uwazi_metrics", description: "Get UWAZI.AI growth metrics: total users, new signups last 24h, waitlist count, and Ask UWAZI sessions.", inputSchema: { type: "object", properties: {}, required: [] } },
 ];
 
 
