@@ -321,26 +321,33 @@ export const MessageList = ({
         const showDay = day !== lastDay;
         lastDay = day;
         const mine = m.user_id === currentUserId;
-        const isSystem = (isSystemChannel || m.user_id === null) && !isVisionMessage(m, isSystemChannel);
+        const isBot = isBotMessage(m);
+        const isSystem = (isSystemChannel || m.user_id === null) && !isVisionMessage(m, isSystemChannel) && !isBot;
         const isVision = isVisionMessage(m, isSystemChannel);
         const profile = m.user_id ? profiles[m.user_id] : undefined;
-        const name = isVision
-          ? "Vision"
-          : profile?.display_name ?? profile?.email ?? "System";
-        const nameColor = isVision
-          ? VISION_COLOR
-          : m.user_id
-            ? colorFor(m.user_id)
-            : "#818cf8";
+        const name = isBot
+          ? "Tech Team 🤖"
+          : isVision
+            ? "Vision"
+            : profile?.display_name ?? profile?.email ?? "System";
+        const nameColor = isBot
+          ? BOT_COLOR
+          : isVision
+            ? VISION_COLOR
+            : m.user_id
+              ? colorFor(m.user_id)
+              : "#818cf8";
 
         // Group consecutive messages from the same sender within 5 min on the same day
         const prev = i > 0 ? messages[i - 1] : null;
         const prevIsVision = prev ? isVisionMessage(prev, isSystemChannel) : false;
+        const prevIsBot = prev ? isBotMessage(prev) : false;
         const sameSender =
           !!prev &&
           !showDay &&
           prev.user_id === m.user_id &&
           prevIsVision === isVision &&
+          prevIsBot === isBot &&
           new Date(m.created_at).getTime() - new Date(prev.created_at).getTime() < 5 * 60 * 1000;
         const showHeader = !sameSender;
 
