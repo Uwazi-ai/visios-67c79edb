@@ -98,6 +98,11 @@ Deno.serve(async (req) => {
           ].join("\n")
         : `- ✅ No errors or blockers detected.`,
       ``,
+      `## 👥 Growth & Users`,
+      `- 🧑 Total users: **${totalUsers}**`,
+      `- ✨ New sign-ups (24h): **${newUsers}**`,
+      `- 🏢 Org members: **${orgMembers}**`,
+      ``,
       `## 🔧 System Health`,
       `- 🟢 Edge functions: **operational**`,
       `- 🟢 Database: **healthy**`,
