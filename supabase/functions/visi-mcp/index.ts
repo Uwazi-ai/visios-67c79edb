@@ -41,8 +41,10 @@ function corsHeaders(origin: string | null) {
   const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : "null";
   return {
     "Access-Control-Allow-Origin": allowOrigin,
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept, mcp-session-id, mcp-protocol-version, x-client-info",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Expose-Headers": "mcp-session-id",
+    "Access-Control-Max-Age": "86400",
     "Vary": "Origin",
   };
 }
@@ -910,8 +912,17 @@ async function dispatchTool(name: string, args: Record<string, unknown>, admin: 
 async function handleMCPRequest(req: MCPRequest, admin: SupabaseClient, userId: string): Promise<MCPResponse> {
   const { id, method, params } = req;
   switch (method) {
-    case "initialize":
-      return mcpOk(id, { protocolVersion: "2024-11-05", capabilities: { tools: {} }, serverInfo: { name: "visios-mcp", version: "2.0.0" } });
+    case "initialize": {
+      const clientVersion = (params as any)?.protocolVersion;
+      const supported = ["2025-06-18", "2025-03-26", "2024-11-05"];
+      const protocolVersion = supported.includes(clientVersion) ? clientVersion : "2025-03-26";
+      return mcpOk(id, {
+        protocolVersion,
+        capabilities: { tools: { listChanged: false } },
+        serverInfo: { name: "visios-mcp", version: "2.0.0" },
+        instructions: "VisiOS MCP — call visi_get_context first to discover orgs, projects, open tasks, and recent notifications. All tool calls are scoped to your user and org memberships.",
+      });
+    }
     case "notifications/initialized": return mcpOk(id, {});
     case "ping": return mcpOk(id, {});
     case "tools/list": return mcpOk(id, { tools: TOOLS });
@@ -934,6 +945,10 @@ async function handleMCPRequest(req: MCPRequest, admin: SupabaseClient, userId: 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(origin) });
+  if (req.method === "GET") {
+    // Streamable HTTP: server-initiated SSE not used; respond 405 per spec.
+    return new Response("Method Not Allowed", { status: 405, headers: { ...corsHeaders(origin), "Allow": "POST, OPTIONS" } });
+  }
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, origin);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
