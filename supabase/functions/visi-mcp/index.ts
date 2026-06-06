@@ -822,21 +822,22 @@ async function handleMCPRequest(req: MCPRequest, admin: SupabaseClient, userId: 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  const origin = req.headers.get("origin");
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(origin) });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, origin);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
   const userId = await resolveUserId(admin, token);
-  if (!userId) return json({ error: "Unauthorized" }, 401);
+  if (!userId) return json({ error: "Unauthorized" }, 401, origin);
 
   let body: unknown;
   try { body = await req.json(); }
-  catch { return json(mcpErr(null, -32700, "Parse error: invalid JSON"), 400); }
+  catch { return json(mcpErr(null, -32700, "Parse error: invalid JSON"), 400, origin); }
 
   if (Array.isArray(body)) {
     const responses = await Promise.all(body.map((r) => handleMCPRequest(r as MCPRequest, admin, userId)));
-    return json(responses);
+    return json(responses, 200, origin);
   }
-  return json(await handleMCPRequest(body as MCPRequest, admin, userId));
+  return json(await handleMCPRequest(body as MCPRequest, admin, userId), 200, origin);
 });
