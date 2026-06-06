@@ -396,20 +396,22 @@ export const MessageList = ({
               >
                 {showHeader ? (
                   isBot ? (
-                    <div
-                      className="flex items-center justify-center"
+                    <img
+                      src={botAvatar}
+                      alt="Tech Team"
+                      loading="lazy"
+                      width={32}
+                      height={32}
                       style={{
                         width: 32,
                         height: 32,
                         borderRadius: "50%",
-                        background: `${BOT_COLOR}18`,
-                        color: BOT_COLOR,
+                        objectFit: "cover",
                         flexShrink: 0,
                         border: `1px solid ${BOT_COLOR}44`,
+                        background: `${BOT_COLOR}18`,
                       }}
-                    >
-                      <Bot size={16} strokeWidth={1.5} />
-                    </div>
+                    />
                   ) : isVision ? (
                     <div style={{ flexShrink: 0 }}>
                       <VisionCircle size={32} />
