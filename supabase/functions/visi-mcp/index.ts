@@ -35,16 +35,22 @@ interface ToolCallParams {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type, apikey",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+const ALLOWED_ORIGINS = ["https://claude.ai", "https://api.anthropic.com"];
 
-function json(body: unknown, status = 200) {
+function corsHeaders(origin: string | null) {
+  const allowOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : "null";
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers": "Authorization, Content-Type",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Vary": "Origin",
+  };
+}
+
+function json(body: unknown, status = 200, origin: string | null = null) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...CORS, "Content-Type": "application/json" },
+    headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
   });
 }
 
@@ -816,21 +822,22 @@ async function handleMCPRequest(req: MCPRequest, admin: SupabaseClient, userId: 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  const origin = req.headers.get("origin");
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(origin) });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405, origin);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
   const userId = await resolveUserId(admin, token);
-  if (!userId) return json({ error: "Unauthorized" }, 401);
+  if (!userId) return json({ error: "Unauthorized" }, 401, origin);
 
   let body: unknown;
   try { body = await req.json(); }
-  catch { return json(mcpErr(null, -32700, "Parse error: invalid JSON"), 400); }
+  catch { return json(mcpErr(null, -32700, "Parse error: invalid JSON"), 400, origin); }
 
   if (Array.isArray(body)) {
     const responses = await Promise.all(body.map((r) => handleMCPRequest(r as MCPRequest, admin, userId)));
-    return json(responses);
+    return json(responses, 200, origin);
   }
-  return json(await handleMCPRequest(body as MCPRequest, admin, userId));
+  return json(await handleMCPRequest(body as MCPRequest, admin, userId), 200, origin);
 });
