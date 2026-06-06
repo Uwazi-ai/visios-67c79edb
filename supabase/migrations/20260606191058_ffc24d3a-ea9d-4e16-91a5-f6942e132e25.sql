@@ -1,0 +1,1 @@
+DELETE FROM public.channels WHERE name='dailyreports' AND is_system=true AND org_id <> '919b3d42-5ae2-44fe-89ab-db5b23133871';
