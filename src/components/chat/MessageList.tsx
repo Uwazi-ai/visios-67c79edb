@@ -465,6 +465,24 @@ export const MessageList = ({
                       >
                         {mine ? "You" : name}
                       </span>
+                      {isBot && (
+                        <span
+                          className="t-mono"
+                          style={{
+                            fontSize: 8,
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            padding: "1px 5px",
+                            borderRadius: 4,
+                            background: "rgba(37,99,235,0.15)",
+                            border: "1px solid rgba(37,99,235,0.35)",
+                            color: "#2563EB",
+                            lineHeight: 1,
+                          }}
+                        >
+                          Bot
+                        </span>
+                      )}
                       {m.edited_at && (
                         <button
                           onClick={() =>
