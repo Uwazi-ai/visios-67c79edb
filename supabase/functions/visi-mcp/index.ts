@@ -536,10 +536,88 @@ async function handleGetInbox(userId: string, args: Record<string, unknown>) {
   return toolResult({ count: threads.length, threads });
 }
 
+async function handleTriggerAgent(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const nameArg = String(args.agent_name ?? "").trim();
+  if (!nameArg) return toolError("agent_name is required");
+  const payload = (args.payload ?? {}) as Record<string, unknown>;
+
+  // Match by template_key OR normalized name (slugified)
+  const slug = nameArg.toLowerCase().replace(/[\s_]+/g, "-");
+  const { data: agents } = await admin
+    .from("visi_agents")
+    .select("id, name, template_key, make_scenario_url, trigger_type, run_count");
+  const agent = (agents ?? []).find((a: any) => {
+    const tk = (a.template_key ?? "").toLowerCase();
+    const nm = (a.name ?? "").toLowerCase().replace(/[\s_]+/g, "-");
+    return tk === slug || tk === nameArg.toLowerCase() || nm === slug;
+  }) as any;
+  if (!agent) return toolError(`Agent not found: ${nameArg}. Try template_key like 'bug-patrol' or 'growth-radar'.`);
+
+  // Log run
+  const startedAt = new Date().toISOString();
+  const { data: runRow } = await admin.from("visi_agent_runs").insert({
+    agent_id: agent.id,
+    status: "running",
+    triggered_by: `mcp:${userId}`,
+    started_at: startedAt,
+  }).select("id").single();
+
+  let webhookStatus: number | null = null;
+  let webhookBody: string | null = null;
+  let finalStatus: "success" | "failed" | "running" = "running";
+  let errorMessage: string | null = null;
+
+  if (agent.make_scenario_url) {
+    try {
+      const res = await fetch(agent.make_scenario_url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...payload, triggered_by: userId, agent_id: agent.id, run_id: runRow?.id }),
+      });
+      webhookStatus = res.status;
+      webhookBody = (await res.text()).slice(0, 500);
+      finalStatus = res.ok ? "success" : "failed";
+      if (!res.ok) errorMessage = `Webhook ${res.status}: ${webhookBody}`;
+    } catch (e) {
+      finalStatus = "failed";
+      errorMessage = e instanceof Error ? e.message : String(e);
+    }
+  } else {
+    // No webhook — mark as queued/manual
+    finalStatus = "success";
+  }
+
+  const finishedAt = new Date().toISOString();
+  if (runRow?.id) {
+    await admin.from("visi_agent_runs").update({
+      status: finalStatus,
+      finished_at: finishedAt,
+      duration_ms: new Date(finishedAt).getTime() - new Date(startedAt).getTime(),
+      error_message: errorMessage,
+      output_summary: webhookBody,
+    }).eq("id", runRow.id);
+  }
+  await admin.from("visi_agents").update({
+    last_run_at: finishedAt,
+    last_run_status: finalStatus,
+    run_count: (agent.run_count ?? 0) + 1,
+  }).eq("id", agent.id);
+
+  return toolResult({
+    triggered: true,
+    agent: { id: agent.id, name: agent.name, template_key: agent.template_key },
+    run_id: runRow?.id,
+    status: finalStatus,
+    webhook_status: webhookStatus,
+    error: errorMessage,
+  });
+}
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
 
 async function dispatchTool(name: string, args: Record<string, unknown>, admin: SupabaseClient, userId: string): Promise<unknown> {
+
   switch (name) {
     case "visi_get_context": return handleGetContext(admin, userId);
     case "visi_list_orgs": return handleListOrgs(admin, userId);
