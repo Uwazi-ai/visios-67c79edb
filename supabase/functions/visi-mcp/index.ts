@@ -833,6 +833,36 @@ async function handleGetOpenTasks(admin: SupabaseClient, userId: string, args: R
 }
 
 
+async function handleSendChatMessage(admin: SupabaseClient, userId: string, args: Record<string, unknown>) {
+  const channelName = String(args.channel ?? "").trim();
+  const messageText = String(args.message ?? "").trim();
+  if (!channelName) return toolError("channel is required");
+  if (!messageText) return toolError("message is required");
+
+  const orgIds = await allowedOrgIds(admin, userId);
+  let q = admin.from("channels").select("id, name, org_id, is_system").eq("name", channelName);
+  if (args.org_id) {
+    if (!orgIds.includes(args.org_id as string)) return toolError("No access to that org");
+    q = q.eq("org_id", args.org_id as string);
+  } else {
+    q = q.in("org_id", orgIds.length ? orgIds : ["00000000-0000-0000-0000-000000000000"]);
+  }
+  const { data: channels, error: chErr } = await q;
+  if (chErr) return toolError(chErr.message);
+  if (!channels || channels.length === 0) return toolError(`Channel '${channelName}' not found or no access`);
+
+  const target = channels[0];
+  const { data, error } = await admin.from("messages").insert({
+    channel_id: target.id,
+    org_id: target.org_id,
+    user_id: userId,
+    content: messageText,
+    metadata: { source: "mcp" },
+  }).select("id, content, created_at, channel_id, org_id").single();
+  if (error) return toolError(error.message);
+  return toolResult({ sent: true, message: data, channel: { id: target.id, name: target.name, is_system: target.is_system } });
+}
+
 // ─── Dispatcher ───────────────────────────────────────────────────────────────
 
 
