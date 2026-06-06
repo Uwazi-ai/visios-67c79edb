@@ -129,6 +129,7 @@ const TOOLS = [
   { name: "visi_get_daily_report", description: "Get the latest message from the dailyreports system channel for UWAZI.AI.", inputSchema: { type: "object", properties: {}, required: [] } },
   { name: "visi_get_uwazi_metrics", description: "Get UWAZI.AI growth metrics: total users, new signups last 24h, waitlist count, and Ask UWAZI sessions.", inputSchema: { type: "object", properties: {}, required: [] } },
   { name: "visi_get_sprint_status", description: "Get current sprint status for an org: task counts by status, in-progress items, recently completed, overdue, and upcoming due. Defaults to UWAZI.AI and a 14-day window.", inputSchema: { type: "object", properties: { org_slug: { type: "string", description: "Org slug (defaults to 'uwazi')" }, days: { type: "number", description: "Sprint window in days (default 14)" } }, required: [] } },
+  { name: "visi_get_open_tasks", description: "Get all open tasks (status != done) across UWAZI.AI, BIN, and Culture Club, grouped by org with priority, status, due date, overdue flag, project and assignee.", inputSchema: { type: "object", properties: { limit_per_org: { type: "number", description: "Max tasks per org (default 50, max 200)" } }, required: [] } },
 ];
 
 
