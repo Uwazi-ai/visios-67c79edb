@@ -40,8 +40,21 @@ Deno.serve(async (req) => {
       supabase.from("messages").select("id", { count: "exact", head: true }).eq("org_id", orgId).gte("created_at", since),
       supabase.from("bookings").select("id", { count: "exact", head: true }).eq("org_id", orgId).gte("created_at", since),
       supabase.from("events").select("id", { count: "exact", head: true }).eq("org_id", orgId).gte("created_at", since),
+      supabase.from("ai_conversations").select("id", { count: "exact", head: true }).eq("org_id", orgId).gte("created_at", since),
     ]);
-    const [newContacts, newDeals, tasksDone, tasksCreated, msgs, bookings, events] = counts.map((r) => r.count ?? 0);
+    const [newContacts, newDeals, tasksDone, tasksCreated, msgs, bookings, events, askSessions] = counts.map((r) => r.count ?? 0);
+
+    // Ask UWAZI user queries in the last 24h, scoped to this org's conversations
+    let askQueries = 0;
+    const { data: orgConvs } = await supabase
+      .from("ai_conversations").select("id").eq("org_id", orgId);
+    const convIds = (orgConvs ?? []).map((c: any) => c.id);
+    if (convIds.length) {
+      const { count } = await supabase
+        .from("ai_messages").select("id", { count: "exact", head: true })
+        .in("conversation_id", convIds).eq("role", "user").gte("created_at", since);
+      askQueries = count ?? 0;
+    }
 
     const content = [
       `# 📊 Daily Report — ${dateLabel}`,
@@ -57,9 +70,14 @@ Deno.serve(async (req) => {
       `- 📅 New bookings: **${bookings}**`,
       `- 🗓️ Calendar events: **${events}**`,
       ``,
+      `## 🤖 Ask UWAZI`,
+      `- 🧵 New sessions: **${askSessions}**`,
+      `- ❓ User queries: **${askQueries}**`,
+      ``,
       `## 🗳️ Civic Engagement`,
       `- No civic pulse or SMS survey activity (feature not yet enabled).`,
     ].join("\n");
+
 
     const { error: insErr } = await supabase.from("messages").insert({
       channel_id: ch.id,
