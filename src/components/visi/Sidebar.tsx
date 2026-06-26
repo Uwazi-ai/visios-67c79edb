@@ -86,6 +86,19 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
           </>
         )}
 
+        {user?.email === "myke@uwazi.ai" && (
+          <>
+            <div className="mx-3 my-3" style={{ height: 1, background: "var(--border-glass)" }} />
+            <div className="px-5 pb-1.5 t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+              Admin
+            </div>
+            <NavLink to="/civic-intel" className={`nav-item ${loc.pathname.startsWith("/civic-intel") ? "active" : ""}`}>
+              <Landmark size={16} strokeWidth={1.5} />
+              <span>Civic Intel</span>
+            </NavLink>
+          </>
+        )}
+
         <div className="mx-3 my-3" style={{ height: 1, background: "var(--border-glass)" }} />
         <NavLink to="/settings" className={`nav-item ${loc.pathname.startsWith("/settings") ? "active" : ""}`}>
           <SlidersHorizontal size={16} strokeWidth={1.5} />
