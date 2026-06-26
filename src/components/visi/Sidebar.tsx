@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, CheckSquare, Calendar, Link2, MessageSquare,
-  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp, Instagram, Bot, ClipboardList,
+  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp, Instagram, Bot, ClipboardList, Landmark,
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
@@ -82,6 +82,19 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
             <NavLink to="/capital-raise" className={`nav-item ${loc.pathname.startsWith("/capital-raise") ? "active" : ""}`}>
               <TrendingUp size={16} strokeWidth={1.5} />
               <span>Capital Raise</span>
+            </NavLink>
+          </>
+        )}
+
+        {user?.email === "myke@uwazi.ai" && (
+          <>
+            <div className="mx-3 my-3" style={{ height: 1, background: "var(--border-glass)" }} />
+            <div className="px-5 pb-1.5 t-mono uppercase" style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>
+              Admin
+            </div>
+            <NavLink to="/civic-intel" className={`nav-item ${loc.pathname.startsWith("/civic-intel") ? "active" : ""}`}>
+              <Landmark size={16} strokeWidth={1.5} />
+              <span>Civic Intel</span>
             </NavLink>
           </>
         )}
