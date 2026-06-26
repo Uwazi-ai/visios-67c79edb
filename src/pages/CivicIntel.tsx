@@ -168,7 +168,7 @@ export default function CivicIntelPage() {
       setStatus("success");
       appendLog(`✓ Done. C:${r.candidates ?? 0} M:${r.measures ?? 0} O:${r.officials ?? 0} E:${r.elections ?? 0} Bios:${r.bios_enriched ?? 0}`);
       setHistory((prev) => [
-        { id: crypto.randomUUID(), ts: new Date(), state: targetState, city: targetCity, scrape_type: scrapeType, status: "success", results: r },
+        { id: crypto.randomUUID(), ts: new Date(), state: targetState, city: targetCity, scrape_type: scrapeType, status: "success" as Status, results: r },
         ...prev,
       ].slice(0, 20));
       void loadCounts();
@@ -178,7 +178,7 @@ export default function CivicIntelPage() {
       setProgress(0);
       appendLog(`✗ Error: ${err?.message ?? String(err)}`);
       setHistory((prev) => [
-        { id: crypto.randomUUID(), ts: new Date(), state: targetState, city: targetCity, scrape_type: scrapeType, status: "error", results: {} },
+        { id: crypto.randomUUID(), ts: new Date(), state: targetState, city: targetCity, scrape_type: scrapeType, status: "error" as Status, results: {} },
         ...prev,
       ].slice(0, 20));
     }
