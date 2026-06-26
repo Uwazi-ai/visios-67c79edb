@@ -84,6 +84,7 @@ const App = () => (
                 <Route path="/settings/ai" element={<AISettings />} />
                 <Route path="/settings/token-health" element={<TokenHealthPage />} />
                 <Route path="/settings/integrations/make" element={<MakeIntegration />} />
+                <Route path="/civic-intel" element={<CivicIntel />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
