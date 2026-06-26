@@ -12,7 +12,7 @@ export interface StreamCallbacks {
   onError: (err: Error) => void;
 }
 
-const CLAUDE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/claude-proxy`;
+const CLAUDE_MODEL = "claude-sonnet-4-5";
 
 export async function streamClaude(params: {
   system: string;
