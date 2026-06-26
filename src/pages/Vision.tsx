@@ -320,8 +320,8 @@ export default function Vision() {
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 2000,
+          model: "claude-sonnet-4-5",
+          callType: /\bbrief\b/i.test(text) ? "brief" : "chat",
           stream: true,
           system,
           messages: history,
