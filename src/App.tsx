@@ -35,6 +35,7 @@ import Agents from "./pages/Agents";
 import Grants from "./pages/Grants";
 import MakeIntegration from "./pages/MakeIntegration";
 import OAuthCallback from "./pages/OAuthCallback";
+import CivicIntel from "./pages/CivicIntel";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { AppUpdateListener } from "@/components/AppUpdateListener";
