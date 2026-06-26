@@ -10,13 +10,14 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const {
-      model = "claude-sonnet-4-20250514",
-      max_tokens = 1500,
+      model = "claude-sonnet-4-5",
       stream = false,
       system,
       messages,
       temperature,
+      callType,
     } = body ?? {};
+    const max_tokens = body?.max_tokens ?? (callType === "brief" ? 4096 : 2048);
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return jsonResponse({ error: "messages array required" }, 400);

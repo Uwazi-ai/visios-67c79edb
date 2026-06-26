@@ -13,6 +13,7 @@ export interface StreamCallbacks {
 }
 
 const CLAUDE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/claude-proxy`;
+const CLAUDE_MODEL = "claude-sonnet-4-5";
 
 export async function streamClaude(params: {
   system: string;
@@ -34,7 +35,7 @@ export async function streamClaude(params: {
         apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
       },
       body: JSON.stringify({
-        model: params.model ?? "claude-sonnet-4-20250514",
+        model: params.model ?? "claude-sonnet-4-5",
         max_tokens: params.maxTokens ?? 1500,
         stream: true,
         system: params.system,
@@ -97,7 +98,7 @@ export async function callClaude(params: {
 }): Promise<string> {
   const { data, error } = await supabase.functions.invoke("claude-proxy", {
     body: {
-      model: params.model ?? "claude-sonnet-4-20250514",
+      model: params.model ?? "claude-sonnet-4-5",
       max_tokens: params.maxTokens ?? 1500,
       stream: false,
       system: params.system,
