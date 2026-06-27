@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, CheckSquare, Calendar, Link2, MessageSquare,
-  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp, Instagram, Bot, ClipboardList, Landmark,
+  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp, Instagram, Bot, ClipboardList, Landmark, Lock,
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
@@ -9,6 +9,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
 import { UsageWidget } from "@/components/billing/UsageWidget";
+import { useOrgTier } from "@/hooks/useFeatureAccess";
+import { TIER_CONFIG } from "@/config/tiers";
 
 const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
