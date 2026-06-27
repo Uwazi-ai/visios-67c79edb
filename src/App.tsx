@@ -46,6 +46,7 @@ import Onboarding from "./pages/Onboarding";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { AppUpdateListener } from "@/components/AppUpdateListener";
 import { RestrictedGuard } from "@/components/RestrictedGuard";
+import { FeatureGate } from "@/components/billing/FeatureGate";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
 
@@ -88,9 +89,10 @@ const App = () => (
                 <Route path="/tasks/:id" element={<TaskFullPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
-                <Route path="/social" element={<Social />} />
-                <Route path="/agents" element={<Agents />} />
-                <Route path="/chat" element={<ChatPage />} />
+                <Route path="/social" element={<FeatureGate feature="social"><Social /></FeatureGate>} />
+                <Route path="/agents" element={<FeatureGate feature="agents"><Agents /></FeatureGate>} />
+                <Route path="/chat" element={<FeatureGate feature="team_chat"><ChatPage /></FeatureGate>} />
+                <Route path="/meetings" element={<FeatureGate feature="meetings"><MeetingsPage /></FeatureGate>} />
                 <Route path="/notifications" element={<RestrictedGuard><NotificationsPage /></RestrictedGuard>} />
                 <Route path="/contacts" element={<ContactsPage />} />
                 <Route path="/knowledge" element={<KnowledgePage />} />
