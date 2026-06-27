@@ -3314,6 +3314,61 @@ export type Database = {
         Returns: number
       }
       ensure_org_usage: { Args: { _org_id: string }; Returns: undefined }
+      get_my_profile_private: {
+        Args: never
+        Returns: {
+          ai_prefs: Json
+          display_name: string
+          email: string
+          google_access_token: string
+          google_granted_scopes: string
+          google_refresh_token: string
+          id: string
+          is_restricted: boolean
+          notification_prefs: Json
+          phone: string
+          preferences: Json
+          scheduling_prefs: Json
+          voice_profile: string
+        }[]
+      }
+      get_org_full: {
+        Args: { _org_id: string }
+        Returns: {
+          color: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_order: number
+          drive_folder_id: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          name: string
+          org_type: string | null
+          pipeline_stages: Json
+          priorities: Json
+          relationship_label: string | null
+          shared_drive_connected_at: string | null
+          shared_drive_id: string | null
+          shared_drive_name: string | null
+          short_name: string | null
+          slug: string
+          stage_labels: Json
+          subscription_status: string
+          subscription_tier: string
+          success_definition: string | null
+          success_metric: string | null
+          timezone: string
+          trial_ends_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "orgs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_org_members: {
         Args: { _org_id: string }
         Returns: {
@@ -3341,6 +3396,43 @@ export type Database = {
       }
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      list_owned_orgs_full: {
+        Args: never
+        Returns: {
+          color: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          display_order: number
+          drive_folder_id: string | null
+          id: string
+          is_active: boolean
+          metadata: Json
+          name: string
+          org_type: string | null
+          pipeline_stages: Json
+          priorities: Json
+          relationship_label: string | null
+          shared_drive_connected_at: string | null
+          shared_drive_id: string | null
+          shared_drive_name: string | null
+          short_name: string | null
+          slug: string
+          stage_labels: Json
+          subscription_status: string
+          subscription_tier: string
+          success_definition: string | null
+          success_metric: string | null
+          timezone: string
+          trial_ends_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "orgs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       mcp_token_lookup: { Args: { _hash: string }; Returns: string }
       move_to_dlq: {
         Args: {
