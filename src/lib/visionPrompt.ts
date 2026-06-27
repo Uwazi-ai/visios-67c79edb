@@ -58,10 +58,24 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   const formattedDate = now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const currentTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const orgNames = profile.accessible_orgs ?? [];
+  const aiName = (profile.vision_display_name || "Vision").trim();
+  const toneKey = (profile.vision_tone || "direct").toLowerCase();
+  const toneInstruction: Record<string, string> = {
+    direct: "Be terse and outcome-driven. Short sentences. No filler.",
+    formal: "Use professional, polished phrasing. No slang.",
+    friendly: "Warm and conversational, but still concise.",
+    casual: "Relaxed, plainspoken, light contractions are fine.",
+    playful: "Light wit is welcome; never sacrifice clarity for jokes.",
+  };
 
   const lines: string[] = [];
-  lines.push(`You are Vision, the AI chief of staff for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
+  lines.push(`You are ${aiName}, the AI chief of staff for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
   lines.push(persona.systemDescription);
+  if (profile.vision_persona_description && profile.vision_persona_description.trim()) {
+    lines.push(`\n═══ CUSTOM PERSONA (from ${firstName}'s settings) ═══\n${profile.vision_persona_description.trim()}`);
+  }
+  lines.push(`\nTone: ${toneInstruction[toneKey] ?? toneInstruction.direct}`);
+
 
   if (profile.is_founder) {
     lines.push(`\nYou support ${userName} as the founder of: ${orgNames.length ? orgNames.join(", ") : (profile.active_org_name ?? "their organizations")}.`);
