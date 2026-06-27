@@ -35,6 +35,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse({ link, host, slots: slots ?? [], org });
   } catch (e) {
-    return jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500);
+    console.error("contact-link-lookup error", e instanceof Error ? e.message : String(e));
+    return jsonResponse({ error: "An internal error occurred. Please try again." }, 500);
   }
 });
