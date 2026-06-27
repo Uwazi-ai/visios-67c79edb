@@ -8,6 +8,7 @@ import { OrgSwitcher } from "./OrgSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
+import { UsageWidget } from "@/components/billing/UsageWidget";
 
 const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
