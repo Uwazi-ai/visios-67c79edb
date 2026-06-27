@@ -29,6 +29,13 @@ export interface VisionProfile {
   role_label?: string | null;            // "Founder" | "Org Admin" | "Team Member" | "Read-only"
   is_founder?: boolean;
   accessible_orgs?: string[];            // org names this user can access
+  // New VisionAI settings
+  vision_display_name?: string | null;   // What the AI calls itself (e.g. "Vision", "Athena")
+  vision_persona_description?: string | null; // User-authored persona override
+  vision_tone?: string | null;           // direct | formal | friendly | casual | playful
+  brief_time?: string | null;            // HH:MM, user's preferred morning brief slot
+  brief_to_channel?: boolean;            // Mirror brief into #dailyreports
+  brief_to_inbox?: boolean;              // (Reserved) email the brief
 }
 
 function fmtDate(iso?: string | null) {
