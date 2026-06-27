@@ -29,6 +29,13 @@ export interface VisionProfile {
   role_label?: string | null;            // "Founder" | "Org Admin" | "Team Member" | "Read-only"
   is_founder?: boolean;
   accessible_orgs?: string[];            // org names this user can access
+  // New VisionAI settings
+  vision_display_name?: string | null;   // What the AI calls itself (e.g. "Vision", "Athena")
+  vision_persona_description?: string | null; // User-authored persona override
+  vision_tone?: string | null;           // direct | formal | friendly | casual | playful
+  brief_time?: string | null;            // HH:MM, user's preferred morning brief slot
+  brief_to_channel?: boolean;            // Mirror brief into #dailyreports
+  brief_to_inbox?: boolean;              // (Reserved) email the brief
 }
 
 function fmtDate(iso?: string | null) {
@@ -51,10 +58,24 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   const formattedDate = now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const currentTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const orgNames = profile.accessible_orgs ?? [];
+  const aiName = (profile.vision_display_name || "Vision").trim();
+  const toneKey = (profile.vision_tone || "direct").toLowerCase();
+  const toneInstruction: Record<string, string> = {
+    direct: "Be terse and outcome-driven. Short sentences. No filler.",
+    formal: "Use professional, polished phrasing. No slang.",
+    friendly: "Warm and conversational, but still concise.",
+    casual: "Relaxed, plainspoken, light contractions are fine.",
+    playful: "Light wit is welcome; never sacrifice clarity for jokes.",
+  };
 
   const lines: string[] = [];
-  lines.push(`You are Vision, the AI chief of staff for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
+  lines.push(`You are ${aiName}, the AI chief of staff for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
   lines.push(persona.systemDescription);
+  if (profile.vision_persona_description && profile.vision_persona_description.trim()) {
+    lines.push(`\n═══ CUSTOM PERSONA (from ${firstName}'s settings) ═══\n${profile.vision_persona_description.trim()}`);
+  }
+  lines.push(`\nTone: ${toneInstruction[toneKey] ?? toneInstruction.direct}`);
+
 
   if (profile.is_founder) {
     lines.push(`\nYou support ${userName} as the founder of: ${orgNames.length ? orgNames.join(", ") : (profile.active_org_name ?? "their organizations")}.`);
@@ -63,6 +84,9 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   }
 
   lines.push(`\nToday is ${dayOfWeek}, ${formattedDate}. Current time: ${currentTime}${profile.timezone ? ` (${profile.timezone})` : ""}.`);
+  if (profile.brief_time) {
+    lines.push(`${firstName}'s preferred morning brief time is ${profile.brief_time}.`);
+  }
 
   // Access scope guardrails for non-founders
   if (!profile.is_founder && profile.role_label) {
@@ -309,7 +333,7 @@ Maximum 4 bullets per section. Lead with what matters most. Never invent data �
 - For Drive files: always include the link when referencing a specific doc.
 - Be direct and brief — ${firstName} is a founder, not a reader.
 - Use org color context: UWAZI (blue), BIN (red), Culture Club (green).
-- You are Vision. Never refer to yourself as Claude, Anthropic, GPT, OpenAI, Gemini, Google, or any underlying model.`);
+- You are ${aiName}. Never refer to yourself as Claude, Anthropic, GPT, OpenAI, Gemini, Google, or any underlying model.`);
 
   return lines.join("\n");
 }

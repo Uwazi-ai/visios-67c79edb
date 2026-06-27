@@ -100,6 +100,21 @@ export default function Vision() {
   const [confirmClear, setConfirmClear] = useState(false);
   const [lastSources, setLastSources] = useState<{ sources: Record<string, boolean>; counts: Record<string, number> } | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [prefs, setPrefs] = useState<any>({});
+
+  // Load user prefs (Vision identity + brief delivery)
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("preferences")
+        .eq("id", user.id)
+        .maybeSingle();
+      setPrefs((data as any)?.preferences ?? {});
+    })();
+  }, [user]);
+
 
   const abortRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -271,11 +286,18 @@ export default function Vision() {
 
     const system = buildVisionSystemPrompt(persona, visionCtx, {
       display_name: (user.user_metadata?.full_name as string) ?? null,
+      preferred_name: prefs.signature_name ?? null,
       email: user.email ?? null,
       active_org_name: activeOrg?.name ?? null,
       is_founder: isOwner,
       role_label: roleLabel,
       accessible_orgs: accessibleOrgs,
+      vision_display_name: prefs.vision_display_name ?? null,
+      vision_persona_description: prefs.vision_persona_description ?? null,
+      vision_tone: prefs.vision_tone ?? null,
+      brief_time: prefs.brief_time ?? null,
+      brief_to_channel: prefs.brief_to_channel === true,
+      brief_to_inbox: prefs.brief_to_inbox === true,
     });
 
     const history = [...messages, userMsg]
@@ -390,6 +412,36 @@ export default function Vision() {
         setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, id: savedMsg.id } : m));
       }
 
+      // Mirror the brief into #dailyreports if user opted in
+      const isBriefMsg = /\b(brief|morning brief|daily brief|day ahead|catch me up|what'?s on (today|my plate))\b/i.test(text);
+      if (isBriefMsg && prefs.brief_to_channel === true && activeOrgId) {
+        try {
+          const { data: ch } = await supabase
+            .from("channels")
+            .select("id")
+            .eq("org_id", activeOrgId)
+            .eq("name", "dailyreports")
+            .eq("is_system", true)
+            .maybeSingle();
+          if (ch?.id) {
+            const aiName = (prefs.vision_display_name || "Vision").trim();
+            await supabase.from("messages").insert({
+              channel_id: ch.id,
+              org_id: activeOrgId,
+              user_id: user.id,
+              content: `**${aiName} — Daily Brief for ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}**\n\n${finalText}`,
+              metadata: { sender: "vision", kind: "daily_brief", generated_at: new Date().toISOString() },
+            });
+          }
+        } catch (err) {
+          console.warn("brief_to_channel post failed", err);
+        }
+      }
+      if (isBriefMsg && prefs.brief_to_inbox === true) {
+        // Inbox delivery is queued for a future email job; flag for visibility.
+        console.info("[brief] brief_to_inbox enabled — email delivery pending implementation.");
+      }
+
       // Dispatch action (after persisting)
       if (action) {
         try {
@@ -430,17 +482,22 @@ export default function Vision() {
   // Keep ref in sync so triggerDailyBrief can invoke without a dep cycle
   useEffect(() => { sendMessageRef.current = sendMessage; }, [sendMessage]);
 
-  // Auto-trigger morning brief between 6am–9am once per local day
+  // Auto-trigger morning brief in a 3-hour window starting at the user's preferred brief_time (default 07:00)
   const autoBriefTried = useRef(false);
   useEffect(() => {
     if (autoBriefTried.current || !user) return;
-    const hr = new Date().getHours();
-    if (hr < 6 || hr >= 9) return;
+    if (prefs.brief_auto === false) return;
+    const briefTime = (prefs.brief_time as string | undefined) ?? "07:00";
+    const [bh, bm] = briefTime.split(":").map((x: string) => parseInt(x, 10));
+    if (Number.isNaN(bh)) return;
+    const now = new Date();
+    const start = bh * 60 + (bm || 0);
+    const cur = now.getHours() * 60 + now.getMinutes();
+    if (cur < start || cur >= start + 180) return; // 3-hour window
     autoBriefTried.current = true;
-    // Slight delay so initial conversations have loaded first
     const t = setTimeout(() => { triggerDailyBrief("auto"); }, 800);
     return () => clearTimeout(t);
-  }, [user, triggerDailyBrief]);
+  }, [user, prefs.brief_time, prefs.brief_auto, triggerDailyBrief]);
 
 
 
