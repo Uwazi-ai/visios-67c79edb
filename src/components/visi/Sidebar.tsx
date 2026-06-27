@@ -106,6 +106,8 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
         </NavLink>
       </nav>
 
+      <UsageWidget />
+
       <div className="px-3 py-4" style={{ borderTop: "1px solid var(--border-glass)" }}>
         <div className="flex items-center gap-3 px-2 py-2 rounded-[10px]" style={{ background: "var(--bg-glass-1)" }}>
           <div
