@@ -1943,8 +1943,10 @@ export type Database = {
           description: string | null
           display_order: number
           drive_folder_id: string | null
+          exempt_reason: string | null
           id: string
           is_active: boolean
+          is_exempt: boolean
           metadata: Json
           name: string
           org_type: string | null
@@ -1971,8 +1973,10 @@ export type Database = {
           description?: string | null
           display_order?: number
           drive_folder_id?: string | null
+          exempt_reason?: string | null
           id?: string
           is_active?: boolean
+          is_exempt?: boolean
           metadata?: Json
           name: string
           org_type?: string | null
@@ -1999,8 +2003,10 @@ export type Database = {
           description?: string | null
           display_order?: number
           drive_folder_id?: string | null
+          exempt_reason?: string | null
           id?: string
           is_active?: boolean
+          is_exempt?: boolean
           metadata?: Json
           name?: string
           org_type?: string | null
@@ -2032,10 +2038,13 @@ export type Database = {
           custom_links: Json
           display_name: string | null
           email: string
+          exempt_reason: string | null
+          exempt_set_at: string | null
           google_access_token: string | null
           google_granted_scopes: string | null
           google_refresh_token: string | null
           id: string
+          is_exempt: boolean
           is_restricted: boolean
           linkedin_url: string | null
           notification_prefs: Json
@@ -2062,10 +2071,13 @@ export type Database = {
           custom_links?: Json
           display_name?: string | null
           email: string
+          exempt_reason?: string | null
+          exempt_set_at?: string | null
           google_access_token?: string | null
           google_granted_scopes?: string | null
           google_refresh_token?: string | null
           id: string
+          is_exempt?: boolean
           is_restricted?: boolean
           linkedin_url?: string | null
           notification_prefs?: Json
@@ -2092,10 +2104,13 @@ export type Database = {
           custom_links?: Json
           display_name?: string | null
           email?: string
+          exempt_reason?: string | null
+          exempt_set_at?: string | null
           google_access_token?: string | null
           google_granted_scopes?: string | null
           google_refresh_token?: string | null
           id?: string
+          is_exempt?: boolean
           is_restricted?: boolean
           linkedin_url?: string | null
           notification_prefs?: Json
@@ -3341,8 +3356,10 @@ export type Database = {
           description: string | null
           display_order: number
           drive_folder_id: string | null
+          exempt_reason: string | null
           id: string
           is_active: boolean
+          is_exempt: boolean
           metadata: Json
           name: string
           org_type: string | null
@@ -3390,12 +3407,15 @@ export type Database = {
         Returns: boolean
       }
       increment_vision_usage: { Args: { _org_id: string }; Returns: undefined }
+      is_exempt_user: { Args: never; Returns: boolean }
       is_org_member: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
-      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_super_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
       list_owned_orgs_full: {
         Args: never
         Returns: {
@@ -3405,8 +3425,10 @@ export type Database = {
           description: string | null
           display_order: number
           drive_folder_id: string | null
+          exempt_reason: string | null
           id: string
           is_active: boolean
+          is_exempt: boolean
           metadata: Json
           name: string
           org_type: string | null
