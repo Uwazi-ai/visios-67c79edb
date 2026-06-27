@@ -15,12 +15,13 @@ export default function AccountTab({ dangerOnly }: { dangerOnly?: boolean }) {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ count: cc }, { count: mc }, { count: kb }, { data: p }] = await Promise.all([
+      const [{ count: cc }, { count: mc }, { count: kb }, { data: privateRows }] = await Promise.all([
         supabase.from("vision_conversations").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("vision_messages").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("kb_documents").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-        supabase.from("profiles").select("google_refresh_token").eq("id", user.id).maybeSingle(),
+        supabase.rpc("get_my_profile_private"),
       ]);
+      const p = (Array.isArray(privateRows) ? privateRows[0] : null) as any;
       setStats({ convos: cc ?? 0, msgs: mc ?? 0, kb: kb ?? 0 });
       setHasGoogle(!!p?.google_refresh_token);
     })();

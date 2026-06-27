@@ -45,12 +45,9 @@ export default function TokenHealthPage() {
   const runCheck = async () => {
     if (!user) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("profiles")
-      .select("google_access_token, google_refresh_token, google_granted_scopes, email")
-      .eq("id", user.id)
-      .maybeSingle();
-    setProfile(data as ProfileTokens | null);
+    const { data: privateRows } = await supabase.rpc("get_my_profile_private");
+    const data = (Array.isArray(privateRows) ? privateRows[0] : null) as ProfileTokens | null;
+    setProfile(data);
 
     if (data?.google_access_token) {
       try {

@@ -93,11 +93,14 @@ export default function SettingsPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: profile }, { data: ints }, { data: orgs }] = await Promise.all([
-        supabase.from("profiles").select("display_name,phone,timezone,username,avatar_url,tagline,google_refresh_token").eq("id", user.id).maybeSingle(),
+      const [{ data: publicProfile }, { data: privateRows }, { data: ints }, { data: orgs }] = await Promise.all([
+        supabase.from("profiles").select("display_name,timezone,username,avatar_url,tagline").eq("id", user.id).maybeSingle(),
+        supabase.rpc("get_my_profile_private"),
         supabase.from("integrations").select("provider,status,vision_enabled").eq("user_id", user.id),
-        supabase.from("orgs").select("id,description,priorities"),
+        supabase.rpc("list_owned_orgs_full"),
       ]);
+      const privateProfile = (Array.isArray(privateRows) ? privateRows[0] : null) as any;
+      const profile = { ...(publicProfile ?? {}), phone: privateProfile?.phone ?? null, google_refresh_token: privateProfile?.google_refresh_token ?? null };
       const p = profile ?? {} as any;
       const profileMissing = ["display_name", "phone", "timezone"].filter((k) => !p[k]).length;
       const cardMissing = ["username", "avatar_url", "tagline"].filter((k) => !p[k]).length;

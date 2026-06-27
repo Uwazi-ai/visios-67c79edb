@@ -38,14 +38,15 @@ export default function VisionAITab() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: profile }, { data: train }, { data: ints }, { count: cc }, { count: mc }] = await Promise.all([
-        supabase.from("profiles").select("preferences,display_name").eq("id", user.id).maybeSingle(),
+      const [{ data: privateRows }, { data: train }, { data: ints }, { count: cc }, { count: mc }] = await Promise.all([
+        supabase.rpc("get_my_profile_private"),
         supabase.from("ai_training").select("*").eq("user_id", user.id).maybeSingle(),
         supabase.from("integrations").select("*").eq("user_id", user.id),
         supabase.from("vision_conversations").select("id", { count: "exact", head: true }).eq("user_id", user.id),
         supabase.from("vision_messages").select("id", { count: "exact", head: true }).eq("user_id", user.id),
       ]);
-      setPrefs((profile as any)?.preferences ?? {});
+      const profile = (Array.isArray(privateRows) ? privateRows[0] : null) as any;
+      setPrefs(profile?.preferences ?? {});
       if (train) {
         setTraining({
           writing_style: train.writing_style ?? "semi-formal",
@@ -56,7 +57,7 @@ export default function VisionAITab() {
           org_context: (train.org_context as any) ?? {},
         });
       }
-      setSignatureName(((profile as any)?.preferences?.signature_name) ?? (profile as any)?.display_name ?? "");
+      setSignatureName(profile?.preferences?.signature_name ?? profile?.display_name ?? "");
       setIntegrations(ints ?? []);
       setConvoCount(cc ?? 0);
       setMsgCount(mc ?? 0);

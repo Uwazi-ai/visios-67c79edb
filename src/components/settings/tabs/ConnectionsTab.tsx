@@ -37,11 +37,12 @@ export default function ConnectionsTab() {
 
   const reload = async () => {
     if (!user) return;
-    const [{ data: ints }, { data: profile }, { count }] = await Promise.all([
+    const [{ data: ints }, { data: privateRows }, { count }] = await Promise.all([
       supabase.from("integrations").select("*").eq("user_id", user.id),
-      supabase.from("profiles").select("google_refresh_token,email").eq("id", user.id).maybeSingle(),
+      supabase.rpc("get_my_profile_private"),
       supabase.from("kb_documents").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     ]);
+    const profile = (Array.isArray(privateRows) ? privateRows[0] : null) as any;
     setRows((ints ?? []) as IntegrationRow[]);
     setHasGoogle(!!profile?.google_refresh_token);
     setGoogleEmail(profile?.email ?? user.email ?? null);

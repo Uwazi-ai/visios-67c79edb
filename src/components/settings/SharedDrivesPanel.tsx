@@ -36,11 +36,9 @@ export default function SharedDrivesPanel() {
     if (!user) return;
     const orgIds = orgs.map((o) => o.id);
     if (!orgIds.length) { setRows([]); setLoading(false); return; }
-    const { data } = await supabase
-      .from("orgs")
-      .select("id, name, slug, color, shared_drive_id, shared_drive_name, shared_drive_connected_at")
-      .in("id", orgIds);
-    setRows((data ?? []) as OrgRow[]);
+    const { data } = await supabase.rpc("list_owned_orgs_full");
+    const filtered = ((data ?? []) as any[]).filter((r) => orgIds.includes(r.id));
+    setRows(filtered as OrgRow[]);
     setLoading(false);
   };
 
