@@ -36,6 +36,7 @@ import Grants from "./pages/Grants";
 import MakeIntegration from "./pages/MakeIntegration";
 import OAuthCallback from "./pages/OAuthCallback";
 import CivicIntel from "./pages/CivicIntel";
+import Onboarding from "./pages/Onboarding";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { AppUpdateListener } from "@/components/AppUpdateListener";
@@ -56,6 +57,7 @@ const App = () => (
             <TimezoneProvider>
             <Routes>
               <Route path="/login" element={<Login />} />
+              <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
               <Route path="/meet/:token" element={<ContactMeetPublic />} />

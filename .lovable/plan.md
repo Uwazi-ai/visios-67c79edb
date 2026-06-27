@@ -1,120 +1,69 @@
-# Custom MCP for Claude Desktop — Team-wide VisiOS access
 
-## What exists today
+## Recommendation
 
-There's already a working MCP server at `supabase/functions/visi-mcp/index.ts` (Streamable HTTP, stateless JSON-RPC) with 12 tools covering tasks, projects, notifications, approvals, activity, and KB search.
+Skip Part 1 (chat) — your existing `/chat` already has channels, DMs, presence, realtime, bot messages, threads-capable schema, and the `dailyreports` system channel. Rewriting it to match the spec's `chat_channels`/`chat_messages` would regress working features for no user-visible gain.
 
-**Limitation:** it's hardcoded to a single user via two env vars (`VISI_MCP_API_KEY`, `VISI_MCP_USER_ID`). Every Claude Desktop session connected to it acts as that one user.
+Skip the spec's new `org_members`/`team_invites` tables — `org_memberships` + `org_invites` already cover this, with policies and the `handle_new_user` trigger that auto-accepts invites on signup.
 
-To make this work for the whole team and expose "everything", we need three things: per-user tokens, more tools, and a Settings UI.
+Build the parts that are genuinely missing and high-value:
 
----
+## Scope this turn
 
-## 1. Per-user MCP tokens (team-wide auth)
+### 1. Onboarding flow (Part 2) — net-new
 
-New table `mcp_tokens`:
+- Add `onboarding_completed BOOLEAN DEFAULT false` to `profiles`.
+- New route `/onboarding` (4 steps with progress indicator).
+  - **Step 1 — Workspace**: org name + description. Creates row in `orgs`. `handle_new_org` trigger already inserts owner into `org_memberships`. Auto-creates `general`, `announcements`, `vision-briefs` channels via existing `channels` table.
+  - **Step 2 — Invite team**: up to 4 email fields. Inserts into existing `org_invites` (uses existing `TeamInvitesPanel` send path). Skip allowed.
+  - **Step 3 — Connect Google**: reuse existing Google OAuth wiring in Settings → Connections. "Connect" button + skip.
+  - **Step 4 — Meet Vision**: copy + mock Vision bubble, CTAs to `/` or `/chat`. Sets `onboarding_completed = true`.
+- Add a guard in `AppShell`: if `session && !profile.onboarding_completed && !activeOrg`, redirect to `/onboarding`. Skip guard if user already has org memberships (returning user / invited member).
 
-- `user_id` → owner of the token
-- `token_hash` → SHA-256 of the secret (raw token is shown once at creation, never stored)
-- `token_prefix` → first 8 chars, for display ("visi_mcp_a1b2c3d4…")
-- `label` → user-supplied name ("Claude Desktop — laptop")
-- `last_used_at`, `created_at`, `revoked_at`
+### 2. Subscription tiers (Part 3 subset) — net-new
 
-RLS: each user can only see/create/revoke their own tokens. Service role (used inside the edge function) can read all.
+- Migration: add to `orgs`:
+  - `subscription_tier TEXT DEFAULT 'solo'` (solo|team|growth|enterprise)
+  - `subscription_status TEXT DEFAULT 'trialing'` (trialing|active|past_due|canceled)
+  - `trial_ends_at TIMESTAMPTZ DEFAULT now() + interval '14 days'`
+- New hook `src/hooks/useFeatureAccess.ts` reading `activeOrg.subscription_tier` against gate map:
+  - `team_chat`, `agents`, `vision_unlimited` → team+
+  - `social`, `admin_dashboard` → growth+
+- New `<UpgradeModal />` component (reuses glass design tokens) — opens when a gated feature is hit. CTA "Upgrade — $79/mo" links to `/settings/billing` (placeholder; Stripe later).
+- Do NOT wire gates into existing pages this turn — just ship the hook + modal so future code can opt in. Wiring gates into Chat/Agents/Social risks breaking your active workflows.
 
-Edge function auth flow changes:
-1. Read `Authorization: Bearer <token>` header.
-2. Hash it, look up the row in `mcp_tokens` where `revoked_at IS NULL`.
-3. Resolve to `user_id`; update `last_used_at`.
-4. All tool handlers receive that `user_id` and scope queries to their orgs via existing `org_memberships`.
+### 3. Nav reorder
 
-The old `VISI_MCP_API_KEY` / `VISI_MCP_USER_ID` env vars become a fallback for backwards compatibility (Myke's existing setup keeps working).
+Move Chat to position 3 in `src/components/visi/Sidebar.tsx`:
+`Dashboard → Vision → Chat → Inbox → Tasks → Grants → Calendar → Social → Agents → Bookings → Contacts → ...`
 
-## 2. Expand tool coverage ("everything")
+## Explicitly NOT doing
 
-Add new tools alongside the existing 12, each scoped to the calling user's orgs and Google account:
+- No new `chat_channels`/`chat_messages`/`chat_members`/`org_members`/`team_invites` tables.
+- No rewrite of `/chat`, `ChannelList`, `MessageList`, DMs, or bot system.
+- No `/vision` slash command inside chat (Vision already has its own page).
+- No `/invite/:token` route — your `handle_new_user` trigger already auto-accepts pending `org_invites` matching the signup email, which is the working pattern.
+- No Stripe — billing page is a placeholder; Stripe is the next prompt per your spec.
+- No feature-gate wiring into existing modules (hook + modal only).
 
-**Calendar & meetings**
-- `visi_get_calendar` — today/upcoming events from Google Calendar (reuses `_shared/google.ts`)
-- `visi_create_calendar_event` — wraps `calendar-create-event`
-- `visi_get_meeting_notes` — recent Granola notes for an attendee or date range
+## Files to add / change
 
-**Gmail**
-- `visi_list_emails` — recent threads, with filters (unread, from, label)
-- `visi_get_email` — full thread by id
-- `visi_draft_email` — uses `ai-draft-email`
-- `visi_send_email` — wraps `gmail-send`
+**New**
+- `src/pages/Onboarding.tsx`
+- `src/components/onboarding/Step1Workspace.tsx`
+- `src/components/onboarding/Step2Invites.tsx`
+- `src/components/onboarding/Step3Google.tsx`
+- `src/components/onboarding/Step4Vision.tsx`
+- `src/hooks/useFeatureAccess.ts`
+- `src/components/billing/UpgradeModal.tsx`
 
-**Contacts**
-- `visi_search_contacts` — query the contacts table
-- `visi_get_contact` — full contact + linked org
+**Edit**
+- `src/App.tsx` — add `/onboarding` route
+- `src/components/visi/AppShell.tsx` — first-login redirect guard
+- `src/components/visi/Sidebar.tsx` — Chat to position 3
+- `src/contexts/OrgContext.tsx` — expose `subscription_tier` on Org type (read-through)
 
-**Drive**
-- `visi_search_drive` — searches each org's shared drive via `drive-proxy`
-- `visi_read_drive_file` — pulls file content (capped at 3k chars)
+**Migration**
+- `profiles.onboarding_completed`
+- `orgs.subscription_tier` / `subscription_status` / `trial_ends_at`
 
-**Grants (UWAZI)**
-- `visi_list_grants` — opportunities + pipeline status
-- `visi_get_grant_proposal` — full proposal text
-
-**People & orgs**
-- `visi_list_team` — members of the caller's orgs (uses `get_org_members`)
-- `visi_list_orgs` — all orgs the caller belongs to
-
-All new handlers live in the same `visi-mcp/index.ts` and follow the existing `handleX(admin, userId, args)` pattern.
-
-## 3. Settings UI — `MCPTokensPanel`
-
-New section in **Settings → Connections** (and surfaced on the new More panel where the user currently is):
-
-- List of the user's tokens (label, prefix, last used, created, revoke button)
-- "Generate new token" → modal with label input → returns the raw token **once**, with copy button and Claude Desktop config snippet preview
-- Empty state shows setup instructions
-
-Component: `src/components/settings/MCPTokensPanel.tsx`. Mounted from `ConnectionsPanel.tsx`.
-
-## 4. Claude Desktop setup instructions (shown in UI)
-
-Claude Desktop currently supports remote MCP only on paid plans; free Desktop needs the `mcp-remote` stdio bridge. The UI will show both options:
-
-**Option A — Paid Claude (Pro/Team/Enterprise): Custom Connector**
-- URL: `https://qzurwsqecdsgziyvnuul.supabase.co/functions/v1/visi-mcp`
-- Header: `Authorization: Bearer <token>`
-
-**Option B — Any Claude Desktop: `mcp-remote` bridge**
-Snippet rendered with the user's token pre-filled:
-```json
-{
-  "mcpServers": {
-    "visios": {
-      "command": "npx",
-      "args": [
-        "-y", "mcp-remote",
-        "https://qzurwsqecdsgziyvnuul.supabase.co/functions/v1/visi-mcp",
-        "--header", "Authorization: Bearer <token>"
-      ]
-    }
-  }
-}
-```
-
-Saved to `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS or `%APPDATA%\Claude\claude_desktop_config.json` on Windows.
-
----
-
-## Technical notes
-
-- Migration adds `mcp_tokens` with grants for `authenticated` (own rows) + `service_role` (all), RLS policies, and a `mcp_tokens_lookup(_hash text)` SECURITY DEFINER function used only by the edge function.
-- Token format: `visi_mcp_` + 32 random url-safe bytes generated client-side via `crypto.getRandomValues`, hashed server-side with `crypto.subtle.digest('SHA-256', …)` before insert.
-- `visi-mcp` stays public in `supabase/config.toml` (`verify_jwt = false`) since Claude sends its own bearer token, not a Supabase JWT.
-- Google-backed tools use `getFreshGoogleAccessToken(userId)` from `_shared/google.ts`; if the calling user hasn't connected Google, the tool returns a friendly error telling them to connect it in Settings.
-- Org scoping for every tool: derive `allowed_org_ids = select org_id from org_memberships where user_id = $caller` and filter all queries by that set. This is what makes the same MCP server safe for multiple teammates.
-- No changes to the existing 12 tools' behavior — only the auth-resolution and org-scoping layer changes.
-
-## Files touched
-
-- `supabase/migrations/<timestamp>_mcp_tokens.sql` (new)
-- `supabase/functions/visi-mcp/index.ts` (auth + new tool handlers)
-- `supabase/config.toml` (confirm `verify_jwt = false` block for `visi-mcp`)
-- `src/components/settings/MCPTokensPanel.tsx` (new)
-- `src/components/settings/ConnectionsPanel.tsx` (mount the new panel)
+Confirm and I'll ship it.

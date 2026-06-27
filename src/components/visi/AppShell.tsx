@@ -1,14 +1,38 @@
-import { Outlet, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { BottomNav } from "./BottomNav";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrg } from "@/contexts/OrgContext";
+import { supabase } from "@/integrations/supabase/client";
 import { QuickCaptureModal } from "@/components/tasks/QuickCaptureModal";
-// AIAssistantFAB removed — unified into Vision (single AI surface)
 
 export const AppShell = () => {
-  const { session, loading } = useAuth();
-  if (loading) {
+  const { session, user, loading } = useAuth();
+  const { memberships, loading: orgLoading } = useOrg();
+  const location = useLocation();
+  const [onboardingChecked, setOnboardingChecked] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setOnboardingChecked(true);
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", user.id)
+        .maybeSingle();
+      const completed = Boolean((data as any)?.onboarding_completed);
+      setNeedsOnboarding(!completed && memberships.length === 0);
+      setOnboardingChecked(true);
+    })();
+  }, [user, memberships.length]);
+
+  if (loading || orgLoading || !onboardingChecked) {
     return (
       <div className="app-bg flex min-h-screen items-center justify-center">
         <div className="t-mono">LOADING<span className="slash">/</span>OS</div>
@@ -16,6 +40,9 @@ export const AppShell = () => {
     );
   }
   if (!session) return <Navigate to="/login" replace />;
+  if (needsOnboarding && location.pathname !== "/onboarding") {
+    return <Navigate to="/onboarding" replace />;
+  }
 
   return (
     <div className="app-bg min-h-screen flex">
@@ -30,8 +57,6 @@ export const AppShell = () => {
       </div>
       <BottomNav />
       <QuickCaptureModal />
-      {/* AI lives at /vision — no floating duplicate */}
     </div>
   );
 };
-
