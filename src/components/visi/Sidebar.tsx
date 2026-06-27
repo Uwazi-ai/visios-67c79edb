@@ -1,13 +1,16 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Inbox, CheckSquare, Calendar, Link2, MessageSquare,
-  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp, Instagram, Bot, ClipboardList, Landmark,
+  Bell, Users, Video, BarChart3, SlidersHorizontal, LogOut, BookOpen, Sparkles, TrendingUp, Instagram, Bot, ClipboardList, Landmark, Lock,
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
+import { UsageWidget } from "@/components/billing/UsageWidget";
+import { useOrgTier } from "@/hooks/useFeatureAccess";
+import { TIER_CONFIG } from "@/config/tiers";
 
 const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -34,6 +37,14 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
   const loc = useLocation();
 
   const NAV = NAV_ALL.filter((n) => !isRestricted || !n.restricted);
+  const { tier } = useOrgTier();
+  const features = TIER_CONFIG[tier].features;
+  const lockedPaths: Record<string, boolean> = {
+    "/chat": !features.team_chat,
+    "/agents": !features.agents,
+    "/social": !features.social,
+    "/meetings": !features.meetings,
+  };
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
   const role = activeOrg ? memberships.find((m) => m.org_id === activeOrg.id)?.role : null;
 
@@ -65,10 +76,12 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
         {NAV.map((item) => {
           const Icon = item.icon;
           const isActive = item.end ? loc.pathname === "/" : loc.pathname.startsWith(item.to);
+          const locked = lockedPaths[item.to];
           return (
-            <NavLink key={item.to} to={item.to} end={item.end} className={`nav-item ${isActive ? "active" : ""}`}>
+            <NavLink key={item.to} to={item.to} end={item.end} className={`nav-item group ${isActive ? "active" : ""}`}>
               <Icon size={16} strokeWidth={1.5} />
               <span className="flex-1">{item.label}</span>
+              {locked && <Lock size={11} strokeWidth={2} style={{ color: "var(--text-muted)", opacity: 0.6 }} />}
             </NavLink>
           );
         })}
@@ -105,6 +118,8 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
           <span>Settings</span>
         </NavLink>
       </nav>
+
+      <UsageWidget />
 
       <div className="px-3 py-4" style={{ borderTop: "1px solid var(--border-glass)" }}>
         <div className="flex items-center gap-3 px-2 py-2 rounded-[10px]" style={{ background: "var(--bg-glass-1)" }}>

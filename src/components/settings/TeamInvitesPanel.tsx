@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import SectionCard from "./SectionCard";
 import { toast } from "sonner";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
+import { useUpgrade } from "@/contexts/UpgradeContext";
 
 interface Invite {
   id: string;
@@ -33,10 +35,17 @@ export default function TeamInvitesPanel({ orgId, orgName }: { orgId: string; or
 
   useEffect(() => { if (orgId) load(); }, [orgId]);
 
+  const seatsAccess = useFeatureAccess("seats");
+  const { open: openUpgrade } = useUpgrade();
+
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = email.trim().toLowerCase();
     if (!value || !user) return;
+    if (seatsAccess.isAtLimit && seatsAccess.upgradeRequired) {
+      openUpgrade({ feature: "seats", requiredTier: seatsAccess.requiredTier });
+      return;
+    }
     setBusy(true);
     const { data: inserted, error } = await supabase.from("org_invites" as any).insert({
       org_id: orgId,

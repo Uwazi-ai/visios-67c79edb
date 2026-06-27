@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OrgProvider } from "@/contexts/OrgContext";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
+import { UpgradeProvider } from "@/contexts/UpgradeContext";
 import { AppShell } from "@/components/visi/AppShell";
 import Login from "./pages/Login";
 import Landing from "./pages/Landing";
@@ -45,6 +46,7 @@ import Onboarding from "./pages/Onboarding";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { AppUpdateListener } from "@/components/AppUpdateListener";
 import { RestrictedGuard } from "@/components/RestrictedGuard";
+import { FeatureGate } from "@/components/billing/FeatureGate";
 import NotFound from "./pages/NotFound";
 import Unsubscribe from "./pages/Unsubscribe";
 
@@ -59,6 +61,7 @@ const App = () => (
         <AuthProvider>
           <OrgProvider>
             <TimezoneProvider>
+            <UpgradeProvider>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Navigate to="/" replace />} />
@@ -86,13 +89,14 @@ const App = () => (
                 <Route path="/tasks/:id" element={<TaskFullPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/bookings" element={<BookingsPage />} />
-                <Route path="/social" element={<Social />} />
-                <Route path="/agents" element={<Agents />} />
-                <Route path="/chat" element={<ChatPage />} />
+                <Route path="/social" element={<FeatureGate feature="social"><Social /></FeatureGate>} />
+                <Route path="/agents" element={<FeatureGate feature="agents"><Agents /></FeatureGate>} />
+                <Route path="/chat" element={<FeatureGate feature="team_chat"><ChatPage /></FeatureGate>} />
+                <Route path="/meetings" element={<FeatureGate feature="meetings"><MeetingsPage /></FeatureGate>} />
                 <Route path="/notifications" element={<RestrictedGuard><NotificationsPage /></RestrictedGuard>} />
                 <Route path="/contacts" element={<ContactsPage />} />
                 <Route path="/knowledge" element={<KnowledgePage />} />
-                <Route path="/meetings" element={<MeetingsPage />} />
+                
                 <Route path="/finance" element={<RestrictedGuard><FinancePage /></RestrictedGuard>} />
                 <Route path="/capital-raise" element={<RestrictedGuard><CapitalRaise /></RestrictedGuard>} />
                 <Route path="/settings" element={<SettingsPage />} />
@@ -106,6 +110,7 @@ const App = () => (
             </Routes>
             <InstallBanner />
             <AppUpdateListener />
+            </UpgradeProvider>
             </TimezoneProvider>
           </OrgProvider>
         </AuthProvider>

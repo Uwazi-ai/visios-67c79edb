@@ -1893,6 +1893,48 @@ export type Database = {
           },
         ]
       }
+      org_usage: {
+        Row: {
+          active_agents_count: number
+          contacts_count: number
+          created_at: string
+          id: string
+          knowledge_docs_count: number
+          month: string
+          org_id: string
+          seats_used: number
+          social_posts_this_month: number
+          updated_at: string
+          vision_messages_used: number
+        }
+        Insert: {
+          active_agents_count?: number
+          contacts_count?: number
+          created_at?: string
+          id?: string
+          knowledge_docs_count?: number
+          month?: string
+          org_id: string
+          seats_used?: number
+          social_posts_this_month?: number
+          updated_at?: string
+          vision_messages_used?: number
+        }
+        Update: {
+          active_agents_count?: number
+          contacts_count?: number
+          created_at?: string
+          id?: string
+          knowledge_docs_count?: number
+          month?: string
+          org_id?: string
+          seats_used?: number
+          social_posts_this_month?: number
+          updated_at?: string
+          vision_messages_used?: number
+        }
+        Relationships: []
+      }
       orgs: {
         Row: {
           color: string
@@ -3271,6 +3313,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      ensure_org_usage: { Args: { _org_id: string }; Returns: undefined }
       get_org_members: {
         Args: { _org_id: string }
         Returns: {
@@ -3291,6 +3334,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_vision_usage: { Args: { _org_id: string }; Returns: undefined }
       is_org_member: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
@@ -3315,6 +3359,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      recount_org_usage: { Args: { _org_id: string }; Returns: undefined }
       search_kb_text: {
         Args: {
           match_count?: number

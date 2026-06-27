@@ -16,6 +16,8 @@ import { VisionCircle } from "@/components/vision/VisionCircle";
 import { StreamingText } from "@/components/vision/StreamingText";
 import { ThinkingIndicator } from "@/components/vision/ThinkingIndicator";
 import { extractActionFromResponse, handleVisionAction } from "@/lib/visionActions";
+import { useFeatureAccess, trackVisionMessage } from "@/hooks/useFeatureAccess";
+import { useUpgrade } from "@/contexts/UpgradeContext";
 
 interface Conversation {
   id: string;
@@ -84,6 +86,8 @@ export default function Vision() {
   const activeOrgId = rawActiveOrgId && rawActiveOrgId !== "all" ? rawActiveOrgId : null;
   const navigate = useNavigate();
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
+  const visionAccess = useFeatureAccess("vision_messages");
+  const { open: openUpgrade } = useUpgrade();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
@@ -209,9 +213,16 @@ export default function Vision() {
   const sendMessage = useCallback(async (rawText: string) => {
     const text = rawText.trim();
     if (!text || sending || !user) return;
+    if (visionAccess.isAtLimit && visionAccess.upgradeRequired) {
+      openUpgrade({ feature: "vision_unlimited", requiredTier: visionAccess.requiredTier });
+      return;
+    }
     setSending(true);
     setInput("");
     setShowSlash(false);
+    // Track usage (best-effort, fire-and-forget)
+    trackVisionMessage(typeof activeOrgId === "string" && activeOrgId !== "all" ? activeOrgId : null);
+
 
     // Ensure we have a conversation
     let convId = activeConvId;
@@ -797,6 +808,24 @@ export default function Vision() {
               </div>
             )}
 
+            {visionAccess.isAtLimit && (
+              <div
+                className="mb-2 rounded-lg px-3 py-2 text-xs flex items-center gap-2 justify-between"
+                style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.4)", color: "#fecaca" }}
+              >
+                <span>
+                  You've used all {visionAccess.limitValue} Vision messages this month. Upgrade to {visionAccess.requiredTier === "team" ? "Team" : "Growth"} for unlimited.
+                </span>
+                <button
+                  onClick={() => openUpgrade({ feature: "vision_unlimited", requiredTier: visionAccess.requiredTier })}
+                  className="px-2 py-1 rounded font-medium"
+                  style={{ background: "#2563EB", color: "white" }}
+                >
+                  Upgrade →
+                </button>
+              </div>
+            )}
+
             <div
               className="flex items-end gap-2 p-2 rounded-2xl"
               style={{ background: "#1f2937", border: "1px solid #374151" }}
@@ -811,9 +840,10 @@ export default function Vision() {
                     sendMessage(input);
                   }
                 }}
-                placeholder="Message Vision..."
+                placeholder={visionAccess.isAtLimit ? "Vision message limit reached for this month" : "Message Vision..."}
                 rows={1}
-                className="flex-1 bg-transparent resize-none outline-none text-sm py-2 px-2"
+                disabled={visionAccess.isAtLimit}
+                className="flex-1 bg-transparent resize-none outline-none text-sm py-2 px-2 disabled:opacity-50"
                 style={{ color: "#fff", maxHeight: 144, lineHeight: "24px" }}
               />
               <button
@@ -834,6 +864,25 @@ export default function Vision() {
                 <Send size={16} />
               </button>
             </div>
+            {visionAccess.limitValue !== -1 && (
+              <div className="flex items-center gap-2 mt-2 text-[10px]" style={{ color: "var(--text-muted)" }}>
+                <span>✦ {visionAccess.usedValue} / {visionAccess.limitValue} Vision messages this month</span>
+                <div className="flex-1 h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div
+                    style={{
+                      width: `${Math.min(100, (visionAccess.usedValue / visionAccess.limitValue) * 100)}%`,
+                      height: "100%",
+                      background:
+                        visionAccess.usedValue / visionAccess.limitValue >= 0.95
+                          ? "#ef4444"
+                          : visionAccess.usedValue / visionAccess.limitValue >= 0.8
+                          ? "#f59e0b"
+                          : "#2563EB",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             <div className="text-center text-[10px] text-gray-600 mt-2">
               Vision can make mistakes. Verify important info.
             </div>
