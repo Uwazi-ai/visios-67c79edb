@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { UpgradeModal } from "@/components/billing/UpgradeModal";
 import { toast } from "@/hooks/use-toast";
-import type { Tier } from "@/hooks/useFeatureAccess";
+import type { Tier } from "@/config/tiers";
 
 const TIER_PRICE: Record<Exclude<Tier, "enterprise">, { monthly: number; annual: number }> = {
   solo: { monthly: 29, annual: 290 },
