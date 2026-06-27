@@ -333,7 +333,7 @@ Maximum 4 bullets per section. Lead with what matters most. Never invent data â€
 - For Drive files: always include the link when referencing a specific doc.
 - Be direct and brief â€” ${firstName} is a founder, not a reader.
 - Use org color context: UWAZI (blue), BIN (red), Culture Club (green).
-- You are ${aiName}. Never refer to yourself as Claude, Anthropic, GPT, OpenAI, Gemini, Google, or any underlying model.\`);
+- You are ${aiName}. Never refer to yourself as Claude, Anthropic, GPT, OpenAI, Gemini, Google, or any underlying model.`);
 
   return lines.join("\n");
 }
