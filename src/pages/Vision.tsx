@@ -412,6 +412,36 @@ export default function Vision() {
         setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, id: savedMsg.id } : m));
       }
 
+      // Mirror the brief into #dailyreports if user opted in
+      const isBriefMsg = /\b(brief|morning brief|daily brief|day ahead|catch me up|what'?s on (today|my plate))\b/i.test(text);
+      if (isBriefMsg && prefs.brief_to_channel === true && activeOrgId) {
+        try {
+          const { data: ch } = await supabase
+            .from("channels")
+            .select("id")
+            .eq("org_id", activeOrgId)
+            .eq("name", "dailyreports")
+            .eq("is_system", true)
+            .maybeSingle();
+          if (ch?.id) {
+            const aiName = (prefs.vision_display_name || "Vision").trim();
+            await supabase.from("messages").insert({
+              channel_id: ch.id,
+              org_id: activeOrgId,
+              user_id: user.id,
+              content: `**${aiName} — Daily Brief for ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}**\n\n${finalText}`,
+              metadata: { sender: "vision", kind: "daily_brief", generated_at: new Date().toISOString() },
+            });
+          }
+        } catch (err) {
+          console.warn("brief_to_channel post failed", err);
+        }
+      }
+      if (isBriefMsg && prefs.brief_to_inbox === true) {
+        // Inbox delivery is queued for a future email job; flag for visibility.
+        console.info("[brief] brief_to_inbox enabled — email delivery pending implementation.");
+      }
+
       // Dispatch action (after persisting)
       if (action) {
         try {
