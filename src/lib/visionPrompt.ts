@@ -84,6 +84,9 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   }
 
   lines.push(`\nToday is ${dayOfWeek}, ${formattedDate}. Current time: ${currentTime}${profile.timezone ? ` (${profile.timezone})` : ""}.`);
+  if (profile.brief_time) {
+    lines.push(`${firstName}'s preferred morning brief time is ${profile.brief_time}.`);
+  }
 
   // Access scope guardrails for non-founders
   if (!profile.is_founder && profile.role_label) {
