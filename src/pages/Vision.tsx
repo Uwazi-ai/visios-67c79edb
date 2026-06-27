@@ -864,6 +864,25 @@ export default function Vision() {
                 <Send size={16} />
               </button>
             </div>
+            {visionAccess.limitValue !== -1 && (
+              <div className="flex items-center gap-2 mt-2 text-[10px]" style={{ color: "var(--text-muted)" }}>
+                <span>✦ {visionAccess.usedValue} / {visionAccess.limitValue} Vision messages this month</span>
+                <div className="flex-1 h-0.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div
+                    style={{
+                      width: `${Math.min(100, (visionAccess.usedValue / visionAccess.limitValue) * 100)}%`,
+                      height: "100%",
+                      background:
+                        visionAccess.usedValue / visionAccess.limitValue >= 0.95
+                          ? "#ef4444"
+                          : visionAccess.usedValue / visionAccess.limitValue >= 0.8
+                          ? "#f59e0b"
+                          : "#2563EB",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
             <div className="text-center text-[10px] text-gray-600 mt-2">
               Vision can make mistakes. Verify important info.
             </div>
