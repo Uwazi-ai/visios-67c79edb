@@ -1915,8 +1915,11 @@ export type Database = {
           short_name: string | null
           slug: string
           stage_labels: Json
+          subscription_status: string
+          subscription_tier: string
           success_definition: string | null
           success_metric: string | null
+          trial_ends_at: string
         }
         Insert: {
           color: string
@@ -1939,8 +1942,11 @@ export type Database = {
           short_name?: string | null
           slug: string
           stage_labels?: Json
+          subscription_status?: string
+          subscription_tier?: string
           success_definition?: string | null
           success_metric?: string | null
+          trial_ends_at?: string
         }
         Update: {
           color?: string
@@ -1963,8 +1969,11 @@ export type Database = {
           short_name?: string | null
           slug?: string
           stage_labels?: Json
+          subscription_status?: string
+          subscription_tier?: string
           success_definition?: string | null
           success_metric?: string | null
+          trial_ends_at?: string
         }
         Relationships: []
       }
@@ -1985,6 +1994,7 @@ export type Database = {
           is_restricted: boolean
           linkedin_url: string | null
           notification_prefs: Json
+          onboarding_completed: boolean
           phone: string | null
           preferences: Json
           preferred_name: string | null
@@ -2014,6 +2024,7 @@ export type Database = {
           is_restricted?: boolean
           linkedin_url?: string | null
           notification_prefs?: Json
+          onboarding_completed?: boolean
           phone?: string | null
           preferences?: Json
           preferred_name?: string | null
@@ -2043,6 +2054,7 @@ export type Database = {
           is_restricted?: boolean
           linkedin_url?: string | null
           notification_prefs?: Json
+          onboarding_completed?: boolean
           phone?: string | null
           preferences?: Json
           preferred_name?: string | null
