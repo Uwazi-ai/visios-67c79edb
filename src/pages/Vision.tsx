@@ -808,6 +808,24 @@ export default function Vision() {
               </div>
             )}
 
+            {visionAccess.isAtLimit && (
+              <div
+                className="mb-2 rounded-lg px-3 py-2 text-xs flex items-center gap-2 justify-between"
+                style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.4)", color: "#fecaca" }}
+              >
+                <span>
+                  You've used all {visionAccess.limitValue} Vision messages this month. Upgrade to {visionAccess.requiredTier === "team" ? "Team" : "Growth"} for unlimited.
+                </span>
+                <button
+                  onClick={() => openUpgrade({ feature: "vision_unlimited", requiredTier: visionAccess.requiredTier })}
+                  className="px-2 py-1 rounded font-medium"
+                  style={{ background: "#2563EB", color: "white" }}
+                >
+                  Upgrade →
+                </button>
+              </div>
+            )}
+
             <div
               className="flex items-end gap-2 p-2 rounded-2xl"
               style={{ background: "#1f2937", border: "1px solid #374151" }}
@@ -822,9 +840,10 @@ export default function Vision() {
                     sendMessage(input);
                   }
                 }}
-                placeholder="Message Vision..."
+                placeholder={visionAccess.isAtLimit ? "Vision message limit reached for this month" : "Message Vision..."}
                 rows={1}
-                className="flex-1 bg-transparent resize-none outline-none text-sm py-2 px-2"
+                disabled={visionAccess.isAtLimit}
+                className="flex-1 bg-transparent resize-none outline-none text-sm py-2 px-2 disabled:opacity-50"
                 style={{ color: "#fff", maxHeight: 144, lineHeight: "24px" }}
               />
               <button
