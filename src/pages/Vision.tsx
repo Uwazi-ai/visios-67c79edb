@@ -482,17 +482,22 @@ export default function Vision() {
   // Keep ref in sync so triggerDailyBrief can invoke without a dep cycle
   useEffect(() => { sendMessageRef.current = sendMessage; }, [sendMessage]);
 
-  // Auto-trigger morning brief between 6am–9am once per local day
+  // Auto-trigger morning brief in a 3-hour window starting at the user's preferred brief_time (default 07:00)
   const autoBriefTried = useRef(false);
   useEffect(() => {
     if (autoBriefTried.current || !user) return;
-    const hr = new Date().getHours();
-    if (hr < 6 || hr >= 9) return;
+    if (prefs.brief_auto === false) return;
+    const briefTime = (prefs.brief_time as string | undefined) ?? "07:00";
+    const [bh, bm] = briefTime.split(":").map((x: string) => parseInt(x, 10));
+    if (Number.isNaN(bh)) return;
+    const now = new Date();
+    const start = bh * 60 + (bm || 0);
+    const cur = now.getHours() * 60 + now.getMinutes();
+    if (cur < start || cur >= start + 180) return; // 3-hour window
     autoBriefTried.current = true;
-    // Slight delay so initial conversations have loaded first
     const t = setTimeout(() => { triggerDailyBrief("auto"); }, 800);
     return () => clearTimeout(t);
-  }, [user, triggerDailyBrief]);
+  }, [user, prefs.brief_time, prefs.brief_auto, triggerDailyBrief]);
 
 
 
