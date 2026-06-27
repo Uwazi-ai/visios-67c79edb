@@ -286,11 +286,18 @@ export default function Vision() {
 
     const system = buildVisionSystemPrompt(persona, visionCtx, {
       display_name: (user.user_metadata?.full_name as string) ?? null,
+      preferred_name: prefs.signature_name ?? null,
       email: user.email ?? null,
       active_org_name: activeOrg?.name ?? null,
       is_founder: isOwner,
       role_label: roleLabel,
       accessible_orgs: accessibleOrgs,
+      vision_display_name: prefs.vision_display_name ?? null,
+      vision_persona_description: prefs.vision_persona_description ?? null,
+      vision_tone: prefs.vision_tone ?? null,
+      brief_time: prefs.brief_time ?? null,
+      brief_to_channel: prefs.brief_to_channel === true,
+      brief_to_inbox: prefs.brief_to_inbox === true,
     });
 
     const history = [...messages, userMsg]
