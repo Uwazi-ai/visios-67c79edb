@@ -40,6 +40,31 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
+  // Reject anonymous callers. The gateway verifies the JWT (verify_jwt=true),
+  // but the public anon key can be used by anyone on the internet. Only
+  // service_role or signed-in (authenticated) users are allowed to enqueue.
+  try {
+    const authHeader = req.headers.get('authorization') || ''
+    const token = authHeader.replace(/^Bearer\s+/i, '')
+    const payloadPart = token.split('.')[1]
+    if (!payloadPart) throw new Error('missing token')
+    const json = atob(payloadPart.replace(/-/g, '+').replace(/_/g, '/'))
+    const claims = JSON.parse(json)
+    if (claims.role !== 'service_role' && claims.role !== 'authenticated') {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+  } catch {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  }
+
+
+
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 

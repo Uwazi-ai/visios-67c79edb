@@ -78,7 +78,10 @@ Deno.serve(async (req) => {
         meet_link: meetLink,
       })
       .eq("id", link.id);
-    if (updErr) return jsonResponse({ error: `update failed: ${updErr.message}` }, 500);
+    if (updErr) {
+      console.error("contact-link-confirm update error", updErr.message);
+      return jsonResponse({ error: "Failed to confirm booking. Please try again." }, 500);
+    }
 
     // Touch contact (if linked)
     if (link.contact_id) {
@@ -92,6 +95,7 @@ Deno.serve(async (req) => {
       end: end.toISOString(),
     });
   } catch (e) {
-    return jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500);
+    console.error("contact-link-confirm error", e instanceof Error ? e.message : String(e));
+    return jsonResponse({ error: "An internal error occurred. Please try again." }, 500);
   }
 });

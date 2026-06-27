@@ -33,6 +33,7 @@ Deno.serve(async (req) => {
     }
     return jsonResponse({ host, eventType: et, org });
   } catch (e) {
-    return jsonResponse({ error: e instanceof Error ? e.message : String(e) }, 500);
+    console.error("booking-lookup error", e instanceof Error ? e.message : String(e));
+    return jsonResponse({ error: "An internal error occurred. Please try again." }, 500);
   }
 });

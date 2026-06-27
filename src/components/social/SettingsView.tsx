@@ -29,7 +29,17 @@ export function SettingsView() {
   const [credShow, setCredShow] = useState<Record<string, boolean>>({});
   const [savingCreds, setSavingCreds] = useState(false);
   const { user } = useAuth();
-  const isAdmin = !!user?.email && (user.email.toLowerCase().includes("myke") || user.user_metadata?.role === "admin");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!user?.id) { setIsAdmin(false); return; }
+      const { data, error } = await (supabase as any).rpc("is_super_admin", { _user_id: user.id });
+      if (!cancelled) setIsAdmin(!error && data === true);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   useEffect(() => { void loadExtras(); }, []);
 
