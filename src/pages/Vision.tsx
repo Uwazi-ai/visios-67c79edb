@@ -110,12 +110,9 @@ export default function Vision() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("preferences")
-        .eq("id", user.id)
-        .maybeSingle();
-      setPrefs((data as any)?.preferences ?? {});
+      const { data } = await supabase.rpc("get_my_profile_private");
+      const row = (Array.isArray(data) ? data[0] : null) as any;
+      setPrefs(row?.preferences ?? {});
     })();
   }, [user]);
 

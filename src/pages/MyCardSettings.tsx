@@ -43,11 +43,16 @@ const MyCardSettings = () => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("username, display_name, avatar_url, title, company, tagline, email, phone, linkedin_url, website_url, card_theme, custom_links, primary_org_id")
-        .eq("id", user.id)
-        .maybeSingle();
+      const [{ data: pub }, { data: privRows }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("username, display_name, avatar_url, title, company, tagline, email, linkedin_url, website_url, card_theme, custom_links, primary_org_id")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase.rpc("get_my_profile_private"),
+      ]);
+      const priv = (Array.isArray(privRows) ? privRows[0] : null) as any;
+      const data = pub ? ({ ...pub, phone: priv?.phone ?? null } as any) : null;
       if (data) {
         const links = Array.isArray(data.custom_links) ? (data.custom_links as unknown as CustomLink[]) : [];
         setForm({

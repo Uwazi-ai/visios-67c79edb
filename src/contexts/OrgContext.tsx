@@ -57,14 +57,15 @@ export const OrgProvider = ({ children }: { children: ReactNode }) => {
     }
     (async () => {
       setLoading(true);
-      const [{ data: orgsData }, { data: memData }, { data: profileData }] = await Promise.all([
+      const [{ data: orgsData }, { data: memData }, { data: privateRows }] = await Promise.all([
         supabase.from("orgs").select("*").eq("is_active", true).order("display_order", { ascending: true }),
         supabase.from("org_memberships").select("org_id, role").eq("user_id", user.id),
-        supabase.from("profiles").select("is_restricted").eq("id", user.id).maybeSingle(),
+        supabase.rpc("get_my_profile_private"),
       ]);
+      const profileData = (Array.isArray(privateRows) ? privateRows[0] : null) as any;
       setOrgs(((orgsData ?? []) as unknown) as Org[]);
       setMemberships((memData ?? []) as Membership[]);
-      setIsRestricted(Boolean((profileData as any)?.is_restricted));
+      setIsRestricted(Boolean(profileData?.is_restricted));
 
       const memberOrgIds = new Set((memData ?? []).map((m: any) => m.org_id));
       const stored = localStorage.getItem("visi:activeOrg");

@@ -1002,11 +1002,8 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
         .neq("status", "done")
         .limit(30);
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("scheduling_prefs")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data: privateRows } = await supabase.rpc("get_my_profile_private");
+      const profile = (Array.isArray(privateRows) ? privateRows[0] : null) as any;
 
       const tasks = tasksData ?? [];
       setStats({ tasks: tasks.length, meetings: events.length });

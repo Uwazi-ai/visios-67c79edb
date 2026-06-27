@@ -41,11 +41,12 @@ export default function OrganizationsTab() {
   const [archivedKey, setArchivedKey] = useState(0);
 
   const load = async () => {
-    const { data: rows } = await supabase.from("orgs").select("*").eq("is_active", true).order("display_order", { ascending: true });
+    const { data: rows } = await supabase.rpc("list_owned_orgs_full");
+    const active = ((rows ?? []) as any[]).filter((r) => r.is_active !== false);
     const map: Record<string, OrgRow> = {};
-    (rows ?? []).forEach((r: any) => { map[r.id] = r; });
+    active.forEach((r: any) => { map[r.id] = r; });
     setData(map);
-    if (rows?.[0] && !activeId) setActiveId((rows[0] as any).id);
+    if (active[0] && !activeId) setActiveId(active[0].id);
     setLoading(false);
   };
 

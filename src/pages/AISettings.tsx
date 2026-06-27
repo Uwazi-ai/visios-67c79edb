@@ -47,10 +47,11 @@ export default function AISettings() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: training }, { data: profile }] = await Promise.all([
+      const [{ data: training }, { data: privateRows }] = await Promise.all([
         supabase.from("ai_training").select("*").eq("user_id", user.id).maybeSingle(),
-        supabase.from("profiles").select("ai_prefs").eq("id", user.id).maybeSingle(),
+        supabase.rpc("get_my_profile_private"),
       ]);
+      const profile = (Array.isArray(privateRows) ? privateRows[0] : null) as any;
       if (training) {
         setT({
           writing_style: training.writing_style ?? "semi-formal",

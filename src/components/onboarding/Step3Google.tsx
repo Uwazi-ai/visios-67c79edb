@@ -17,12 +17,9 @@ export const Step3Google = ({ onNext, onSkip }: Props) => {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("google_refresh_token")
-        .eq("id", user.id)
-        .maybeSingle();
-      if ((data as any)?.google_refresh_token) setConnected(true);
+      const { data } = await supabase.rpc("get_my_profile_private");
+      const row = (Array.isArray(data) ? data[0] : null) as any;
+      if (row?.google_refresh_token) setConnected(true);
     })();
   }, [user]);
 

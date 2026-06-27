@@ -67,11 +67,16 @@ export default function ProfileTab() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("display_name,preferred_name,email,phone,timezone,primary_org_id,tagline,avatar_url,preferences,title,linkedin_url,custom_links")
-        .eq("id", user.id)
-        .maybeSingle();
+      const [{ data: pub }, { data: privRows }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("display_name,preferred_name,email,timezone,primary_org_id,tagline,avatar_url,title,linkedin_url,custom_links")
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase.rpc("get_my_profile_private"),
+      ]);
+      const priv = (Array.isArray(privRows) ? privRows[0] : null) as any;
+      const data = pub ? ({ ...pub, phone: priv?.phone ?? null, preferences: priv?.preferences ?? {} } as any) : null;
       if (data) {
         const links = (data as any).custom_links ?? {};
         setForm({
