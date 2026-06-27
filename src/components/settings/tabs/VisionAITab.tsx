@@ -141,6 +141,41 @@ export default function VisionAITab() {
         </div>
       </SectionCard>
 
+      <SectionCard title="Vision Identity" subtitle="What your AI calls itself, how it sounds, and any custom persona instructions.">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Display name" hint="The name Vision uses to refer to itself.">
+            <input
+              className="input-glass"
+              value={prefs.vision_display_name ?? ""}
+              placeholder="Vision"
+              onChange={(e) => updPref({ vision_display_name: e.target.value })}
+            />
+          </Field>
+          <Field label="Tone">
+            <select
+              className="input-glass"
+              value={prefs.vision_tone ?? "direct"}
+              onChange={(e) => updPref({ vision_tone: e.target.value })}
+            >
+              <option value="direct">Direct</option>
+              <option value="formal">Formal</option>
+              <option value="friendly">Friendly</option>
+              <option value="casual">Casual</option>
+              <option value="playful">Playful</option>
+            </select>
+          </Field>
+        </div>
+        <Field label="Custom persona" hint="Optional. Free-form instructions layered on top of the active persona.">
+          <textarea
+            className="input-glass"
+            rows={3}
+            placeholder="e.g. Speak like a no-nonsense Chief of Staff with a startup-operator mindset. Reference my OKRs when relevant."
+            value={prefs.vision_persona_description ?? ""}
+            onChange={(e) => updPref({ vision_persona_description: e.target.value })}
+          />
+        </Field>
+      </SectionCard>
+
       <SectionCard title="Vision Data Access" subtitle="Toggle which sources Vision can read in every conversation.">
         {DATA_SOURCES.map((s) => (
           <ToggleRow key={`${s.key}-${s.sub ?? ""}`} label={s.label} value={isSourceOn(s.key, s.sub)} onChange={(v) => toggleSource(s.key, s.sub, v)} />
