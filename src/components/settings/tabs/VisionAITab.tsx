@@ -245,6 +245,19 @@ export default function VisionAITab() {
 
       <SectionCard title="Morning Brief" subtitle="What Vision shows on dashboard load each morning.">
         <ToggleRow label="Auto-generate on dashboard load" value={prefs.brief_auto !== false} onChange={(v) => updPref({ brief_auto: v })} />
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Brief time" hint="Auto-generated within a 3-hour window starting at this time.">
+            <select className="input-glass" value={prefs.brief_time ?? "07:00"} onChange={(e) => updPref({ brief_time: e.target.value })}>
+              {["05:00","05:30","06:00","06:30","07:00","07:30","08:00","08:30","09:00","09:30","10:00"].map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </Field>
+          <Field label="Delivery">
+            <div className="flex flex-col gap-1">
+              <ToggleRow label="Post brief to #dailyreports" value={prefs.brief_to_channel === true} onChange={(v) => updPref({ brief_to_channel: v })} />
+              <ToggleRow label="Email brief to my inbox" value={prefs.brief_to_inbox === true} onChange={(v) => updPref({ brief_to_inbox: v })} />
+            </div>
+          </Field>
+        </div>
         <Field label="Cache duration">
           <select className="input-glass" value={prefs.brief_cache ?? "4"} onChange={(e) => updPref({ brief_cache: e.target.value })}>
             <option value="1">1 hour</option><option value="4">4 hours</option><option value="12">12 hours</option>
