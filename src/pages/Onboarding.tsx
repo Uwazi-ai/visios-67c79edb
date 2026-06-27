@@ -28,7 +28,7 @@ export default function OnboardingPage() {
         .eq("id", user.id)
         .maybeSingle();
       if ((profile as any)?.onboarding_completed) {
-        navigate("/", { replace: true });
+        navigate("/dashboard", { replace: true });
         return;
       }
       const { data: mems } = await supabase

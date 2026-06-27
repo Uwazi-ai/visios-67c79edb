@@ -53,7 +53,7 @@ const Login = () => {
   };
 
   useEffect(() => {
-    if (!loading && session) navigate("/", { replace: true });
+    if (!loading && session) navigate("/dashboard", { replace: true });
   }, [session, loading, navigate]);
 
   const handleGoogle = async () => {

@@ -8,6 +8,10 @@ import { OrgProvider } from "@/contexts/OrgContext";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { AppShell } from "@/components/visi/AppShell";
 import Login from "./pages/Login";
+import Landing from "./pages/Landing";
+import ResetPassword from "./pages/ResetPassword";
+import { TermsPage, PrivacyPage, ChangelogPage, RoadmapPage, AboutPage, BlogPage } from "./pages/StubPages";
+import { Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import InboxPage from "./pages/Inbox";
 import BookingsPage from "./pages/Bookings";
@@ -56,7 +60,17 @@ const App = () => (
           <OrgProvider>
             <TimezoneProvider>
             <Routes>
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Landing />} />
+              <Route path="/login" element={<Navigate to="/" replace />} />
+              <Route path="/signup" element={<Navigate to="/?tab=signup" replace />} />
+              <Route path="/_login_legacy" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/changelog" element={<ChangelogPage />} />
+              <Route path="/roadmap" element={<RoadmapPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/blog" element={<BlogPage />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
@@ -64,7 +78,7 @@ const App = () => (
               <Route path="/card/:username" element={<CardPublic />} />
               <Route path="/oauth-callback/:platform" element={<OAuthCallback />} />
               <Route element={<AppShell />}>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/vision" element={<Vision />} />
                 <Route path="/inbox" element={<InboxPage />} />
                 <Route path="/tasks" element={<TasksPage />} />
