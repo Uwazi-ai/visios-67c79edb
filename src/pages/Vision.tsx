@@ -16,6 +16,8 @@ import { VisionCircle } from "@/components/vision/VisionCircle";
 import { StreamingText } from "@/components/vision/StreamingText";
 import { ThinkingIndicator } from "@/components/vision/ThinkingIndicator";
 import { extractActionFromResponse, handleVisionAction } from "@/lib/visionActions";
+import { useFeatureAccess, trackVisionMessage } from "@/hooks/useFeatureAccess";
+import { useUpgrade } from "@/contexts/UpgradeContext";
 
 interface Conversation {
   id: string;
@@ -209,9 +211,16 @@ export default function Vision() {
   const sendMessage = useCallback(async (rawText: string) => {
     const text = rawText.trim();
     if (!text || sending || !user) return;
+    if (visionAccess.isAtLimit && visionAccess.upgradeRequired) {
+      openUpgrade({ feature: "vision_unlimited", requiredTier: visionAccess.requiredTier });
+      return;
+    }
     setSending(true);
     setInput("");
     setShowSlash(false);
+    // Track usage (best-effort, fire-and-forget)
+    trackVisionMessage(typeof activeOrgId === "string" && activeOrgId !== "all" ? activeOrgId : null);
+
 
     // Ensure we have a conversation
     let convId = activeConvId;
