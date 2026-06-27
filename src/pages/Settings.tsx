@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   User as UserIcon, Building2, Plug, Sparkles, CreditCard, Bell, Lock, Settings as SettingsIcon,
-  Trash2, Users, Rocket,
+  Trash2, Users, Rocket, Briefcase, Wallet,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -16,10 +17,14 @@ import PrivacyTab from "@/components/settings/tabs/PrivacyTab";
 import AccountTab from "@/components/settings/tabs/AccountTab";
 import TeamTab from "@/components/settings/tabs/TeamTab";
 import UpdatesTab from "@/components/settings/tabs/UpdatesTab";
+import WorkspaceTab from "@/components/settings/tabs/WorkspaceTab";
+import BillingTab from "@/components/settings/tabs/BillingTab";
 
 const SUPER_ADMIN_EMAIL = "myke@uwazi.ai";
 
-type TabKey = "profile" | "orgs" | "team" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger" | "updates";
+type TabKey =
+  | "workspace" | "profile" | "orgs" | "team" | "connections" | "vision" | "card"
+  | "billing" | "notifications" | "privacy" | "account" | "danger" | "updates";
 
 interface NavItem {
   key: TabKey;
@@ -29,12 +34,14 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
+  { key: "workspace", label: "Workspace", icon: Briefcase },
   { key: "profile", label: "Profile", icon: UserIcon },
   { key: "orgs", label: "Organizations", icon: Building2 },
   { key: "team", label: "Team", icon: Users },
-  { key: "connections", label: "Connections", icon: Plug },
+  { key: "connections", label: "Integrations", icon: Plug },
   { key: "vision", label: "Vision", icon: Sparkles },
   { key: "card", label: "My Digital Card", icon: CreditCard },
+  { key: "billing", label: "Billing", icon: Wallet },
   { key: "notifications", label: "Notifications", icon: Bell },
   { key: "privacy", label: "Privacy", icon: Lock },
   { key: "account", label: "Account", icon: SettingsIcon },
