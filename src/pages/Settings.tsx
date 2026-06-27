@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   User as UserIcon, Building2, Plug, Sparkles, CreditCard, Bell, Lock, Settings as SettingsIcon,
-  Trash2, Users, Rocket,
+  Trash2, Users, Rocket, Briefcase, Wallet,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
@@ -16,10 +17,14 @@ import PrivacyTab from "@/components/settings/tabs/PrivacyTab";
 import AccountTab from "@/components/settings/tabs/AccountTab";
 import TeamTab from "@/components/settings/tabs/TeamTab";
 import UpdatesTab from "@/components/settings/tabs/UpdatesTab";
+import WorkspaceTab from "@/components/settings/tabs/WorkspaceTab";
+import BillingTab from "@/components/settings/tabs/BillingTab";
 
 const SUPER_ADMIN_EMAIL = "myke@uwazi.ai";
 
-type TabKey = "profile" | "orgs" | "team" | "connections" | "vision" | "card" | "notifications" | "privacy" | "account" | "danger" | "updates";
+type TabKey =
+  | "workspace" | "profile" | "orgs" | "team" | "connections" | "vision" | "card"
+  | "billing" | "notifications" | "privacy" | "account" | "danger" | "updates";
 
 interface NavItem {
   key: TabKey;
@@ -29,12 +34,14 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
+  { key: "workspace", label: "Workspace", icon: Briefcase },
   { key: "profile", label: "Profile", icon: UserIcon },
   { key: "orgs", label: "Organizations", icon: Building2 },
   { key: "team", label: "Team", icon: Users },
-  { key: "connections", label: "Connections", icon: Plug },
+  { key: "connections", label: "Integrations", icon: Plug },
   { key: "vision", label: "Vision", icon: Sparkles },
   { key: "card", label: "My Digital Card", icon: CreditCard },
+  { key: "billing", label: "Billing", icon: Wallet },
   { key: "notifications", label: "Notifications", icon: Bell },
   { key: "privacy", label: "Privacy", icon: Lock },
   { key: "account", label: "Account", icon: SettingsIcon },
@@ -55,14 +62,30 @@ interface CompletionMap {
 export default function SettingsPage() {
   const { user } = useAuth();
   const { isRestricted } = useOrg();
+  const [params, setParams] = useSearchParams();
   const isSuperAdmin = (user?.email ?? "").toLowerCase() === SUPER_ADMIN_EMAIL;
-  const [tab, setTab] = useState<TabKey>("profile");
+  const initialTab = (params.get("tab") as TabKey) || "workspace";
+  const [tab, setTabState] = useState<TabKey>(initialTab);
+  const setTab = (next: TabKey) => {
+    setTabState(next);
+    const np = new URLSearchParams(params);
+    np.set("tab", next);
+    setParams(np, { replace: true });
+  };
+  // Sync from URL when user navigates back/forward
+  useEffect(() => {
+    const urlTab = params.get("tab") as TabKey | null;
+    if (urlTab && urlTab !== tab) setTabState(urlTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
   const NAV_VISIBLE = NAV
     .filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "team" && n.key !== "danger"))
     .concat(isSuperAdmin ? [{ key: "updates", label: "Updates", icon: Rocket }] : []);
   useEffect(() => {
     if (isRestricted && (tab === "orgs" || tab === "team" || tab === "danger")) setTab("profile");
     if (!isSuperAdmin && tab === "updates") setTab("profile");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRestricted, isSuperAdmin, tab]);
   const [completion, setCompletion] = useState<CompletionMap | null>(null);
 
@@ -97,12 +120,14 @@ export default function SettingsPage() {
 
   const content = useMemo(() => {
     switch (tab) {
+      case "workspace": return <WorkspaceTab />;
       case "profile": return <ProfileTab />;
       case "orgs": return <OrganizationsTab />;
       case "team": return <TeamTab />;
       case "connections": return <ConnectionsTab />;
       case "vision": return <VisionAITab />;
       case "card": return <DigitalCardTab />;
+      case "billing": return <BillingTab />;
       case "notifications": return <NotificationsTab />;
       case "privacy": return <PrivacyTab />;
       case "account": return <AccountTab />;
