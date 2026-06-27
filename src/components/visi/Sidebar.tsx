@@ -37,6 +37,14 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
   const loc = useLocation();
 
   const NAV = NAV_ALL.filter((n) => !isRestricted || !n.restricted);
+  const { tier } = useOrgTier();
+  const features = TIER_CONFIG[tier].features;
+  const lockedPaths: Record<string, boolean> = {
+    "/chat": !features.team_chat,
+    "/agents": !features.agents,
+    "/social": !features.social,
+    "/meetings": !features.meetings,
+  };
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
   const role = activeOrg ? memberships.find((m) => m.org_id === activeOrg.id)?.role : null;
 
@@ -68,10 +76,12 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
         {NAV.map((item) => {
           const Icon = item.icon;
           const isActive = item.end ? loc.pathname === "/" : loc.pathname.startsWith(item.to);
+          const locked = lockedPaths[item.to];
           return (
-            <NavLink key={item.to} to={item.to} end={item.end} className={`nav-item ${isActive ? "active" : ""}`}>
+            <NavLink key={item.to} to={item.to} end={item.end} className={`nav-item group ${isActive ? "active" : ""}`}>
               <Icon size={16} strokeWidth={1.5} />
               <span className="flex-1">{item.label}</span>
+              {locked && <Lock size={11} strokeWidth={2} style={{ color: "var(--text-muted)", opacity: 0.6 }} />}
             </NavLink>
           );
         })}
