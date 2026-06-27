@@ -5,9 +5,10 @@ export type FeatureKey =
   | "agents"
   | "social"
   | "admin_dashboard"
-  | "vision_unlimited";
+  | "vision_unlimited"
+  | "team_dashboard";
 
-type Tier = "solo" | "team" | "growth" | "enterprise";
+export type Tier = "solo" | "team" | "growth" | "enterprise";
 
 const TIER_RANK: Record<Tier, number> = {
   solo: 0,
@@ -20,6 +21,7 @@ const GATE: Record<FeatureKey, Tier> = {
   team_chat: "team",
   agents: "team",
   vision_unlimited: "team",
+  team_dashboard: "team",
   social: "growth",
   admin_dashboard: "growth",
 };
