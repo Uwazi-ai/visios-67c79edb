@@ -96,7 +96,7 @@ const App = () => (
                 <Route path="/notifications" element={<RestrictedGuard><NotificationsPage /></RestrictedGuard>} />
                 <Route path="/contacts" element={<ContactsPage />} />
                 <Route path="/knowledge" element={<KnowledgePage />} />
-                <Route path="/meetings" element={<MeetingsPage />} />
+                
                 <Route path="/finance" element={<RestrictedGuard><FinancePage /></RestrictedGuard>} />
                 <Route path="/capital-raise" element={<RestrictedGuard><CapitalRaise /></RestrictedGuard>} />
                 <Route path="/settings" element={<SettingsPage />} />
