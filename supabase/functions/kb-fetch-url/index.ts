@@ -38,6 +38,23 @@ function chunkText(text: string, target = 1800): string[] {
   return chunks.filter((c) => c.length > 20);
 }
 
+function isPrivateHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  if (h === "localhost" || h === "ip6-localhost" || h === "ip6-loopback") return true;
+  const m = h.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (m) {
+    const [a, b] = m.slice(1).map(Number);
+    if (a === 10 || a === 127 || a === 0) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a >= 224) return true;
+  }
+  if (h === "::1" || h.startsWith("[::1") || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80")) return true;
+  if (h === "metadata.google.internal" || h.endsWith(".internal")) return true;
+  return false;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
@@ -47,9 +64,23 @@ Deno.serve(async (req) => {
     const { url, title, category, org_id, description } = await req.json();
     if (!url || typeof url !== "string") return jsonResponse({ error: "url required" }, 400);
 
-    const r = await fetch(url, {
+    let parsed: URL;
+    try { parsed = new URL(url); } catch { return jsonResponse({ error: "Invalid URL" }, 400); }
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return jsonResponse({ error: "Only http(s) URLs are allowed" }, 400);
+    }
+    if (isPrivateHost(parsed.hostname)) {
+      return jsonResponse({ error: "URL host is not allowed" }, 400);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    const r = await fetch(parsed.toString(), {
       headers: { "User-Agent": "VisiOS-KB/1.0 (+https://visios.lovable.app)" },
-    });
+      redirect: "manual",
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timer));
+    if (r.status >= 300 && r.status < 400) return jsonResponse({ error: "Redirects are not followed" }, 400);
     if (!r.ok) return jsonResponse({ error: `Fetch failed: ${r.status}` }, 400);
     const html = await r.text();
     const text = htmlToText(html);
