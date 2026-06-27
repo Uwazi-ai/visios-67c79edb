@@ -40,7 +40,7 @@ export const AppShell = () => {
       </div>
     );
   }
-  if (!session) return <Navigate to="/login" replace />;
+  if (!session) return <Navigate to="/" replace />;
   if (needsOnboarding && location.pathname !== "/onboarding") {
     return <Navigate to="/onboarding" replace />;
   }
