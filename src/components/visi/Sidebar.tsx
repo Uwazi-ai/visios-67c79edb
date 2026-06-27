@@ -12,6 +12,7 @@ import { ORG_COLORS } from "@/lib/orgs";
 const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/vision", label: "Vision", icon: Sparkles },
+  { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/tasks", label: "Tasks", icon: CheckSquare },
   { to: "/grants", label: "Grants", icon: ClipboardList },
@@ -19,7 +20,6 @@ const NAV_ALL = [
   { to: "/social", label: "Social", icon: Instagram },
   { to: "/agents", label: "Agents", icon: Bot },
   { to: "/bookings", label: "Bookings", icon: Link2 },
-  { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/notifications", label: "Notifications", icon: Bell, restricted: true },
   { to: "/contacts", label: "Contacts", icon: Users },
   { to: "/knowledge", label: "Knowledge", icon: BookOpen },
