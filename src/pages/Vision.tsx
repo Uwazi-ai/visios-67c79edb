@@ -86,6 +86,8 @@ export default function Vision() {
   const activeOrgId = rawActiveOrgId && rawActiveOrgId !== "all" ? rawActiveOrgId : null;
   const navigate = useNavigate();
   const activeOrg = orgs.find((o) => o.id === activeOrgId);
+  const visionAccess = useFeatureAccess("vision_messages");
+  const { open: openUpgrade } = useUpgrade();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
