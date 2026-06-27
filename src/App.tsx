@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OrgProvider } from "@/contexts/OrgContext";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
+import { UpgradeProvider } from "@/contexts/UpgradeContext";
 import { AppShell } from "@/components/visi/AppShell";
 import Login from "./pages/Login";
 import Landing from "./pages/Landing";
@@ -59,6 +60,7 @@ const App = () => (
         <AuthProvider>
           <OrgProvider>
             <TimezoneProvider>
+            <UpgradeProvider>
             <Routes>
               <Route path="/" element={<Landing />} />
               <Route path="/login" element={<Navigate to="/" replace />} />
@@ -106,6 +108,7 @@ const App = () => (
             </Routes>
             <InstallBanner />
             <AppUpdateListener />
+            </UpgradeProvider>
             </TimezoneProvider>
           </OrgProvider>
         </AuthProvider>

@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { supabase } from "@/integrations/supabase/client";
 import { QuickCaptureModal } from "@/components/tasks/QuickCaptureModal";
-import { TrialBanner } from "@/components/billing/TrialBanner";
+import { TrialGate } from "@/components/billing/TrialGate";
 
 export const AppShell = () => {
   const { session, user, loading } = useAuth();
@@ -51,11 +51,12 @@ export const AppShell = () => {
       <div className="bg-orb-2" />
       <Sidebar />
       <div className="flex-1 min-w-0 flex flex-col relative z-10">
-        <TrialBanner />
-        <Topbar />
-        <main className="flex-1 p-4 md:p-6 mobile-bottom-pad page-enter">
-          <Outlet />
-        </main>
+        <TrialGate>
+          <Topbar />
+          <main className="flex-1 p-4 md:p-6 mobile-bottom-pad page-enter">
+            <Outlet />
+          </main>
+        </TrialGate>
       </div>
       <BottomNav />
       <QuickCaptureModal />
