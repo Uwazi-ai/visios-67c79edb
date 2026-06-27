@@ -1,69 +1,71 @@
 
-## Recommendation
+## Payments: Paddle (built-in)
 
-Skip Part 1 (chat) — your existing `/chat` already has channels, DMs, presence, realtime, bot messages, threads-capable schema, and the `dailyreports` system channel. Rewriting it to match the spec's `chat_channels`/`chat_messages` would regress working features for no user-visible gain.
+Run `enable_paddle_payments` (requires Pro plan + Lovable Cloud, both already in place). After enable, I'll use Lovable's `batch_create_product` to create the 6 prices (Solo/Team/Growth × monthly/annual at the spec amounts), then wire checkout + customer portal via the documented Paddle helpers. **No stripe-billing Edge Function. No STRIPE_* secrets. No webhook code** — Paddle's webhooks sync subscription status to a Lovable-managed table automatically.
 
-Skip the spec's new `org_members`/`team_invites` tables — `org_memberships` + `org_invites` already cover this, with policies and the `handle_new_user` trigger that auto-accepts invites on signup.
+## What I'm building this turn
 
-Build the parts that are genuinely missing and high-value:
+### A. Trial banner (top of app)
+- New `<TrialBanner />` mounted in `AppShell` above `Topbar`.
+- Reads `orgs.subscription_status` + `trial_ends_at`. Shows "✦ X days left in trial · Upgrade →" when `trialing`. Hidden when `active`. Per-session dismiss via `sessionStorage`. Background `#2563EB`.
 
-## Scope this turn
+### B. Settings restructure to spec routes
+New sub-nav: **Workspace · Team · Vision · Integrations · Billing · Account**.
 
-### 1. Onboarding flow (Part 2) — net-new
+- `src/pages/Settings.tsx` becomes a shell with left sub-nav + `<Outlet />`.
+- Routes added: `/settings`, `/settings/workspace`, `/settings/team`, `/settings/vision`, `/settings/integrations`, `/settings/billing`, `/settings/account`.
+- **Reuse existing components** where possible:
+  - Workspace ← new (org name/desc/logo/timezone). Logo bucket: reuse `avatars` bucket (already public).
+  - Team ← existing `TeamTab` + `TeamInvitesPanel` (already does invite/resend/revoke/role/remove with last-owner guard).
+  - Vision ← existing `VisionAITab` content + new fields (display_name, persona, brief time, channel/inbox toggles, tone) backed by existing `visi_settings` table (extended via migration).
+  - Integrations ← grid wrapping existing `ConnectionsPanel` (Google) + Make + Fathom + Stripe-replaced-with-Paddle billing card.
+  - Billing ← **new** (current plan card, seats, upgrade cards, manage subscription button → Paddle portal, success banner from `?success=true`).
+  - Account ← existing `AccountTab` + `NotificationsTab` merged with Leave-org danger zone.
+- Old tabs kept reachable for backward compat under new routes (no deletion of working code).
 
-- Add `onboarding_completed BOOLEAN DEFAULT false` to `profiles`.
-- New route `/onboarding` (4 steps with progress indicator).
-  - **Step 1 — Workspace**: org name + description. Creates row in `orgs`. `handle_new_org` trigger already inserts owner into `org_memberships`. Auto-creates `general`, `announcements`, `vision-briefs` channels via existing `channels` table.
-  - **Step 2 — Invite team**: up to 4 email fields. Inserts into existing `org_invites` (uses existing `TeamInvitesPanel` send path). Skip allowed.
-  - **Step 3 — Connect Google**: reuse existing Google OAuth wiring in Settings → Connections. "Connect" button + skip.
-  - **Step 4 — Meet Vision**: copy + mock Vision bubble, CTAs to `/` or `/chat`. Sets `onboarding_completed = true`.
-- Add a guard in `AppShell`: if `session && !profile.onboarding_completed && !activeOrg`, redirect to `/onboarding`. Skip guard if user already has org memberships (returning user / invited member).
+### C. Upgrade Modal v2
+- Extend existing `src/components/billing/UpgradeModal.tsx`:
+  - Monthly/Annual toggle ("Save 17%" badge).
+  - Side-by-side plan cards (Team + Growth from Solo; Growth only from Team).
+  - Feature list per tier from gate map.
+  - "Start 14-day free trial" CTA → Paddle checkout.
 
-### 2. Subscription tiers (Part 3 subset) — net-new
+### D. Dashboard rewrite (`/`)
+Full replacement of `src/pages/Dashboard.tsx` per spec:
+- **Top row**: 4 KPI cards (Tasks Completed Today, Open Blockers, Team Active Today, Messages Sent Today) — counted from `tasks`, `messages`, `task_activity`. "Active today" = users with a `task_activity` or `messages` row today.
+- **Middle 60/40**:
+  - Team Pulse feed (left): merged stream from `task_activity` + `messages` (count-only, no content). 20 events, infinite scroll up.
+  - Vision's Take (right): calls existing `claude-proxy` with `callType: 'brief'` and a server-side context block (task counts, blockers, idle members, overdue). Cached in `daily_briefs` table (already exists) keyed by org+4h-bucket. Refresh button forces regenerate.
+- **Bottom**: By-Person table with Today/Week/Month toggle, sortable columns, status dot (green/yellow/red by last activity). Click row expands to last 5 completed + open tasks.
+- Gate the whole page behind `useFeatureAccess('team_dashboard')` with simplified Solo view for Solo orgs (current `MorningBrief` + `ScheduleToday` fallback so we don't regress for Solo users).
 
-- Migration: add to `orgs`:
-  - `subscription_tier TEXT DEFAULT 'solo'` (solo|team|growth|enterprise)
-  - `subscription_status TEXT DEFAULT 'trialing'` (trialing|active|past_due|canceled)
-  - `trial_ends_at TIMESTAMPTZ DEFAULT now() + interval '14 days'`
-- New hook `src/hooks/useFeatureAccess.ts` reading `activeOrg.subscription_tier` against gate map:
-  - `team_chat`, `agents`, `vision_unlimited` → team+
-  - `social`, `admin_dashboard` → growth+
-- New `<UpgradeModal />` component (reuses glass design tokens) — opens when a gated feature is hit. CTA "Upgrade — $79/mo" links to `/settings/billing` (placeholder; Stripe later).
-- Do NOT wire gates into existing pages this turn — just ship the hook + modal so future code can opt in. Wiring gates into Chat/Agents/Social risks breaking your active workflows.
+### E. Activity tracking — reuse `task_activity`
+- No new `activity_log` table.
+- Extend `task_activity.kind` to include `'login'` informally (just insert rows from `AuthContext` on session establish — once per day per user).
+- Messages already tracked in `messages` table; query directly.
 
-### 3. Nav reorder
+### F. Migrations
+- Extend `visi_settings`: add `display_name TEXT DEFAULT 'Vision'`, `persona_description TEXT`, `brief_time TIME DEFAULT '08:00'`, `brief_to_channel BOOLEAN DEFAULT true`, `brief_to_inbox BOOLEAN DEFAULT false`, `tone TEXT DEFAULT 'direct'`.
+- Add `orgs.timezone TEXT DEFAULT 'America/Chicago'` (if missing).
+- **No** `billing` table — Paddle's built-in integration manages its own.
+- **No** `activity_log` table.
 
-Move Chat to position 3 in `src/components/visi/Sidebar.tsx`:
-`Dashboard → Vision → Chat → Inbox → Tasks → Grants → Calendar → Social → Agents → Bookings → Contacts → ...`
+### G. Gate map update (`useFeatureAccess`)
+Add `'team_dashboard': 'team'` to existing GATE map. Wire modal trigger from new locations only — existing pages stay un-gated to avoid surprise lockouts.
 
 ## Explicitly NOT doing
 
-- No new `chat_channels`/`chat_messages`/`chat_members`/`org_members`/`team_invites` tables.
-- No rewrite of `/chat`, `ChannelList`, `MessageList`, DMs, or bot system.
-- No `/vision` slash command inside chat (Vision already has its own page).
-- No `/invite/:token` route — your `handle_new_user` trigger already auto-accepts pending `org_invites` matching the signup email, which is the working pattern.
-- No Stripe — billing page is a placeholder; Stripe is the next prompt per your spec.
-- No feature-gate wiring into existing modules (hook + modal only).
+- No `stripe-billing` Edge Function.
+- No `STRIPE_*` secrets.
+- No `billing` table.
+- No new `activity_log` table.
+- No `/invite/[token]` route (trigger-based auto-accept already works).
+- No changes to Vision/claude-proxy, Chat, Onboarding, Tasks, Calendar, Inbox, Knowledge, Contacts.
+- Will not delete existing Settings tabs — old components still referenced from new tab structure.
 
-## Files to add / change
+## Confirm two things and I ship it
 
-**New**
-- `src/pages/Onboarding.tsx`
-- `src/components/onboarding/Step1Workspace.tsx`
-- `src/components/onboarding/Step2Invites.tsx`
-- `src/components/onboarding/Step3Google.tsx`
-- `src/components/onboarding/Step4Vision.tsx`
-- `src/hooks/useFeatureAccess.ts`
-- `src/components/billing/UpgradeModal.tsx`
+1. **Confirm Paddle.** I'll call `enable_paddle_payments`. You'll get a form for email/name/business name. After enable, I'll create products and wire checkout.
+2. **Confirm Pro plan is active.** Payments requires Pro tier on this Lovable workspace. If you're not on Pro, the enable call fails — say so now and I'll skip Paddle and ship Trial banner + Settings restructure + Dashboard rewrite, leaving the Billing tab as a placeholder until Pro is enabled.
 
-**Edit**
-- `src/App.tsx` — add `/onboarding` route
-- `src/components/visi/AppShell.tsx` — first-login redirect guard
-- `src/components/visi/Sidebar.tsx` — Chat to position 3
-- `src/contexts/OrgContext.tsx` — expose `subscription_tier` on Org type (read-through)
-
-**Migration**
-- `profiles.onboarding_completed`
-- `orgs.subscription_tier` / `subscription_status` / `trial_ends_at`
-
-Confirm and I'll ship it.
+Reply "go" (or "go, not on Pro yet") and I'll execute.

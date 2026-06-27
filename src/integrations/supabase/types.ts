@@ -1919,6 +1919,7 @@ export type Database = {
           subscription_tier: string
           success_definition: string | null
           success_metric: string | null
+          timezone: string
           trial_ends_at: string
         }
         Insert: {
@@ -1946,6 +1947,7 @@ export type Database = {
           subscription_tier?: string
           success_definition?: string | null
           success_metric?: string | null
+          timezone?: string
           trial_ends_at?: string
         }
         Update: {
@@ -1973,6 +1975,7 @@ export type Database = {
           subscription_tier?: string
           success_definition?: string | null
           success_metric?: string | null
+          timezone?: string
           trial_ends_at?: string
         }
         Relationships: []
@@ -3043,23 +3046,41 @@ export type Database = {
       }
       visi_settings: {
         Row: {
+          brief_time: string
+          brief_to_channel: boolean
+          brief_to_inbox: boolean
+          display_name: string
           id: string
           is_secret: boolean | null
           key: string
+          persona_description: string | null
+          tone: string
           updated_at: string | null
           value: string | null
         }
         Insert: {
+          brief_time?: string
+          brief_to_channel?: boolean
+          brief_to_inbox?: boolean
+          display_name?: string
           id?: string
           is_secret?: boolean | null
           key: string
+          persona_description?: string | null
+          tone?: string
           updated_at?: string | null
           value?: string | null
         }
         Update: {
+          brief_time?: string
+          brief_to_channel?: boolean
+          brief_to_inbox?: boolean
+          display_name?: string
           id?: string
           is_secret?: boolean | null
           key?: string
+          persona_description?: string | null
+          tone?: string
           updated_at?: string | null
           value?: string | null
         }
