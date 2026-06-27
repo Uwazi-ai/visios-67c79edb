@@ -62,14 +62,30 @@ interface CompletionMap {
 export default function SettingsPage() {
   const { user } = useAuth();
   const { isRestricted } = useOrg();
+  const [params, setParams] = useSearchParams();
   const isSuperAdmin = (user?.email ?? "").toLowerCase() === SUPER_ADMIN_EMAIL;
-  const [tab, setTab] = useState<TabKey>("profile");
+  const initialTab = (params.get("tab") as TabKey) || "workspace";
+  const [tab, setTabState] = useState<TabKey>(initialTab);
+  const setTab = (next: TabKey) => {
+    setTabState(next);
+    const np = new URLSearchParams(params);
+    np.set("tab", next);
+    setParams(np, { replace: true });
+  };
+  // Sync from URL when user navigates back/forward
+  useEffect(() => {
+    const urlTab = params.get("tab") as TabKey | null;
+    if (urlTab && urlTab !== tab) setTabState(urlTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params]);
+
   const NAV_VISIBLE = NAV
     .filter((n) => !isRestricted || (n.key !== "orgs" && n.key !== "team" && n.key !== "danger"))
     .concat(isSuperAdmin ? [{ key: "updates", label: "Updates", icon: Rocket }] : []);
   useEffect(() => {
     if (isRestricted && (tab === "orgs" || tab === "team" || tab === "danger")) setTab("profile");
     if (!isSuperAdmin && tab === "updates") setTab("profile");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRestricted, isSuperAdmin, tab]);
   const [completion, setCompletion] = useState<CompletionMap | null>(null);
 
@@ -104,12 +120,14 @@ export default function SettingsPage() {
 
   const content = useMemo(() => {
     switch (tab) {
+      case "workspace": return <WorkspaceTab />;
       case "profile": return <ProfileTab />;
       case "orgs": return <OrganizationsTab />;
       case "team": return <TeamTab />;
       case "connections": return <ConnectionsTab />;
       case "vision": return <VisionAITab />;
       case "card": return <DigitalCardTab />;
+      case "billing": return <BillingTab />;
       case "notifications": return <NotificationsTab />;
       case "privacy": return <PrivacyTab />;
       case "account": return <AccountTab />;
