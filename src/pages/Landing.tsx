@@ -65,12 +65,8 @@ function buildStarField(count = 110) {
   return parts.join(",");
 }
 
-function scrollToAuth(tab: "signup" | "signin", setTab: (t: "signup" | "signin") => void) {
-  setTab(tab);
-  requestAnimationFrame(() => {
-    const el = document.getElementById("auth-panel");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+function goToAuth(tab: "signup" | "signin", navigate: (to: string) => void) {
+  navigate(`/login?tab=${tab}`);
 }
 
 // ============ REVEAL ON SCROLL ============
@@ -479,8 +475,6 @@ const Landing = () => {
       {/* PRICING */}
       <PricingSection onCTA={() => scrollToAuth("signup", setAuthTab)} />
 
-      {/* AUTH PANEL */}
-      <AuthPanel tab={authTab} setTab={setAuthTab} />
 
       {/* WAITLIST */}
       <WaitlistStrip />
