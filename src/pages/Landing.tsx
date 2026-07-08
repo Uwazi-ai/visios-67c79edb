@@ -80,7 +80,7 @@ function GoldButton({ onClick, children, large = false }: { onClick?: () => void
     <button
       onClick={onClick}
       style={{
-        background: GOLD, color: "#1a1000", borderRadius: 8,
+        background: GOLD, color: ACCENT_TEXT, borderRadius: 8,
         padding: large ? "16px 28px" : "12px 22px",
         fontSize: large ? 15 : 14, fontWeight: 600,
         border: "none", cursor: "pointer",
@@ -567,7 +567,7 @@ const Landing = () => {
                   {p.popular && (
                     <div style={{
                       position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)",
-                      background: GOLD, color: "#1a1000", fontSize: 11, fontWeight: 700,
+                      background: GOLD, color: ACCENT_TEXT, fontSize: 11, fontWeight: 700,
                       padding: "6px 14px", borderRadius: 999, letterSpacing: "0.08em", textTransform: "uppercase",
                     }}>Recommended</div>
                   )}
