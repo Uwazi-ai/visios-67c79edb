@@ -191,9 +191,7 @@ const Landing = () => {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [authTab, setAuthTab] = useState<"signup" | "signin">(
-    params.get("tab") === "signup" || params.get("signup") !== null ? "signup" : "signin"
-  );
+  void params;
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
