@@ -8,7 +8,7 @@ import { OrgProvider } from "@/contexts/OrgContext";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { UpgradeProvider } from "@/contexts/UpgradeContext";
 import { AppShell } from "@/components/visi/AppShell";
-import Login from "./pages/Login";
+import SignIn from "./pages/SignIn";
 import Landing from "./pages/Landing";
 import ResetPassword from "./pages/ResetPassword";
 import { TermsPage, PrivacyPage, ChangelogPage, RoadmapPage, AboutPage, BlogPage } from "./pages/StubPages";
