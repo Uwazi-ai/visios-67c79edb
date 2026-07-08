@@ -10,20 +10,22 @@ import {
 } from "lucide-react";
 
 // ============ TOKENS ============
-const BG = "#0a0a0a";
-const SURFACE = "#111111";
-const SURFACE_2 = "#161616";
-const BORDER = "#1f1f1f";
-const BORDER_2 = "#2a2a2a";
-const TEXT = "#f5f5f5";
-const MUTED = "#9a9a9a";
-const DIM = "#6b6b6b";
-const GOLD = "#d4a24c";
-const GOLD_SOFT = "rgba(212,162,76,0.12)";
-const GOLD_BORDER = "rgba(212,162,76,0.35)";
+const BG = "#0F172A";
+const SURFACE = "#1E293B";
+const SURFACE_2 = "#334155";
+const BORDER = "#475569";
+const BORDER_2 = "#64748B";
+const TEXT = "#F1F5F9";
+const MUTED = "#CBD5E1";
+const DIM = "#94A3B8";
+// Accent (was gold; kept variable names for minimal diff — now brand blue)
+const GOLD = "#0052CC";
+const GOLD_SOFT = "rgba(0,82,204,0.14)";
+const GOLD_BORDER = "rgba(0,82,204,0.45)";
+const ACCENT_TEXT = "#FFFFFF";
 
-const SERIF = `'Instrument Serif', 'Times New Roman', serif`;
-const SANS = `'DM Sans', system-ui, -apple-system, sans-serif`;
+const SERIF = `'Monument Grotesk', 'Inter', system-ui, sans-serif`;
+const SANS = `'Inter', system-ui, -apple-system, sans-serif`;
 
 // ============ STAR FIELD ============
 function buildStarField(count = 90) {
@@ -78,7 +80,7 @@ function GoldButton({ onClick, children, large = false }: { onClick?: () => void
     <button
       onClick={onClick}
       style={{
-        background: GOLD, color: "#1a1000", borderRadius: 8,
+        background: GOLD, color: ACCENT_TEXT, borderRadius: 8,
         padding: large ? "16px 28px" : "12px 22px",
         fontSize: large ? 15 : 14, fontWeight: 600,
         border: "none", cursor: "pointer",
@@ -565,7 +567,7 @@ const Landing = () => {
                   {p.popular && (
                     <div style={{
                       position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)",
-                      background: GOLD, color: "#1a1000", fontSize: 11, fontWeight: 700,
+                      background: GOLD, color: ACCENT_TEXT, fontSize: 11, fontWeight: 700,
                       padding: "6px 14px", borderRadius: 999, letterSpacing: "0.08em", textTransform: "uppercase",
                     }}>Recommended</div>
                   )}
