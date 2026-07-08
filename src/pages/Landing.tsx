@@ -250,10 +250,10 @@ const Landing = () => {
             <a href="#features" className="nav-link">For Teams</a>
           </div>
           <div className="hidden md:flex items-center gap-3">
-            <button onClick={() => scrollToAuth("signin", setAuthTab)} className="nav-link" style={{ fontSize: 14, color: "white", background: "transparent", border: "none", cursor: "pointer", padding: "8px 12px" }}>
+            <button onClick={() => goToAuth("signin", navigate)} className="nav-link" style={{ fontSize: 14, color: "white", background: "transparent", border: "none", cursor: "pointer", padding: "8px 12px" }}>
               Sign in
             </button>
-            <NavyButton onClick={() => scrollToAuth("signup", setAuthTab)}>Get started free</NavyButton>
+            <NavyButton onClick={() => goToAuth("signup", navigate)}>Get started free</NavyButton>
           </div>
           <button className="md:hidden p-2" onClick={() => setNavOpen(true)} aria-label="Menu" style={{ background: "transparent", border: "none", color: "white" }}>
             <Menu size={22} />
@@ -274,8 +274,8 @@ const Landing = () => {
             <a href="#features" onClick={() => setNavOpen(false)} className="text-white">For Teams</a>
           </div>
           <div className="flex flex-col gap-3 p-6" style={{ borderTop: `1px solid ${CARD_BORDER}` }}>
-            <GhostButton onClick={() => { setNavOpen(false); scrollToAuth("signin", setAuthTab); }}>Sign in</GhostButton>
-            <NavyButton onClick={() => { setNavOpen(false); scrollToAuth("signup", setAuthTab); }}>Get started free</NavyButton>
+            <GhostButton onClick={() => { setNavOpen(false); goToAuth("signin", navigate); }}>Sign in</GhostButton>
+            <NavyButton onClick={() => { setNavOpen(false); goToAuth("signup", navigate); }}>Get started free</NavyButton>
           </div>
         </div>
       )}
@@ -322,7 +322,7 @@ const Landing = () => {
             Vision, your Chief of Staff, keeps your team aligned — automatically.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-9">
-            <NavyButton onClick={() => scrollToAuth("signup", setAuthTab)}>Get started free</NavyButton>
+            <NavyButton onClick={() => goToAuth("signup", navigate)}>Get started free</NavyButton>
             <GhostButton href="#features">View features</GhostButton>
           </div>
         </div>
@@ -473,7 +473,7 @@ const Landing = () => {
       </section>
 
       {/* PRICING */}
-      <PricingSection onCTA={() => scrollToAuth("signup", setAuthTab)} />
+      <PricingSection onCTA={() => goToAuth("signup", navigate)} />
 
 
       {/* WAITLIST */}
@@ -498,7 +498,7 @@ const Landing = () => {
             Start your free trial today and replace your entire tech stack with one OS.
           </p>
           <div className="mt-8 flex justify-center">
-            <NavyButton onClick={() => scrollToAuth("signup", setAuthTab)}>Start for free</NavyButton>
+            <NavyButton onClick={() => goToAuth("signup", navigate)}>Start for free</NavyButton>
           </div>
         </Reveal>
       </section>
