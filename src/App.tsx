@@ -64,9 +64,9 @@ const App = () => (
             <UpgradeProvider>
             <Routes>
               <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Navigate to="/" replace />} />
-              <Route path="/signup" element={<Navigate to="/?tab=signup" replace />} />
-              <Route path="/_login_legacy" element={<Login />} />
+              <Route path="/login" element={<SignIn />} />
+              <Route path="/signup" element={<Navigate to="/login?tab=signup" replace />} />
+              <Route path="/signin" element={<Navigate to="/login?tab=signin" replace />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
