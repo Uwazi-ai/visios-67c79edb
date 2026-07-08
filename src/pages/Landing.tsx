@@ -24,7 +24,7 @@ const GOLD_SOFT = "rgba(0,82,204,0.14)";
 const GOLD_BORDER = "rgba(0,82,204,0.45)";
 const ACCENT_TEXT = "#FFFFFF";
 
-const SERIF = `'Monument Grotesk', 'Inter', system-ui, sans-serif`;
+const SERIF = `'Monument Extended', 'Monument Grotesk', 'Inter', system-ui, sans-serif`;
 const SANS = `'Inter', system-ui, -apple-system, sans-serif`;
 
 // ============ STAR FIELD ============
