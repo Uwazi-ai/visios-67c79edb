@@ -65,12 +65,8 @@ function buildStarField(count = 110) {
   return parts.join(",");
 }
 
-function scrollToAuth(tab: "signup" | "signin", setTab: (t: "signup" | "signin") => void) {
-  setTab(tab);
-  requestAnimationFrame(() => {
-    const el = document.getElementById("auth-panel");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+function goToAuth(tab: "signup" | "signin", navigate: (to: string) => void) {
+  navigate(`/login?tab=${tab}`);
 }
 
 // ============ REVEAL ON SCROLL ============
@@ -195,9 +191,7 @@ const Landing = () => {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [authTab, setAuthTab] = useState<"signup" | "signin">(
-    params.get("tab") === "signup" || params.get("signup") !== null ? "signup" : "signin"
-  );
+  void params;
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -254,10 +248,10 @@ const Landing = () => {
             <a href="#features" className="nav-link">For Teams</a>
           </div>
           <div className="hidden md:flex items-center gap-3">
-            <button onClick={() => scrollToAuth("signin", setAuthTab)} className="nav-link" style={{ fontSize: 14, color: "white", background: "transparent", border: "none", cursor: "pointer", padding: "8px 12px" }}>
+            <button onClick={() => goToAuth("signin", navigate)} className="nav-link" style={{ fontSize: 14, color: "white", background: "transparent", border: "none", cursor: "pointer", padding: "8px 12px" }}>
               Sign in
             </button>
-            <NavyButton onClick={() => scrollToAuth("signup", setAuthTab)}>Get started free</NavyButton>
+            <NavyButton onClick={() => goToAuth("signup", navigate)}>Get started free</NavyButton>
           </div>
           <button className="md:hidden p-2" onClick={() => setNavOpen(true)} aria-label="Menu" style={{ background: "transparent", border: "none", color: "white" }}>
             <Menu size={22} />
@@ -278,8 +272,8 @@ const Landing = () => {
             <a href="#features" onClick={() => setNavOpen(false)} className="text-white">For Teams</a>
           </div>
           <div className="flex flex-col gap-3 p-6" style={{ borderTop: `1px solid ${CARD_BORDER}` }}>
-            <GhostButton onClick={() => { setNavOpen(false); scrollToAuth("signin", setAuthTab); }}>Sign in</GhostButton>
-            <NavyButton onClick={() => { setNavOpen(false); scrollToAuth("signup", setAuthTab); }}>Get started free</NavyButton>
+            <GhostButton onClick={() => { setNavOpen(false); goToAuth("signin", navigate); }}>Sign in</GhostButton>
+            <NavyButton onClick={() => { setNavOpen(false); goToAuth("signup", navigate); }}>Get started free</NavyButton>
           </div>
         </div>
       )}
@@ -326,7 +320,7 @@ const Landing = () => {
             Vision, your Chief of Staff, keeps your team aligned — automatically.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-9">
-            <NavyButton onClick={() => scrollToAuth("signup", setAuthTab)}>Get started free</NavyButton>
+            <NavyButton onClick={() => goToAuth("signup", navigate)}>Get started free</NavyButton>
             <GhostButton href="#features">View features</GhostButton>
           </div>
         </div>
@@ -477,10 +471,8 @@ const Landing = () => {
       </section>
 
       {/* PRICING */}
-      <PricingSection onCTA={() => scrollToAuth("signup", setAuthTab)} />
+      <PricingSection onCTA={() => goToAuth("signup", navigate)} />
 
-      {/* AUTH PANEL */}
-      <AuthPanel tab={authTab} setTab={setAuthTab} />
 
       {/* WAITLIST */}
       <WaitlistStrip />
@@ -504,7 +496,7 @@ const Landing = () => {
             Start your free trial today and replace your entire tech stack with one OS.
           </p>
           <div className="mt-8 flex justify-center">
-            <NavyButton onClick={() => scrollToAuth("signup", setAuthTab)}>Start for free</NavyButton>
+            <NavyButton onClick={() => goToAuth("signup", navigate)}>Start for free</NavyButton>
           </div>
         </Reveal>
       </section>
@@ -643,205 +635,7 @@ function PricingSection({ onCTA }: { onCTA: () => void }) {
   );
 }
 
-// ============ AUTH ============
-function AuthPanel({ tab, setTab }: { tab: "signup" | "signin"; setTab: (t: "signup" | "signin") => void }) {
-  const [email, setEmail] = useState("");
-  const [pw, setPw] = useState("");
-  const [pw2, setPw2] = useState("");
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
-  const [devOpen, setDevOpen] = useState(false);
-  const [devEmail, setDevEmail] = useState("");
-  const [devPw, setDevPw] = useState("");
-
-  const onGoogle = async () => {
-    setLoading(true); setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: window.location.origin + "/",
-        scopes: GOOGLE_SCOPES,
-        queryParams: { access_type: "offline", prompt: "consent", include_granted_scopes: "true" },
-      },
-    });
-    if (error) { setError(error.message); setLoading(false); }
-  };
-
-  const onSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null); setInfo(null);
-    if (pw !== pw2) { setError("Passwords don't match."); return; }
-    if (pw.length < 6) { setError("Password must be at least 6 characters."); return; }
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email, password: pw,
-      options: { emailRedirectTo: window.location.origin + "/" },
-    });
-    setLoading(false);
-    if (error) setError(error.message);
-    else setInfo("Check your email to confirm your account.");
-  };
-
-  const onSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null); setInfo(null); setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
-    setLoading(false);
-    if (error) setError("Invalid email or password. Try again.");
-  };
-
-  const onForgot = async () => {
-    setError(null); setInfo(null);
-    if (!email) { setError("Enter your email above first."); return; }
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + "/reset-password",
-    });
-    if (error) setError(error.message);
-    else setInfo("Password reset link sent to your email.");
-  };
-
-  const onDev = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true); setError(null);
-    let { error } = await supabase.auth.signInWithPassword({ email: devEmail, password: devPw });
-    if (error && /invalid login|invalid credentials/i.test(error.message)) {
-      const r = await supabase.auth.signUp({ email: devEmail, password: devPw });
-      error = r.error;
-    }
-    if (error) { setError(error.message); setLoading(false); }
-  };
-
-  const inputStyle: React.CSSProperties = {
-    background: BG, border: `1px solid ${INPUT_BORDER}`, borderRadius: 8,
-    padding: "12px 16px", height: 44, fontSize: 14, color: "white",
-    width: "100%", outline: "none",
-  };
-
-  return (
-    <section id="auth-panel" className="px-5 py-24" style={{ scrollMarginTop: 80 }}>
-      <div className="mx-auto" style={{ maxWidth: 480 }}>
-        <div className="text-center mb-8">
-          <SectionPill>GET STARTED</SectionPill>
-          <h2 style={{ fontSize: "clamp(28px, 4.5vw, 40px)", fontWeight: 700, color: "white", lineHeight: 1.1, margin: 0 }}>
-            Start your free trial today.
-          </h2>
-        </div>
-        <div style={{ background: CARD, border: `1px solid ${CARD_BORDER}`, borderRadius: 16, padding: 40 }}>
-          {/* Tabs */}
-          <div className="flex gap-6 mb-7" style={{ borderBottom: `1px solid ${CARD_BORDER}` }}>
-            {(["signup", "signin"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setError(null); setInfo(null); }}
-                className="pb-3 transition"
-                style={{
-                  color: tab === t ? "white" : MUTED,
-                  fontSize: 14, fontWeight: 600,
-                  borderBottom: tab === t ? `2px solid white` : "2px solid transparent",
-                  marginBottom: -1, background: "transparent", cursor: "pointer", padding: "0 0 12px",
-                }}
-              >{t === "signup" ? "Sign up" : "Sign in"}</button>
-            ))}
-          </div>
-
-          <button
-            onClick={onGoogle}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 transition"
-            style={{ background: BTN_NAVY, color: "white", border: `1px solid ${BTN_NAVY_BORDER}`, borderRadius: 999, height: 44, fontSize: 14, fontWeight: 500, cursor: "pointer" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "#1f3060")}
-            onMouseLeave={e => (e.currentTarget.style.background = BTN_NAVY)}
-          >
-            <GoogleIcon /> Continue with Google
-          </button>
-
-          <div className="flex items-center gap-3 my-5" style={{ color: MUTED, fontSize: 11 }}>
-            <div className="flex-1 h-px" style={{ background: CARD_BORDER }} />
-            <span>or</span>
-            <div className="flex-1 h-px" style={{ background: CARD_BORDER }} />
-          </div>
-
-          {tab === "signup" ? (
-            <form onSubmit={onSignUp} className="flex flex-col gap-3">
-              <input type="email" required placeholder="Work email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
-              <div className="relative">
-                <input type={showPw ? "text" : "password"} required minLength={6} placeholder="Create password" value={pw} onChange={e => setPw(e.target.value)} style={inputStyle} />
-                <button type="button" onClick={() => setShowPw(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: MUTED, background: "transparent", border: "none", cursor: "pointer" }}>
-                  {showPw ? "hide" : "show"}
-                </button>
-              </div>
-              <input type="password" required minLength={6} placeholder="Confirm password" value={pw2} onChange={e => setPw2(e.target.value)} style={inputStyle} />
-              <button type="submit" disabled={loading} className="w-full transition" style={{ background: BLUE, color: "white", border: "none", borderRadius: 999, height: 44, fontSize: 14, fontWeight: 500, cursor: "pointer" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#1d50c8")}
-                onMouseLeave={e => (e.currentTarget.style.background = BLUE)}
-              >
-                {loading ? "Creating…" : "Create account →"}
-              </button>
-              <div className="text-xs mt-1" style={{ color: MUTED }}>
-                By signing up you agree to our <Link to="/terms" className="underline">Terms</Link> and <Link to="/privacy" className="underline">Privacy Policy</Link>.
-              </div>
-            </form>
-          ) : (
-            <form onSubmit={onSignIn} className="flex flex-col gap-3">
-              <input type="email" required placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
-              <div className="relative">
-                <input type={showPw ? "text" : "password"} required placeholder="Password" value={pw} onChange={e => setPw(e.target.value)} style={inputStyle} />
-                <button type="button" onClick={() => setShowPw(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: MUTED, background: "transparent", border: "none", cursor: "pointer" }}>
-                  {showPw ? "hide" : "show"}
-                </button>
-              </div>
-              <div className="flex justify-end">
-                <button type="button" onClick={onForgot} className="text-xs" style={{ color: BLUE, background: "transparent", border: "none", cursor: "pointer" }}>Forgot password?</button>
-              </div>
-              <button type="submit" disabled={loading} className="w-full transition" style={{ background: BLUE, color: "white", border: "none", borderRadius: 999, height: 44, fontSize: 14, fontWeight: 500, cursor: "pointer" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "#1d50c8")}
-                onMouseLeave={e => (e.currentTarget.style.background = BLUE)}
-              >
-                {loading ? "Signing in…" : "Sign in →"}
-              </button>
-            </form>
-          )}
-
-          {error && <div className="mt-4 text-xs" style={{ color: "#fca5a5" }}>{error}</div>}
-          {info && <div className="mt-4 text-xs" style={{ color: GREEN }}>{info}</div>}
-
-          <div className="mt-6 text-center text-xs" style={{ color: MUTED }}>
-            {tab === "signup" ? (
-              <>Already have an account?{" "}
-                <button onClick={() => setTab("signin")} style={{ color: BLUE, background: "transparent", border: "none", cursor: "pointer" }}>Sign in →</button></>
-            ) : (
-              <>Don't have an account?{" "}
-                <button onClick={() => setTab("signup")} style={{ color: BLUE, background: "transparent", border: "none", cursor: "pointer" }}>Start for free →</button></>
-            )}
-          </div>
-        </div>
-
-        {/* DEV BYPASS */}
-        <div className="mt-4">
-          <button
-            onClick={() => setDevOpen(o => !o)}
-            className="flex items-center gap-2 mx-auto text-xs"
-            style={{ color: MUTED, opacity: 0.6, background: "transparent", border: "none", cursor: "pointer", fontFamily: "monospace", letterSpacing: "0.1em" }}
-          >
-            <ChevronDown size={12} style={{ transform: devOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 200ms" }} />
-            DEV BYPASS
-          </button>
-          {devOpen && (
-            <form onSubmit={onDev} className="mt-3 flex flex-col gap-2 mx-auto" style={{ maxWidth: 360 }}>
-              <input type="email" required placeholder="email@dev.local" value={devEmail} onChange={e => setDevEmail(e.target.value)} style={{ ...inputStyle, height: 38, fontSize: 12 }} />
-              <input type="password" required minLength={6} placeholder="password (min 6 chars)" value={devPw} onChange={e => setDevPw(e.target.value)} style={{ ...inputStyle, height: 38, fontSize: 12 }} />
-              <button type="submit" disabled={loading} className="w-full" style={{ background: BLUE, color: "white", borderRadius: 8, height: 38, fontSize: 12, border: "none", cursor: "pointer" }}>
-                Sign in / Sign up
-              </button>
-            </form>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
+// (AuthPanel moved to src/components/auth/AuthPanel.tsx and /login page)
 
 // ============ WAITLIST ============
 function WaitlistStrip() {

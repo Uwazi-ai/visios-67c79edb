@@ -8,7 +8,7 @@ import { OrgProvider } from "@/contexts/OrgContext";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { UpgradeProvider } from "@/contexts/UpgradeContext";
 import { AppShell } from "@/components/visi/AppShell";
-import Login from "./pages/Login";
+import SignIn from "./pages/SignIn";
 import Landing from "./pages/Landing";
 import ResetPassword from "./pages/ResetPassword";
 import { TermsPage, PrivacyPage, ChangelogPage, RoadmapPage, AboutPage, BlogPage } from "./pages/StubPages";
@@ -64,9 +64,9 @@ const App = () => (
             <UpgradeProvider>
             <Routes>
               <Route path="/" element={<Landing />} />
-              <Route path="/login" element={<Navigate to="/" replace />} />
-              <Route path="/signup" element={<Navigate to="/?tab=signup" replace />} />
-              <Route path="/_login_legacy" element={<Login />} />
+              <Route path="/login" element={<SignIn />} />
+              <Route path="/signup" element={<Navigate to="/login?tab=signup" replace />} />
+              <Route path="/signin" element={<Navigate to="/login?tab=signin" replace />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
