@@ -1,28 +1,35 @@
-import { useState } from "react";
 import { useAppState } from "@/lib/AppState";
-import { PROPOSALS, EVENTS, EMAIL, DUE, byScope } from "@/data/mock";
-import {
-  Bento, Card, Col, Desc, Eyebrow, Face, GatedButton, ProposalCard, SectionHead, Tag, Title,
-} from "@/components/primitives";
-import { VelocityChart, WhoClosed } from "@/components/Throughput";
+import { byScope } from "@/data/mock";
+import { useProposals, setProposalStatus } from "@/data/proposalStore";
+import { Bento, Col, Desc, Eyebrow, GatedButton, SectionHead } from "@/components/primitives";
+import { DailyBrief } from "@/components/DailyBrief";
+import { ThroughputCard, VelocityChart } from "@/components/Throughput";
+import { AgentProposalCard } from "@/components/AgentProposals";
 
 /**
  * Dashboard — reference implementation for every other screen.
- * Layout: 12-col bento, primitives only, all data from mock/ledger,
- * all colour from tokens.css.
+ *
+ * Order is deliberate: brief, throughput, proposals, velocity. The brief
+ * decides what matters, throughput says whether the machine is moving,
+ * proposals are the work waiting on a person, velocity is the reference
+ * section underneath.
  */
-export const Dashboard = () => {
+export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void }) => {
   const { scope, scopeOrg, me } = useAppState();
   const workspace = scopeOrg();
-  const [approved, setApproved] = useState<string[]>(
-    PROPOSALS.filter((p) => p.approved).map((p) => p.id),
-  );
-  const [dismissed, setDismissed] = useState<string[]>([]);
+  const go = navigate ?? (() => {});
 
-  const proposals = byScope(PROPOSALS, scope).filter((p) => !dismissed.includes(p.id));
-  const events = byScope(EVENTS, scope);
-  const email = byScope(EMAIL, scope);
-  const due = byScope(DUE, scope);
+  /**
+   * Approval state comes from the record store, never from the DOM and
+   * never from a class name. Re-rendering — or leaving the screen and
+   * coming back — rebuilds the cards from the records, so an approved
+   * item stays approved.
+   */
+  const records = useProposals();
+
+  const proposals = byScope(records, scope);
+  const pending = proposals.filter((p) => p.status === "pending");
+
 
   return (
     <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
@@ -31,126 +38,53 @@ export const Dashboard = () => {
         <h1 className="vo-head" style={{ fontSize: 26, marginTop: 4 }}>
           Good morning, {me.name}
         </h1>
-        <Desc>
-          {proposals.filter((p) => !approved.includes(p.id)).length} proposals waiting on you ·{" "}
-          {events.length} events today · {due.length} due this week
-        </Desc>
       </div>
+
+      <DailyBrief scope={scope} proposals={proposals} navigate={go} />
+
+      <section>
+        <SectionHead title="Throughput" />
+        <Bento>
+          <ThroughputCard scope={scope} />
+        </Bento>
+      </section>
 
       <section>
         <SectionHead
-          title="Waiting on you"
+          title="Agent proposals"
           action={
             <GatedButton
-              blockedCount={proposals.filter((p) => !approved.includes(p.id)).length}
+              blockedCount={pending.length}
               variant="primary"
-              onClick={() => setApproved(proposals.map((p) => p.id))}
+              onClick={() => go("tasks")}
             >
-              Clear the queue
+              Plan my day
             </GatedButton>
           }
         />
         <Bento>
           {proposals.map((p) => (
-            <Col span={4} key={p.id}>
-              <Card ungated={!approved.includes(p.id)}>
-                <Eyebrow>{p.agent}</Eyebrow>
-                <div style={{ height: "var(--s-2)" }} />
-                <ProposalCard
-                  title={p.title}
-                  body={p.body}
-                  signals={p.signals}
-                  approved={approved.includes(p.id)}
-                  onApprove={() => setApproved((a) => [...a, p.id])}
-                  onDismiss={() => setDismissed((d) => [...d, p.id])}
-                />
-              </Card>
+            <Col span={6} key={p.id}>
+              <AgentProposalCard
+                proposal={p}
+                onApprove={() => setProposalStatus(p.id, "approved")}
+                onReject={() => setProposalStatus(p.id, "rejected")}
+              />
             </Col>
           ))}
           {proposals.length === 0 && (
             <Col span={12}>
-              <Card>
-                <Desc>Nothing waiting. Agents will surface work here as it appears.</Desc>
-              </Card>
+              <Desc>Nothing proposed in this scope. Agents surface work here as it appears.</Desc>
             </Col>
           )}
         </Bento>
       </section>
 
+      {/* Reference, not a step — so no index on the heading. */}
       <section>
-        <SectionHead title="Momentum" />
+        <SectionHead title="Velocity" />
         <Bento>
           <VelocityChart scope={scope} />
-          <WhoClosed scope={scope} />
-        </Bento>
-      </section>
-
-      <section>
-        <SectionHead title="Today" />
-        <Bento>
-          <Col span={4}>
-            <Card>
-              <div className="vo-between" style={{ marginBottom: "var(--s-3)" }}>
-                <Title>Schedule</Title>
-                <Eyebrow>{events.length} events</Eyebrow>
-              </div>
-              <div className="vo-stack">
-                {events.map((e) => (
-                  <div className="vo-inset vo-row" key={e.id}>
-                    <span className="vo-meta" style={{ width: 44 }}>{e.at}</span>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="vo-desc" style={{ color: "var(--text)" }}>{e.title}</div>
-                      <div className="vo-meta">{e.who}</div>
-                    </div>
-                    {e.conflict ? <Tag tone="risk">overlap</Tag> : null}
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </Col>
-
-          <Col span={4}>
-            <Card>
-              <div className="vo-between" style={{ marginBottom: "var(--s-3)" }}>
-                <Title>Needs attention</Title>
-                <Eyebrow>Inbox</Eyebrow>
-              </div>
-              <div className="vo-stack">
-                {email.map((m) => (
-                  <div className="vo-inset vo-row" key={m.id}>
-                    <Face initials={m.initials} title={m.from} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="vo-desc" style={{ color: "var(--text)" }}>{m.from}</div>
-                      <div className="vo-meta" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {m.subject}
-                      </div>
-                    </div>
-                    <Tag tone={m.tone}>{m.tone === "risk" ? "urgent" : m.tone === "warn" ? "review" : "fyi"}</Tag>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </Col>
-
-          <Col span={4}>
-            <Card>
-              <div className="vo-between" style={{ marginBottom: "var(--s-3)" }}>
-                <Title>Due soon</Title>
-                <Eyebrow>7 days</Eyebrow>
-              </div>
-              <div className="vo-stack">
-                {due.map((t) => (
-                  <div className="vo-inset vo-row" key={t.id}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="vo-desc" style={{ color: "var(--text)" }}>{t.title}</div>
-                      <div className="vo-meta">{t.project}</div>
-                    </div>
-                    <Tag tone={t.tone}>{t.due}</Tag>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </Col>
         </Bento>
       </section>
     </div>

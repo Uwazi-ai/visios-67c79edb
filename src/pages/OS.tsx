@@ -10,9 +10,14 @@ import Dashboard from "@/screens/Dashboard";
  * Screen registry. Port a screen by writing it under src/screens and adding
  * one line here — nothing else changes.
  */
-const SCREENS: Record<string, () => JSX.Element> = {
+interface ScreenProps {
+  navigate: (id: string) => void;
+}
+
+const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   dashboard: Dashboard,
 };
+
 
 /**
  * Anything unregistered renders a named placeholder with a way back.
@@ -52,7 +57,7 @@ const Shell = () => {
       <div className="vo-shell">
         <Nav active={active} onNavigate={setActive} />
         <main className="vo-main">
-          {Screen ? <Screen /> : <Placeholder id={active} onBack={() => setActive("dashboard")} />}
+          {Screen ? <Screen navigate={setActive} /> : <Placeholder id={active} onBack={() => setActive("dashboard")} />}
         </main>
       </div>
     </div>
