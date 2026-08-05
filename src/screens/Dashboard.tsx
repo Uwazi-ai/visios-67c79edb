@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAppState } from "@/lib/AppState";
 import { PROPOSALS, EVENTS, EMAIL, DUE, byScope } from "@/data/mock";
 import {
-  Bento, Card, Col, Desc, Eyebrow, Face, GatedButton, SectionHead, Tag, Title,
+  Bento, Card, Col, Desc, Eyebrow, Face, GatedButton, ProposalCard, SectionHead, Tag, Title,
 } from "@/components/primitives";
 import { VelocityChart, WhoClosed } from "@/components/Throughput";
 
@@ -12,7 +12,8 @@ import { VelocityChart, WhoClosed } from "@/components/Throughput";
  * all colour from tokens.css.
  */
 export const Dashboard = () => {
-  const { scope, workspace, identity } = useAppState();
+  const { scope, scopeOrg, me } = useAppState();
+  const workspace = scopeOrg();
   const [approved, setApproved] = useState<string[]>(
     PROPOSALS.filter((p) => p.approved).map((p) => p.id),
   );
@@ -28,7 +29,7 @@ export const Dashboard = () => {
       <div>
         <Eyebrow>{workspace.name}</Eyebrow>
         <h1 className="vo-head" style={{ fontSize: 26, marginTop: 4 }}>
-          Good morning, {identity.name}
+          Good morning, {me.name}
         </h1>
         <Desc>
           {proposals.filter((p) => !approved.includes(p.id)).length} proposals waiting on you ·{" "}
@@ -39,7 +40,15 @@ export const Dashboard = () => {
       <section>
         <SectionHead
           title="Waiting on you"
-          action={<span className="vo-meta">Agents propose. You commit.</span>}
+          action={
+            <GatedButton
+              blockedCount={proposals.filter((p) => !approved.includes(p.id)).length}
+              variant="primary"
+              onClick={() => setApproved(proposals.map((p) => p.id))}
+            >
+              Clear the queue
+            </GatedButton>
+          }
         />
         <Bento>
           {proposals.map((p) => (
@@ -47,7 +56,7 @@ export const Dashboard = () => {
               <Card ungated={!approved.includes(p.id)}>
                 <Eyebrow>{p.agent}</Eyebrow>
                 <div style={{ height: "var(--s-2)" }} />
-                <GatedButton
+                <ProposalCard
                   title={p.title}
                   body={p.body}
                   signals={p.signals}
@@ -90,7 +99,7 @@ export const Dashboard = () => {
                   <div className="vo-inset vo-row" key={e.id}>
                     <span className="vo-meta" style={{ width: 44 }}>{e.at}</span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="vo-desc" style={{ color: "var(--ink)" }}>{e.title}</div>
+                      <div className="vo-desc" style={{ color: "var(--text)" }}>{e.title}</div>
                       <div className="vo-meta">{e.who}</div>
                     </div>
                     {e.conflict ? <Tag tone="risk">overlap</Tag> : null}
@@ -111,7 +120,7 @@ export const Dashboard = () => {
                   <div className="vo-inset vo-row" key={m.id}>
                     <Face initials={m.initials} title={m.from} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="vo-desc" style={{ color: "var(--ink)" }}>{m.from}</div>
+                      <div className="vo-desc" style={{ color: "var(--text)" }}>{m.from}</div>
                       <div className="vo-meta" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {m.subject}
                       </div>
@@ -133,7 +142,7 @@ export const Dashboard = () => {
                 {due.map((t) => (
                   <div className="vo-inset vo-row" key={t.id}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="vo-desc" style={{ color: "var(--ink)" }}>{t.title}</div>
+                      <div className="vo-desc" style={{ color: "var(--text)" }}>{t.title}</div>
                       <div className="vo-meta">{t.project}</div>
                     </div>
                     <Tag tone={t.tone}>{t.due}</Tag>
