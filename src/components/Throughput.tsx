@@ -46,7 +46,7 @@ export const ThroughputCard = ({ scope }: { scope: string }) => {
   return (
     <Card span={12}>
       <div className="vo-between" style={{ marginBottom: "var(--s-3)" }}>
-        <Title>Throughput</Title>
+        <Title>Closed tasks per day</Title>
         <span className="vo-meta">
           {RECORDED_DAYS} days recorded · {PROJECTED_DAYS} projected
         </span>
