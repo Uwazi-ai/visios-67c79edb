@@ -820,3 +820,70 @@
 .kova .vo-draft[data-stated="false"] { border-style: dashed; border-left-color: var(--warn-txt); }
 .kova .vo-draft-open { margin: 0; font-size: var(--t-body); color: var(--ink); font-weight: 600; }
 .kova .vo-draft-body { margin: 0; font-size: var(--t-body); color: var(--ink-dim); }
+
+/* ------------------------------------------------------------------ */
+/* Chat — three panes; under 1240px the thread replaces the messages.   */
+/* ------------------------------------------------------------------ */
+.kova .vo-chat3 { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+.kova .vo-chat3[data-thread="true"] { grid-template-columns: 240px minmax(0, 1fr) minmax(0, 340px); }
+@media (max-width: 1240px) {
+  .kova .vo-chat3[data-thread="true"] { grid-template-columns: 240px minmax(0, 1fr); }
+  .kova .vo-chat3[data-thread="true"] > :nth-child(2) { display: none; }
+}
+@media (max-width: 900px) {
+  .kova .vo-chat3, .kova .vo-chat3[data-thread="true"] { grid-template-columns: minmax(0, 1fr); }
+  .kova .vo-chat3[data-thread="true"] > :nth-child(1) { display: none; }
+}
+
+.kova .vo-chlist { display: flex; flex-direction: column; gap: var(--s-2); }
+.kova .vo-chlist ul { list-style: none; margin: 0 0 var(--s-2); padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.kova .vo-chrow {
+  width: 100%; display: flex; align-items: center; gap: var(--s-2);
+  padding: 6px 8px; border-radius: var(--r-sm); background: transparent;
+  border: 1px solid transparent; color: var(--ink-dim); font: inherit; font-size: 13px; cursor: pointer;
+}
+.kova .vo-chrow:hover { background: var(--surface); color: var(--ink); }
+.kova .vo-chrow[aria-current="true"] { background: var(--surface); border-color: var(--line-strong); color: var(--ink); font-weight: 600; }
+.kova .vo-chhash { color: var(--ink-faint); }
+.kova .vo-chname { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kova .vo-chpip { min-width: 18px; text-align: center; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 999px; background: var(--accent); color: var(--nav-bg); }
+.kova .vo-chdot { width: 8px; height: 8px; border-radius: 999px; background: var(--ink-faint); flex: none; }
+.kova .vo-chdot[data-presence="online"] { background: var(--ok-txt); }
+.kova .vo-chdot[data-presence="away"] { background: var(--warn-txt); }
+
+.kova .vo-chpane { display: flex; flex-direction: column; min-height: 420px; max-height: 72vh; }
+.kova .vo-chhead { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--line); }
+.kova .vo-chtitle { font-weight: 700; color: var(--ink); }
+.kova .vo-chmembers { display: flex; gap: 6px; flex-wrap: wrap; }
+.kova .vo-chfeed { flex: 1; overflow-y: auto; padding: var(--s-4); display: flex; flex-direction: column; gap: 2px; }
+.kova .vo-chdivider { margin: var(--s-3) 0 var(--s-2); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); border-top: 1px solid var(--line); padding-top: var(--s-2); }
+
+.kova .vo-chmsg { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: var(--s-3); padding: 6px 8px; border-radius: var(--r-sm); }
+.kova .vo-chmsg:hover { background: var(--surface); }
+.kova .vo-chmsg[data-grouped="true"] { padding-top: 1px; padding-bottom: 1px; }
+.kova .vo-chmsg[data-agent="true"] { border-left: 2px solid var(--line-strong); }
+.kova .vo-chmsg-gutter { display: flex; justify-content: center; }
+.kova .vo-chtime-hover { font-size: 10px; color: transparent; }
+.kova .vo-chmsg:hover .vo-chtime-hover { color: var(--ink-faint); }
+.kova .vo-chmsg-head { display: flex; align-items: baseline; gap: var(--s-2); }
+.kova .vo-chauthor { font-weight: 700; color: var(--ink); font-size: 13px; }
+.kova .vo-chagent { font-size: 10px; letter-spacing: .08em; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--ink-dim); }
+.kova .vo-chtime { font-size: 11px; color: var(--ink-faint); }
+.kova .vo-chtext { margin: 2px 0 0; color: var(--ink); line-height: 1.5; max-width: 74ch; white-space: pre-wrap; }
+.kova .vo-chdiff { margin: var(--s-2) 0; padding: var(--s-2); border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--line); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-x: auto; white-space: pre; color: var(--ink-dim); }
+
+.kova .vo-chreacts { display: flex; gap: 4px; flex-wrap: wrap; margin-top: var(--s-2); }
+.kova .vo-chreact { display: inline-flex; gap: 4px; align-items: center; font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink-dim); cursor: pointer; }
+.kova .vo-chreact[data-mine="true"] { border-color: var(--accent); color: var(--ink); }
+.kova .vo-chthreadlink { margin-top: var(--s-2); display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--accent); background: transparent; border: 0; padding: 0; cursor: pointer; }
+
+.kova .vo-chactions { position: absolute; top: -10px; right: 8px; display: none; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 2px; }
+.kova .vo-chmsg:hover .vo-chactions, .kova .vo-chmsg:focus-within .vo-chactions { display: flex; }
+.kova .vo-chaction { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 4px; border: 0; background: transparent; color: var(--ink-dim); cursor: pointer; }
+.kova .vo-chaction:hover { background: var(--bg); color: var(--ink); }
+.kova .vo-chpicker { display: flex; gap: 2px; }
+.kova .vo-chpicker button { border: 0; background: transparent; cursor: pointer; font-size: 14px; padding: 0 3px; }
+
+.kova .vo-chcomposer { border-top: 1px solid var(--line); padding: var(--s-3) var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); }
+.kova .vo-chtextarea { resize: vertical; min-height: 44px; font: inherit; }
+.kova .vo-chcomposer-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
