@@ -33,11 +33,18 @@ export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void })
 
   return (
     <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
-      <div>
-        <Eyebrow>{workspace.name}</Eyebrow>
-        <h1 className="vo-head" style={{ fontSize: 26, marginTop: 4 }}>
-          Good morning, {me.name}
-        </h1>
+      {/* Top bar. The face reads the same identity Settings writes, so a new
+          photo or accent lands here without a save step. */}
+      <div className="vo-between" style={{ flexWrap: "wrap", gap: "var(--s-3)" }}>
+        <div>
+          <Eyebrow>{workspace.name}</Eyebrow>
+          <h1 className="vo-head" style={{ fontSize: 26, marginTop: 4 }}>
+            Good morning, {me.name}
+          </h1>
+        </div>
+        <button type="button" className="vo-topface" onClick={() => go("settings")}>
+          <Face initials={me.initials} photo={me.photo} color={me.color} size="lg" title={me.name} />
+        </button>
       </div>
 
       <DailyBrief scope={scope} proposals={proposals} navigate={go} />
