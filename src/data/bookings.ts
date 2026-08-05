@@ -147,15 +147,14 @@ export function readHeat(link: BookingLink): HeatFinding {
 
   const best = [...dayTotals].sort((a, b) => b.n - a.n)[0];
   const worst = [...dayTotals].sort((a, b) => a.n - b.n)[0];
-  const share = total === 0 ? 0 : Math.round((Math.max(morning, afternoon) / total) * 100);
+  const leading = Math.max(morning, afternoon);
   const half = morning >= afternoon ? "Mornings" : "Afternoons";
+  const share = total === 0 ? 0 : Math.round((leading / total) * 100);
 
   const caption =
     total === 0
       ? "Nothing open next week. This link is currently selling a page with no dates on it."
-      : `${total} slots open next week. ${half} carry most of it — ${share}% sits before noon${
-          morning >= afternoon ? "" : "'s opposite half"
-        }. ${best.day} is the widest at ${best.n}; ${worst.day} has ${worst.n}.`;
+      : `${total} slots open next week. ${half} carry most of it — ${share}% of the open time. ${best.day} is the widest at ${best.n}; ${worst.day} has ${worst.n}.`;
 
   return { total, peak, caption };
 }
