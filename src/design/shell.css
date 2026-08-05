@@ -887,3 +887,136 @@
 .kova .vo-chcomposer { border-top: 1px solid var(--line); padding: var(--s-3) var(--s-4); display: flex; flex-direction: column; gap: var(--s-2); }
 .kova .vo-chtextarea { resize: vertical; min-height: 44px; font: inherit; }
 .kova .vo-chcomposer-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+
+/* ------------------------------------------------------------------ */
+/* Inbox — the draft is the main event; the border carries its state.   */
+/* ------------------------------------------------------------------ */
+.kova .vo-thlist { display: flex; flex-direction: column; gap: 2px; max-height: 620px; overflow-y: auto; }
+.kova .vo-throw { display: flex; gap: var(--s-3); align-items: flex-start; text-align: left; padding: var(--s-3); border: 1px solid transparent; border-radius: var(--r-md); background: transparent; cursor: pointer; color: inherit; }
+.kova .vo-throw:hover { background: var(--surface); }
+.kova .vo-throw[data-active="true"] { background: var(--surface); border-color: var(--line-strong); }
+.kova .vo-thwith { font-size: 13px; font-weight: 700; color: var(--ink); }
+.kova .vo-thsubject { font-size: var(--t-meta); color: var(--ink); }
+.kova .vo-thpreview { font-size: var(--t-meta); color: var(--ink-dim); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.kova .vo-thstate { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; font-weight: 700; color: var(--warn-txt); }
+.kova .vo-thstate[data-state="sent"] { color: var(--ok-txt); }
+.kova .vo-thstate[data-state="discarded"] { color: var(--ink-dim); }
+
+.kova .vo-thread { display: flex; flex-direction: column; gap: var(--s-3); max-height: 320px; overflow-y: auto; padding-right: var(--s-2); }
+.kova .vo-thmsg { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: var(--s-3); }
+.kova .vo-thmsg[data-mine="true"] { opacity: .82; }
+
+.kova .vo-draft { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-4); border-radius: var(--r-lg); border: 2px dashed var(--warn-txt); background: transparent; }
+.kova .vo-draft[data-state="sent"] { border: 2px solid var(--ok-txt); background: var(--surface); }
+.kova .vo-draft[data-state="discarded"] { border-color: var(--line-strong); opacity: .75; }
+.kova .vo-draft .vo-eyebrow { color: inherit; }
+.kova .vo-draft > .vo-between > .vo-row { color: var(--warn-txt); }
+.kova .vo-draft[data-state="sent"] > .vo-between > .vo-row { color: var(--ok-txt); }
+.kova .vo-draft[data-state="discarded"] > .vo-between > .vo-row { color: var(--ink-dim); }
+.kova .vo-draftbody { margin: 0; white-space: pre-wrap; font-size: var(--t-body); line-height: 1.6; color: var(--ink); max-width: 72ch; }
+
+/* ------------------------------------------------------------------ */
+/* Calendar — Mon–Fri, 9 AM to 4 PM. Positions come from 24h strings.   */
+/* ------------------------------------------------------------------ */
+.kova .vo-week { display: grid; grid-template-columns: 62px repeat(5, minmax(0, 1fr)); gap: 0; }
+.kova .vo-week-gutter { display: grid; grid-template-rows: 26px repeat(7, 1fr); }
+.kova .vo-week-corner { height: 26px; }
+.kova .vo-week-hour { font-size: 11px; color: var(--ink-dim); padding-right: var(--s-2); text-align: right; transform: translateY(-6px); }
+.kova .vo-week-col { min-width: 0; border-left: 1px solid var(--line); }
+.kova .vo-week-day { height: 26px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--ink-dim); text-align: center; }
+.kova .vo-week-track { position: relative; height: 420px; display: grid; grid-template-rows: repeat(7, 1fr); }
+.kova .vo-week-slot { border-top: 1px solid var(--line); }
+.kova .vo-ev {
+  position: absolute; left: 3px; right: 3px; overflow: hidden;
+  display: flex; flex-direction: column; gap: 1px;
+  padding: 3px 6px; border-radius: var(--r-sm);
+  background: var(--surface); border: 1px solid var(--line);
+  border-left: 3px solid var(--line-strong);
+}
+.kova .vo-ev[data-conflict="true"] { border-style: dashed; border-color: var(--warn-txt); background: var(--warn-soft); }
+.kova .vo-ev-time { font-size: 10px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.kova .vo-ev-title { font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.25; }
+.kova .vo-ev-where { font-size: 10px; color: var(--ink-dim); }
+
+.kova .vo-calchip { font-size: 11px; padding: 3px 9px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: transparent; color: var(--ink-dim); cursor: pointer; }
+.kova .vo-calchip[data-off="true"] { opacity: .45; text-decoration: line-through; }
+
+.kova .vo-conflicts { display: grid; gap: var(--s-3); }
+.kova .vo-conflict { padding: var(--s-3); border-radius: var(--r-md); border: 1px dashed var(--warn-txt); }
+.kova .vo-conflict-when { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; font-weight: 700; color: var(--warn-txt); margin-bottom: 4px; }
+.kova .vo-conflict-body { margin: 0; font-size: var(--t-body); line-height: 1.55; color: var(--ink); }
+
+/* ------------------------------------------------------------------ */
+/* Bookings — config and the guest's browser, side by side, always.     */
+/* ------------------------------------------------------------------ */
+.kova .vo-linkbar { display: flex; gap: var(--s-3); flex-wrap: wrap; }
+.kova .vo-linkchip { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; text-align: left; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
+.kova .vo-linkchip[data-active="true"] { background: var(--surface); border-color: var(--line-strong); }
+.kova .vo-linkchip-title { font-size: 13px; font-weight: 700; color: var(--ink); }
+
+.kova .vo-cfggrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
+.kova .vo-cfg { background: var(--inset); border-radius: var(--r-md); padding: var(--s-3); display: grid; gap: 3px; }
+.kova .vo-cfg-value { font-size: var(--t-body); font-weight: 600; color: var(--ink); }
+.kova .vo-rules { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: var(--t-meta); color: var(--ink-dim); line-height: 1.5; }
+
+.kova .vo-browser { border-radius: var(--r-lg); border: 1px solid var(--line-strong); overflow: hidden; background: var(--bg); box-shadow: var(--shadow); }
+.kova .vo-browser-bar { display: flex; align-items: center; gap: var(--s-3); padding: 7px var(--s-3); background: var(--inset); border-bottom: 1px solid var(--line); }
+.kova .vo-browser-dots { display: inline-flex; gap: 4px; }
+.kova .vo-browser-dots i { width: 8px; height: 8px; border-radius: var(--r-pill); background: var(--line-strong); display: block; }
+.kova .vo-browser-url { flex: 1; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-dim); background: var(--surface); border-radius: var(--r-pill); padding: 3px 10px; }
+.kova .vo-browser-tag { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; font-weight: 700; color: var(--ink-dim); }
+.kova .vo-browser-page { padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3); }
+.kova .vo-guest-strip { height: 4px; border-radius: var(--r-pill); width: 46px; }
+.kova .vo-guest-host { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--ink-dim); }
+.kova .vo-guest-title { margin: 0; font-family: var(--display); font-size: 19px; letter-spacing: -.02em; color: var(--ink); }
+.kova .vo-guest-meta { font-size: var(--t-meta); color: var(--ink-dim); }
+.kova .vo-guest-blurb { margin: 0; font-size: var(--t-body); line-height: 1.55; color: var(--ink); }
+.kova .vo-guest-slots { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.kova .vo-guest-slot { font-size: 12px; padding: 5px 11px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); color: var(--ink); font-variant-numeric: tabular-nums; }
+.kova .vo-guest-cta { text-align: center; padding: 9px; border-radius: var(--r-md); color: #FFFFFF; font-weight: 700; font-size: 13px; }
+.kova .vo-guest-foot { font-size: 11px; color: var(--ink-dim); }
+
+.kova .vo-heat { display: grid; grid-template-columns: 44px repeat(8, minmax(0, 1fr)); gap: 3px; align-items: center; }
+.kova .vo-heat-corner { height: 18px; }
+.kova .vo-heat-hour { font-size: 9px; color: var(--ink-dim); text-align: center; letter-spacing: .02em; }
+.kova .vo-heat-day { font-size: 11px; font-weight: 700; color: var(--ink-dim); }
+.kova .vo-heat-cell { height: 26px; border-radius: var(--r-sm); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
+.kova .vo-heat-cell[data-empty="true"] { background: repeating-linear-gradient(45deg, var(--line) 0 3px, transparent 3px 6px); }
+.kova .vo-heat-n { font-size: 10px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.kova .vo-heat-caption { margin: 0; font-size: var(--t-body); line-height: 1.55; color: var(--ink); }
+
+/* ------------------------------------------------------------------ */
+/* Card — three cards, one per venture. QR on the back.                 */
+/* ------------------------------------------------------------------ */
+.kova .vo-flip { perspective: 1200px; background: transparent; border: 0; padding: 0; cursor: pointer; width: 100%; max-width: 380px; }
+.kova .vo-flip-inner { position: relative; display: block; width: 100%; height: 232px; transition: transform .5s cubic-bezier(.4,0,.2,1); transform-style: preserve-3d; }
+.kova .vo-flip[data-flipped="true"] .vo-flip-inner { transform: rotateY(180deg); }
+.kova .vo-flip-face {
+  position: absolute; inset: 0; backface-visibility: hidden;
+  display: flex; flex-direction: column; gap: 6px; align-items: flex-start; text-align: left;
+  padding: var(--s-4); border-radius: var(--r-lg);
+  background: var(--surface); border: 1px solid var(--line-strong); box-shadow: var(--shadow);
+}
+.kova .vo-flip-back { transform: rotateY(180deg); align-items: center; justify-content: center; gap: var(--s-3); }
+.kova .vo-card-name { font-family: var(--display); font-size: 22px; letter-spacing: -.02em; font-weight: 700; color: var(--ink); }
+.kova .vo-card-role { font-size: var(--t-meta); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.kova .vo-card-tag { font-size: var(--t-meta); color: var(--ink-dim); }
+.kova .vo-card-lines { display: grid; gap: 4px; margin-top: auto; font-size: var(--t-meta); color: var(--ink); }
+.kova .vo-card-lines span { display: inline-flex; align-items: center; gap: 6px; }
+.kova .vo-card-hint { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); }
+.kova .vo-qr { background: #FFFFFF; padding: 8px; border-radius: var(--r-sm); display: inline-flex; }
+.kova .vo-card-url { font-size: 11px; color: var(--ink-dim); }
+
+.kova .vo-scanlist { display: grid; gap: var(--s-3); }
+.kova .vo-scan { display: grid; gap: 4px; }
+.kova .vo-scan-place { font-size: var(--t-body); font-weight: 600; color: var(--ink); }
+.kova .vo-scan-bar { position: relative; height: 8px; border-radius: var(--r-pill); background: var(--line); overflow: hidden; }
+.kova .vo-scan-fill { position: absolute; inset: 0 auto 0 0; display: block; border-radius: var(--r-pill); opacity: .55; }
+.kova .vo-scan-follow { position: absolute; inset: 0 auto 0 0; display: block; border-radius: var(--r-pill); background: var(--ink); }
+
+@media (max-width: 1100px) {
+  .kova .vo-cfggrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kova .vo-flip-inner { transition: none; }
+}
