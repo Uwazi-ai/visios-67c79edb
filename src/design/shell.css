@@ -1025,3 +1025,5 @@
 .kova .vo-ev[data-short="true"] { flex-direction: row; align-items: baseline; gap: 5px; padding: 2px 6px; }
 .kova .vo-ev[data-short="true"] .vo-ev-where { display: none; }
 .kova .vo-ev[data-short="true"] .vo-ev-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kova .vo-ev-time { white-space: nowrap; }
+.kova .vo-ev[data-short="true"] .vo-ev-time { font-size: 9px; }
