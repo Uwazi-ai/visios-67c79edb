@@ -60,8 +60,7 @@ export const CpmDeviation = ({ rows }: { rows: Campaign[] }) => {
 };
 
 export const Funnel = () => {
-  const top = FUNNEL[0].value;
-  const fmt = (n: number) =>
+    const fmt = (n: number) =>
     n >= 1000000 ? `${(n / 1000000).toFixed(2)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : `${n}`;
 
   return (
@@ -75,8 +74,11 @@ export const Funnel = () => {
               <span className="vo-funnel-label">{s.label}</span>
               <span className="vo-funnel-value">{fmt(s.value)}</span>
             </div>
+            {/* The bar is the step-over-step rate, not the share of impressions.
+                Against 1.84M served, every stage below Clicks draws as a
+                hairline and the funnel stops saying anything. */}
             <div className="vo-funnel-track">
-              <span className="vo-funnel-fill" style={{ width: `${(s.value / top) * 100}%` }} />
+              <span className="vo-funnel-fill" style={{ width: `${rate}%` }} />
             </div>
             <span className="vo-meta">
               {prev ? `${rate.toFixed(1)}% of ${prev.label.toLowerCase()} · ` : ""}
