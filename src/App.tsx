@@ -117,6 +117,7 @@ const App = () => (
             </UpgradeProvider>
             </TimezoneProvider>
           </OrgProvider>
+          </TenantProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
