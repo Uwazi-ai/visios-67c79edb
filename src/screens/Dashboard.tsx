@@ -1,7 +1,7 @@
 import { useAppState } from "@/lib/AppState";
 import { byScope } from "@/data/mock";
 import { useProposals, setProposalStatus } from "@/data/proposalStore";
-import { Bento, Col, Desc, Eyebrow, GatedButton, SectionHead } from "@/components/primitives";
+import { Bento, Col, Desc, Eyebrow, Face, GatedButton, SectionHead } from "@/components/primitives";
 import { DailyBrief } from "@/components/DailyBrief";
 import { ThroughputCard, VelocityChart } from "@/components/Throughput";
 import { AgentProposalCard } from "@/components/AgentProposals";
@@ -33,11 +33,18 @@ export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void })
 
   return (
     <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
-      <div>
-        <Eyebrow>{workspace.name}</Eyebrow>
-        <h1 className="vo-head" style={{ fontSize: 26, marginTop: 4 }}>
-          Good morning, {me.name}
-        </h1>
+      {/* Top bar. The face reads the same identity Settings writes, so a new
+          photo or accent lands here without a save step. */}
+      <div className="vo-between" style={{ flexWrap: "wrap", gap: "var(--s-3)" }}>
+        <div>
+          <Eyebrow>{workspace.name}</Eyebrow>
+          <h1 className="vo-head" style={{ fontSize: 26, marginTop: 4 }}>
+            Good morning, {me.name}
+          </h1>
+        </div>
+        <button type="button" className="vo-topface" onClick={() => go("settings")}>
+          <Face initials={me.initials} photo={me.photo} color={me.color} size="lg" title={me.name} />
+        </button>
       </div>
 
       <DailyBrief scope={scope} proposals={proposals} navigate={go} />

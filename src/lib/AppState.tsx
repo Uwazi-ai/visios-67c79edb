@@ -76,11 +76,13 @@ interface AppStateValue {
 
   orgs: Org[];
   setOrgColor: (id: string, color: string) => void;
-  setOrgLogo: (id: string, logo: string) => void;
+  /** undefined clears the logo — an upload with no way back is a one-way door. */
+  setOrgLogo: (id: string, logo?: string) => void;
 
   me: Me;
   setMyColor: (color: string) => void;
-  setMyPhoto: (photo: string) => void;
+  /** In-memory data URL only. Never written to storage; see readImageFile. */
+  setMyPhoto: (photo?: string) => void;
 }
 
 const noop = () => {};

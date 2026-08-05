@@ -88,3 +88,18 @@
   }
 }
 
+
+/* Swatch palette offered in Settings. Nine, spread around the wheel — a
+   founder picking venture colours needs them distinguishable at 8px, which
+   is the size of an org dot. */
+:root {
+  --sw-blue: #2563EB;
+  --sw-indigo: #4F46E5;
+  --sw-violet: #7C3AED;
+  --sw-magenta: #DB2777;
+  --sw-red: #DC2626;
+  --sw-amber: #D97706;
+  --sw-green: #059669;
+  --sw-teal: #0D9488;
+  --sw-slate: #64748B;
+}
