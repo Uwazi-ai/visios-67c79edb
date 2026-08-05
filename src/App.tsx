@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OrgProvider } from "@/contexts/OrgContext";
+import { TenantProvider } from "@/contexts/TenantContext";
 import { TimezoneProvider } from "@/contexts/TimezoneContext";
 import { UpgradeProvider } from "@/contexts/UpgradeContext";
 import { AppShell } from "@/components/visi/AppShell";
@@ -60,6 +61,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <TenantProvider>
           <OrgProvider>
             <TimezoneProvider>
             <UpgradeProvider>
@@ -115,6 +117,7 @@ const App = () => (
             </UpgradeProvider>
             </TimezoneProvider>
           </OrgProvider>
+          </TenantProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
