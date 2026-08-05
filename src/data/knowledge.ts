@@ -129,7 +129,8 @@ export const DOCS: Doc[] = [
     indexed: true,
     citations: 44,
     concepts: [
-      "ctv", "media buying", "pricing", "cpm", "inventory", "targeting", "attribution", "budget",
+      "ctv", "media buying", "pricing", "charge", "cpm", "inventory", "targeting",
+      "attribution", "budget",
     ],
     passages: [
       {
@@ -433,11 +434,13 @@ export const DOCS: Doc[] = [
     updated: "Feb 11",
     indexed: true,
     citations: 14,
-    concepts: ["approval", "spend", "procurement", "limits", "expenses", "budget"],
+    concepts: [
+      "approval", "sign off", "spend", "procurement", "limits", "expenses", "budget",
+    ],
     passages: [
       {
         text: "Anything above $5,000 needs a second signature, and no agent holds a signature at any amount.",
-        concepts: ["approval", "spend", "limits", "expenses"],
+        concepts: ["approval", "sign off", "spend", "limits", "expenses"],
       },
     ],
   },
