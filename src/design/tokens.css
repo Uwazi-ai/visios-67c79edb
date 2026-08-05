@@ -26,7 +26,18 @@
 
   --t-hero: clamp(24px, 4.6vw, 31px);
   --t-stat: clamp(30px, 6.4vw, 42px);
+
+  /* Workspace palette. A founder's ventures each get one colour and keep it
+     everywhere — rail strip, org face, chips. Defined here so no component
+     ever holds a hex. */
+  --org-all: #93C5FD;
+  --org-uwazi: #2563EB;
+  --org-cc: #059669;
+  --org-bin: #EF4444;
+  --org-raia: #7C3AED;
+  --org-1flock: #8A8A99;
 }
+
 
 [data-theme="dark"] {
   --bg: #08080B;
