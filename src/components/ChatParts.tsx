@@ -133,6 +133,7 @@ const Reactions = ({
   message: Message;
   onReact: (emoji: string) => void;
 }) => {
+  const authors = useAuthors();
   const entries = Object.entries(message.reactions);
   if (!entries.length) return null;
   return (
