@@ -16,6 +16,38 @@ import {
  * WeekGrid — Mon–Fri, 9 AM to 4 PM. Positions come from the stored
  * 24-hour strings; only the labels are converted for humans.
  */
+/**
+ * Overlapping events share the column rather than stacking on top of each
+ * other. Two calendars running at the same hour is a legitimate state, and
+ * one title printed over another is unreadable rather than merely ugly.
+ */
+function laneOut(day: CalEvent[]): { e: CalEvent; lane: number; lanes: number }[] {
+  const sorted = [...day].sort((a, b) => a.start.localeCompare(b.start));
+  const out: { e: CalEvent; lane: number; lanes: number }[] = [];
+  let cluster: CalEvent[] = [];
+  let clusterEnd = -1;
+
+  const flush = () => {
+    const ends: number[] = [];
+    const placed = cluster.map((e) => {
+      let lane = ends.findIndex((end) => end <= mins(e.start));
+      if (lane === -1) lane = ends.length;
+      ends[lane] = mins(e.end);
+      return { e, lane };
+    });
+    placed.forEach((p) => out.push({ ...p, lanes: ends.length }));
+    cluster = [];
+  };
+
+  for (const e of sorted) {
+    if (cluster.length && mins(e.start) >= clusterEnd) flush();
+    cluster.push(e);
+    clusterEnd = Math.max(clusterEnd, mins(e.end));
+  }
+  if (cluster.length) flush();
+  return out;
+}
+
 export const WeekGrid = ({
   events,
   colorOf,
