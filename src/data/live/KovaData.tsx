@@ -46,6 +46,9 @@ import {
   type Channel,
   type Message,
 } from "@/data/chat";
+import { hydrateProposals } from "@/data/proposalStore";
+import { hydrateTasks } from "@/data/taskStore";
+import { hydrateChat } from "@/data/chatStore";
 import {
   fetchAgents,
   fetchChat,
@@ -286,6 +289,15 @@ export const KovaDataProvider = ({ children }: { children: ReactNode }) => {
     // header counts it.
     return { mode, loading, sources, down, refresh, ...data, orgs: data.orgs.length ? data.orgs : SAMPLE_ORGS };
   }, [mode, loading, sources, data, refresh]);
+
+  /* Three screens keep their write state in module stores — approvals,
+     completions, agent action decisions. Push the read rows in rather than
+     rewiring those screens: a decision already taken survives the push. */
+  useEffect(() => {
+    hydrateProposals(value.proposals);
+    hydrateTasks(value.tasks);
+    hydrateChat({ channels: value.channels, messages: value.messages, authors: value.authors });
+  }, [value.proposals, value.tasks, value.channels, value.messages, value.authors]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };

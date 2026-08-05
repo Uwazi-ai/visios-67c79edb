@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Bento, Button, Card, Col, Desc, Eyebrow, Face, SectionHead, Tag, Title } from "@/components/primitives";
 import { Found, ProvenanceCard, Track } from "@/components/ContactsParts";
-import { CONTACTS, ENRICHMENT_RULE, verdict } from "@/data/contacts";
+import { ENRICHMENT_RULE, verdict } from "@/data/contacts";
+import { useKovaData } from "@/data/live/KovaData";
 import { useAppState } from "@/lib/AppState";
 
 /**
@@ -12,8 +13,9 @@ import { useAppState } from "@/lib/AppState";
  */
 const Contacts = ({ navigate }: { navigate: (id: string) => void }) => {
   const { orgs, inScope } = useAppState();
-  const scoped = useMemo(() => CONTACTS.filter((c) => inScope(c.org)), [inScope]);
-  const [selectedId, setSelectedId] = useState(scoped[0]?.id ?? CONTACTS[0].id);
+  const { contacts } = useKovaData();
+  const scoped = useMemo(() => contacts.filter((c) => inScope(c.org)), [contacts, inScope]);
+  const [selectedId, setSelectedId] = useState(scoped[0]?.id ?? "");
   const [sent, setSent] = useState<Record<string, boolean>>({});
 
   const contact = scoped.find((c) => c.id === selectedId) ?? scoped[0];

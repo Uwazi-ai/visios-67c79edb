@@ -1,5 +1,6 @@
 import { comb, throughput, velocity, RECORDED_DAYS, PROJECTED_DAYS } from "@/data/ledger";
 import { Card, Eyebrow, Stat, Face, Title } from "@/components/primitives";
+import { useKovaData } from "@/data/live/KovaData";
 
 /**
  * Throughput and velocity.
@@ -40,8 +41,9 @@ export const BarComb = ({
 };
 
 export const ThroughputCard = ({ scope }: { scope: string }) => {
-  const c = comb(scope);
-  const t = throughput(scope);
+  const { ledger } = useKovaData();
+  const c = comb(scope, ledger);
+  const t = throughput(scope, ledger);
 
   return (
     <Card span={12}>
@@ -90,7 +92,8 @@ export const ThroughputCard = ({ scope }: { scope: string }) => {
  * swapping the data leaves the annotation pointing at the wrong day.
  */
 export const VelocityChart = ({ scope }: { scope: string }) => {
-  const v = velocity(scope);
+  const { ledger } = useKovaData();
+  const v = velocity(scope, ledger);
   const W = 720;
   const H = 180;
   const PAD_T = 28;
@@ -151,7 +154,8 @@ export const VelocityChart = ({ scope }: { scope: string }) => {
 };
 
 export const WhoClosed = ({ scope }: { scope: string }) => {
-  const t = throughput(scope);
+  const { ledger } = useKovaData();
+  const t = throughput(scope, ledger);
   const top = t.byPerson.slice(0, 5);
   const max = Math.max(...top.map((p) => p.closes), 1);
   return (
