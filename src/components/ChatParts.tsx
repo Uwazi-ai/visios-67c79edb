@@ -1,9 +1,9 @@
 import { KeyboardEvent, useState } from "react";
 import { MessageSquare, Smile } from "lucide-react";
 import { Desc, Eyebrow, Face, Title } from "@/components/primitives";
+import { useAuthors } from "@/data/chatStore";
 import {
   ActionState,
-  AUTHORS,
   Channel,
   clock,
   KIND_WORD,
@@ -26,11 +26,12 @@ export const ChannelRail = ({
   activeId: string;
   onSelect: (id: string) => void;
 }) => {
+  const authors = useAuthors();
   const rooms = channels.filter((c) => c.kind === "channel");
   const dms = channels.filter((c) => c.kind === "dm");
 
   const row = (c: Channel) => {
-    const peer = c.peer ? AUTHORS[c.peer] : undefined;
+    const peer = c.peer ? authors[c.peer] : undefined;
     return (
       <li key={c.id}>
         <button
@@ -143,7 +144,7 @@ const Reactions = ({
           className="vo-chreact"
           data-mine={who.includes(ME) ? "true" : undefined}
           onClick={() => onReact(emoji)}
-          title={who.map((w) => AUTHORS[w]?.name ?? w).join(", ")}
+          title={who.map((w) => authors[w]?.name ?? w).join(", ")}
         >
           <span>{emoji}</span>
           <span>{who.length}</span>
@@ -175,7 +176,8 @@ export const MessageRow = ({
   compact?: boolean;
 }) => {
   const [picker, setPicker] = useState(false);
-  const author = AUTHORS[message.author];
+  const authors = useAuthors();
+  const author = authors[message.author];
   const isAgent = author?.kind === "agent";
 
   return (

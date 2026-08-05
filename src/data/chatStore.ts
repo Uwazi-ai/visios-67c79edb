@@ -126,6 +126,11 @@ export function postReply(parentId: string, text: string, author = ME) {
   }));
 }
 
+/** Authors for the current source — fixtures or live rows. */
+export function useAuthors(): Record<string, Author> {
+  return useChat().authors;
+}
+
 export function useChat(): ChatState {
   return useSyncExternalStore(
     (cb) => {
