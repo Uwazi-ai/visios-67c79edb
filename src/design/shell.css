@@ -442,3 +442,124 @@
 @media (max-width: 900px) {
   .kova .vo-set-grid, .kova .vo-org-row { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ---------- tasks ---------- */
+.kova .vo-projrow {
+  display: grid; gap: var(--s-3);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.kova .vo-proj {
+  display: flex; flex-direction: column; gap: var(--s-2); text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--line);
+  border-radius: var(--r-md); padding: var(--s-3); color: inherit; font: inherit;
+}
+.kova .vo-proj:hover { border-color: var(--line-strong); }
+.kova .vo-proj[data-selected="true"] { box-shadow: 0 0 0 1px var(--a-400) inset; background: var(--inset); }
+.kova .vo-proj-name { font-family: var(--display); font-size: var(--t-title); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+.kova .vo-late { font-size: var(--t-meta); font-weight: 600; color: var(--err-txt); }
+.kova .vo-track-fill { height: 100%; border-radius: var(--r-pill); }
+
+.kova .vo-dot-sm { width: 6px; height: 6px; }
+
+.kova .vo-section { border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; }
+.kova .vo-section-head {
+  display: flex; align-items: center; gap: var(--s-2); width: 100%; cursor: pointer;
+  padding: var(--s-3); background: var(--inset); border: 0; color: var(--ink); font: inherit;
+}
+.kova .vo-section-name { font-weight: 600; font-size: var(--t-body); }
+.kova .vo-task-list { display: flex; flex-direction: column; }
+
+.kova .vo-task {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  flex-wrap: wrap; padding: var(--s-2) var(--s-3); border-top: 1px solid var(--line);
+}
+.kova .vo-task-main { display: flex; align-items: center; gap: var(--s-2); min-width: 0; cursor: pointer; flex: 1 1 220px; }
+.kova .vo-task-title { font-size: var(--t-body); color: var(--ink); }
+.kova .vo-task[data-done="true"] .vo-task-title,
+.kova .vo-tcard[data-done="true"] .vo-task-title { text-decoration: line-through; color: var(--ink-dim); }
+.kova .vo-task-meta { display: flex; align-items: center; gap: var(--s-3); flex: none; }
+
+.kova .vo-box {
+  appearance: none; -webkit-appearance: none; margin: 0; flex: none; cursor: pointer;
+  width: 16px; height: 16px; border-radius: 5px; border: 1.5px solid var(--line-strong); background: transparent;
+}
+.kova .vo-box:checked { background: var(--ok-txt); border-color: var(--ok-txt); }
+.kova .vo-box:checked::after { content: "✓"; display: block; text-align: center; line-height: 13px; font-size: 11px; color: var(--nav-bg); }
+
+.kova .vo-due { font-size: var(--t-meta); color: var(--ink-dim); white-space: nowrap; }
+.kova .vo-due[data-late="true"] { color: var(--err-txt); font-weight: 600; }
+
+.kova .vo-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
+.kova .vo-board-col { display: flex; flex-direction: column; gap: var(--s-2); background: var(--inset); border-radius: var(--r-md); padding: var(--s-3); }
+.kova .vo-board-head { padding-bottom: var(--s-1); }
+.kova .vo-tcard {
+  display: flex; flex-direction: column; gap: var(--s-2);
+  background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--line);
+  border-radius: var(--r-sm); padding: var(--s-3);
+}
+.kova .vo-board-note { grid-column: 1 / -1; }
+
+/* Gantt: percentage horizontally, fixed pixels vertically. */
+.kova .vo-gantt { display: grid; grid-template-columns: minmax(150px, 240px) minmax(0, 1fr); gap: var(--s-3); }
+.kova .vo-gantt-labels { display: flex; flex-direction: column; }
+.kova .vo-gantt-corner { height: 54px; display: flex; align-items: flex-end; padding-bottom: var(--s-1); }
+.kova .vo-gantt-axis { height: 34px; margin-top: 20px; }
+.kova .vo-gantt-label { display: flex; flex-direction: column; justify-content: center; gap: 1px; overflow: hidden; }
+.kova .vo-gantt-name { line-height: 1.3; }
+.kova .vo-gantt-name { font-size: var(--t-body); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kova .vo-gantt-name[data-done="true"] { color: var(--ink-dim); text-decoration: line-through; }
+.kova .vo-gantt-track { position: relative; min-width: 0; }
+.kova .vo-gantt-axis { display: grid; grid-template-columns: repeat(14, 1fr); border-bottom: 1px solid var(--line); }
+.kova .vo-gantt-day { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; font-size: 10px; color: var(--ink-dim); padding-bottom: var(--s-1); }
+.kova .vo-gantt-day strong { font-size: var(--t-meta); font-weight: 600; }
+.kova .vo-gantt-day[data-weekend="true"] { opacity: .55; }
+.kova .vo-gantt-day[data-today="true"] { color: var(--a-400); }
+.kova .vo-gantt-rows { position: relative; }
+.kova .vo-gantt-grid { position: absolute; top: 0; bottom: 0; border-right: 1px solid var(--line); }
+.kova .vo-gantt-grid[data-weekend="true"] { background: var(--inset); }
+
+.kova .vo-gbar {
+  position: absolute; display: flex; align-items: center; justify-content: flex-end;
+  border-radius: var(--r-pill); padding: 0 var(--s-2); overflow: hidden;
+}
+.kova .vo-gbar[data-done="true"] { opacity: .45; }
+.kova .vo-gbar[data-late="true"] { box-shadow: 0 0 0 1px var(--err-txt); }
+/* BIN's workspace colour is red, so red fill alone cannot mean "critical".
+   The hatch carries the meaning; the colour only reinforces it — which also
+   keeps it legible for anyone who cannot separate red from green. */
+.kova .vo-gbar[data-critical="true"]::before {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-linear-gradient(115deg, transparent 0 5px, rgba(0,0,0,.30) 5px 9px);
+}
+.kova .vo-key-swatch[data-critical="true"] {
+  background: repeating-linear-gradient(115deg, var(--err-txt) 0 3px, rgba(0,0,0,.35) 3px 6px);
+}
+.kova .vo-gbar-text { position: relative; z-index: 1; font-size: 10px; font-weight: 700; letter-spacing: .02em; color: var(--nav-bg); }
+[data-theme="light"] .kova .vo-gbar-text { color: #FFFFFF; }
+
+.kova .vo-link-h, .kova .vo-link-v { position: absolute; pointer-events: none; }
+.kova .vo-link-h { border-top: 1px dashed var(--ink-dim); height: 0; }
+.kova .vo-link-v { border-left: 1px dashed var(--ink-dim); width: 0; }
+.kova .vo-link-cap {
+  position: absolute; width: 5px; height: 5px; margin-left: -5px; margin-top: -2.5px;
+  border-radius: var(--r-pill); background: var(--ink-dim);
+}
+
+.kova .vo-today { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1.5px solid var(--a-400); }
+.kova .vo-today-flag {
+  position: absolute; top: 0; z-index: 1; transform: translateX(-50%);
+  font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--nav-bg); background: var(--a-400); border-radius: var(--r-pill); padding: 1px 6px;
+}
+[data-theme="light"] .kova .vo-today-flag { color: #FFFFFF; }
+
+.kova .vo-gantt-key { gap: var(--s-3); flex-wrap: wrap; }
+.kova .vo-key { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--t-meta); color: var(--ink-dim); }
+.kova .vo-key-swatch { width: 14px; height: 6px; border-radius: var(--r-pill); }
+.kova .vo-key-dash { width: 14px; border-top: 1px dashed var(--ink-dim); }
+
+@media (max-width: 900px) {
+  .kova .vo-board { grid-template-columns: minmax(0, 1fr); }
+  .kova .vo-gantt { grid-template-columns: minmax(0, 1fr); }
+  .kova .vo-gantt-labels { display: none; }
+}
