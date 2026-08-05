@@ -1,7 +1,7 @@
 import { useAppState } from "@/lib/AppState";
 import { byScope } from "@/data/mock";
 import { useProposals, setProposalStatus } from "@/data/proposalStore";
-import { Bento, Col, Desc, Eyebrow, GatedButton, SectionHead } from "@/components/primitives";
+import { Bento, Col, Desc, Eyebrow, Face, GatedButton, SectionHead } from "@/components/primitives";
 import { DailyBrief } from "@/components/DailyBrief";
 import { ThroughputCard, VelocityChart } from "@/components/Throughput";
 import { AgentProposalCard } from "@/components/AgentProposals";
