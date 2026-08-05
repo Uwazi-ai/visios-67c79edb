@@ -1,6 +1,6 @@
-import { useState } from "react";
 import { useAppState } from "@/lib/AppState";
-import { PROPOSALS, Proposal, ProposalStatus, byScope } from "@/data/mock";
+import { byScope } from "@/data/mock";
+import { useProposals, setProposalStatus } from "@/data/proposalStore";
 import { Bento, Col, Desc, Eyebrow, GatedButton, SectionHead } from "@/components/primitives";
 import { DailyBrief } from "@/components/DailyBrief";
 import { ThroughputCard, VelocityChart } from "@/components/Throughput";
@@ -20,16 +20,16 @@ export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void })
   const go = navigate ?? (() => {});
 
   /**
-   * Approval state lives on the records, in state, keyed by id — never in
-   * the DOM and never derived from a class name. A re-render rebuilds the
-   * cards from this array, so an approved item stays approved.
+   * Approval state comes from the record store, never from the DOM and
+   * never from a class name. Re-rendering — or leaving the screen and
+   * coming back — rebuilds the cards from the records, so an approved
+   * item stays approved.
    */
-  const [records, setRecords] = useState<Proposal[]>(PROPOSALS);
-  const setStatus = (id: string, status: ProposalStatus) =>
-    setRecords((rs) => rs.map((r) => (r.id === id ? { ...r, status } : r)));
+  const records = useProposals();
 
   const proposals = byScope(records, scope);
   const pending = proposals.filter((p) => p.status === "pending");
+
 
   return (
     <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
