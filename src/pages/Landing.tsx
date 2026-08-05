@@ -54,7 +54,7 @@ const TOKENS = `
   min-height: 100vh;
 }
 .kova-lp .wrap { max-width: 1120px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
-.kova-lp section { padding: clamp(64px, 9vw, 112px) 0; }
+.kova-lp section { padding: clamp(64px, 9vw, 112px) 0; scroll-margin-top: 72px; }
 .kova-lp h1, .kova-lp h2, .kova-lp h3 {
   font-family: "Inter Tight", system-ui, sans-serif;
   font-weight: 600; letter-spacing: -0.02em; margin: 0; line-height: 1.1;
