@@ -6,7 +6,7 @@ import { corsHeaders, jsonResponse, getAuthedUserFromReq } from "../_shared/goog
 async function tryFetchTranscript(url: string): Promise<string | null> {
   try {
     const r = await fetch(url, {
-      headers: { "User-Agent": "Mozilla/5.0 VisiOS-Bot" },
+      headers: { "User-Agent": "Mozilla/5.0 Kova-Bot" },
       redirect: "follow",
     });
     if (!r.ok) return null;

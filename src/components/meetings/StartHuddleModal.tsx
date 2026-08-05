@@ -106,7 +106,7 @@ export default function StartHuddleModal({ open, onClose, onStarted }: Props) {
           summary: name.trim(),
           start: start.toISOString(),
           end: end.toISOString(),
-          description: "Started from Visi OS huddle",
+          description: "Started from Kova huddle",
           attendees,
           addMeet: true,
         },

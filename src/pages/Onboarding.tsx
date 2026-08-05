@@ -61,7 +61,7 @@ export default function OnboardingPage() {
       .update({ onboarding_completed: true })
       .eq("id", user.id);
     await refreshOrgs();
-    toast({ title: "Welcome to VisiOS" });
+    toast({ title: "Welcome to Kova" });
     navigate(destination, { replace: true });
   };
 

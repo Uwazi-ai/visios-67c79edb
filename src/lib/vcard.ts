@@ -23,7 +23,7 @@ export function buildVCard(input: VCardInput): string {
   if (input.phone) lines.push(`TEL;TYPE=WORK:${input.phone}`);
   if (input.website) lines.push(`URL:${input.website}`);
   if (input.linkedin) lines.push(`URL;TYPE=LinkedIn:${input.linkedin}`);
-  lines.push("NOTE:Connected via Visi OS");
+  lines.push("NOTE:Connected via Kova");
   lines.push("END:VCARD");
   return lines.join("\r\n");
 }

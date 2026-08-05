@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 15000);
     const r = await fetch(parsed.toString(), {
-      headers: { "User-Agent": "VisiOS-KB/1.0 (+https://visios.lovable.app)" },
+      headers: { "User-Agent": "Kova-KB/1.0 (+https://visios.lovable.app)" },
       redirect: "manual",
       signal: controller.signal,
     }).finally(() => clearTimeout(timer));

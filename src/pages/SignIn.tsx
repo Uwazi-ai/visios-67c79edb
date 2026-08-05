@@ -82,8 +82,8 @@ export default function SignIn() {
           </h1>
           <p className="mx-auto mt-3" style={{ fontSize: 15, color: MUTED, maxWidth: 420, lineHeight: 1.5 }}>
             {tab === "signup"
-              ? "Create your VisiOS account. No credit card required."
-              : "Sign in to your VisiOS workspace."}
+              ? "Create your Kova account. No credit card required."
+              : "Sign in to your Kova workspace."}
           </p>
         </div>
         <AuthPanel tab={tab} setTab={setTab} />

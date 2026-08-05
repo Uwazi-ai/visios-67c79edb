@@ -5,7 +5,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_NAME = 'visios'
+const SITE_NAME = 'Kova'
 
 interface Props {
   inviterName?: string
@@ -24,7 +24,7 @@ const CalendarConnectInvite = ({ inviterName, recipientName, signInUrl }: Props)
       <Body style={main}>
         <Container style={container}>
           <Section style={brandRow}>
-            <Text style={brand}>VISI OS <span style={slash}>/</span> {SITE_NAME}</Text>
+            <Text style={brand}>KOVA <span style={slash}>/</span> {SITE_NAME}</Text>
           </Section>
           <Heading style={h1}>Connect your Google Calendar</Heading>
           <Text style={text}>{hi}</Text>

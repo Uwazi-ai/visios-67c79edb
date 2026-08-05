@@ -81,7 +81,7 @@ export default function AccountTab({ dangerOnly }: { dangerOnly?: boolean }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <SectionCard title="Plan" subtitle="Your Visi OS subscription.">
+      <SectionCard title="Plan" subtitle="Your Kova subscription.">
         <div className="grid grid-cols-3 gap-3 t-mono" style={{ fontSize: 11 }}>
           <div><div style={{ color: "var(--text-muted)" }}>Plan</div><div style={{ color: "var(--text-primary)", fontSize: 14, marginTop: 2 }}>Founder</div></div>
           <div><div style={{ color: "var(--text-muted)" }}>Status</div><div style={{ color: "#86efac", fontSize: 14, marginTop: 2 }}>Active</div></div>

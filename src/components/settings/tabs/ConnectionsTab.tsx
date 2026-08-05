@@ -101,7 +101,7 @@ export default function ConnectionsTab() {
     <div className="flex flex-col gap-4">
       <div>
         <p className="t-mono" style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-          Manage what Visi OS and Vision can access. Vision only reads data from sources you've enabled.
+          Manage what Kova and Vision can access. Vision only reads data from sources you've enabled.
         </p>
       </div>
 

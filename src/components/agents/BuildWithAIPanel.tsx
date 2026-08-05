@@ -46,7 +46,7 @@ export function BuildWithAIPanel({
     if (!description.trim()) { toast.error("Describe your workflow first"); return; }
     setThinking(true);
     try {
-      const system = `You are parsing a workflow description to create a Make.com automation for VisiOS.
+      const system = `You are parsing a workflow description to create a Make.com automation for Kova.
 Extract: trigger type (schedule/webhook/manual), trigger config (cron/event), steps (app + action), output (Slack/email/Supabase), and a plain-English explanation.
 
 Return STRICT JSON only with this shape:

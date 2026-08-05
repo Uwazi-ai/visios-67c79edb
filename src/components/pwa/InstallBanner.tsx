@@ -67,7 +67,7 @@ export const InstallBanner = () => {
         margin: "0 auto",
       }}
       role="dialog"
-      aria-label="Install Visi OS"
+      aria-label="Install Kova"
     >
       <div
         className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center"
@@ -77,7 +77,7 @@ export const InstallBanner = () => {
       </div>
       <div className="flex-1 min-w-0">
         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
-          Install Visi OS
+          Install Kova
         </div>
         <div className="t-mono" style={{ fontSize: 10 }}>
           {deferred ? (

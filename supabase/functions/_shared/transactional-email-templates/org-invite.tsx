@@ -5,7 +5,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_NAME = 'visios'
+const SITE_NAME = 'Kova'
 
 interface OrgInviteProps {
   orgName?: string
@@ -23,12 +23,12 @@ const OrgInviteEmail = ({ orgName, inviterName, signupUrl }: OrgInviteProps) => 
       <Body style={main}>
         <Container style={container}>
           <Section style={brandRow}>
-            <Text style={brand}>VISI OS <span style={slash}>/</span> {SITE_NAME}</Text>
+            <Text style={brand}>KOVA <span style={slash}>/</span> {SITE_NAME}</Text>
           </Section>
           <Heading style={h1}>You're invited to {org}</Heading>
           <Text style={text}>
             {inviterName ? `${inviterName} has invited you` : 'You have been invited'} to join{' '}
-            <strong>{org}</strong> on Visi OS — your team's unified workspace for email, tasks,
+            <strong>{org}</strong> on Kova — your team's unified workspace for email, tasks,
             calendar, and decisions.
           </Text>
           <Text style={text}>Sign in with the email this invite was sent to and you'll be added automatically.</Text>

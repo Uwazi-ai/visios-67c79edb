@@ -1,4 +1,4 @@
-// drive-proxy — server-side Google Drive helper for Visi OS.
+// drive-proxy — server-side Google Drive helper for Kova.
 // Actions:
 //   - drive_list_shared_drives: list shared drives the authed user can access
 //   - drive_search: search files within a specific Shared Drive (corpora=drive)

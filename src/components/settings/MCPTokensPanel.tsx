@@ -98,7 +98,7 @@ export default function MCPTokensPanel() {
         <div className="flex-1">
           <div className="text-sm font-medium text-white">MCP Tokens (Claude Desktop)</div>
           <p className="text-xs text-gray-400">
-            Personal API tokens that let Claude Desktop (or any MCP client) read and act on your VisiOS data — tasks, calendar, gmail, drive, contacts, grants. Each token is scoped to your user and your org memberships.
+            Personal API tokens that let Claude Desktop (or any MCP client) read and act on your Kova data — tasks, calendar, gmail, drive, contacts, grants. Each token is scoped to your user and your org memberships.
           </p>
         </div>
       </div>

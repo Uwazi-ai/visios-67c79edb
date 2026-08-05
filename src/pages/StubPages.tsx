@@ -24,7 +24,7 @@ const ComingSoon = ({ title }: Props) => {
         </div>
       </main>
       <footer className="px-5 py-5 text-center text-xs" style={{ borderTop: "1px solid #1a1a2e", color: "#6b7280" }}>
-        © 2026 VisiOS · Built by Uwazi.AI
+        © 2026 Kova · Built by Uwazi.AI
       </footer>
     </div>
   );
@@ -34,7 +34,7 @@ export const TermsPage = () => <ComingSoon title="Terms of Service" />;
 export const PrivacyPage = () => <ComingSoon title="Privacy Policy" />;
 export const ChangelogPage = () => <ComingSoon title="Changelog" />;
 export const RoadmapPage = () => <ComingSoon title="Roadmap" />;
-export const AboutPage = () => <ComingSoon title="About VisiOS" />;
+export const AboutPage = () => <ComingSoon title="About Kova" />;
 export const BlogPage = () => <ComingSoon title="Blog" />;
 
 export default ComingSoon;

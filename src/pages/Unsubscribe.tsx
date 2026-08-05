@@ -37,13 +37,13 @@ export default function Unsubscribe() {
   return (
     <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "var(--bg-page, #fff)" }}>
       <div className="glass max-w-md w-full p-8 text-center">
-        <div className="t-mono mb-3" style={{ fontSize: 11 }}>VISI OS / EMAIL PREFERENCES</div>
+        <div className="t-mono mb-3" style={{ fontSize: 11 }}>KOVA / EMAIL PREFERENCES</div>
         {state === "loading" && <div className="flex justify-center py-6"><Loader2 className="animate-spin" /></div>}
         {state === "valid" && (
           <>
             <h1 className="t-hero mb-3" style={{ fontSize: 24 }}>Unsubscribe?</h1>
             <p className="mb-6" style={{ color: "var(--text-muted)", fontSize: 14 }}>
-              You'll stop receiving non-essential emails from Visi OS.
+              You'll stop receiving non-essential emails from Kova.
             </p>
             <button onClick={confirm} disabled={busy} className="btn-primary">
               {busy ? <Loader2 size={12} className="animate-spin" /> : null} Confirm unsubscribe

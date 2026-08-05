@@ -245,7 +245,7 @@ export function ComposeView({
             <AlertCircle size={16} style={{ color: "#F59E0B", flexShrink: 0, marginTop: 2 }} />
             <div className="flex-1">
               <div style={{ fontSize: 12, color: "var(--text-primary)" }}>
-                No platforms connected yet. Connect your accounts in Settings to post directly from VisiOS.
+                No platforms connected yet. Connect your accounts in Settings to post directly from Kova.
               </div>
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("visios:social:goto-settings"))}

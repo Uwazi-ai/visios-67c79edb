@@ -10,7 +10,7 @@ type Platform = "instagram" | "facebook" | "tiktok" | "linkedin" | "youtube";
 interface InitBody {
   platform: Platform;
   brand?: string;
-  redirect_base?: string; // VisiOS app origin to redirect back to
+  redirect_base?: string; // Kova app origin to redirect back to
 }
 
 async function loadCreds(): Promise<Record<string, string>> {
