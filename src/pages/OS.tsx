@@ -15,6 +15,10 @@ import Inbox from "@/screens/Inbox";
 import CalendarScreen from "@/screens/Calendar";
 import Bookings from "@/screens/Bookings";
 import CardScreen from "@/screens/Card";
+import Raise from "@/screens/Raise";
+import Social from "@/screens/Social";
+import Campaigns from "@/screens/Campaigns";
+import Agents from "@/screens/Agents";
 
 /**
  * Screen registry. Port a screen by writing it under src/screens and adding
@@ -36,6 +40,10 @@ const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   calendar: CalendarScreen,
   bookings: Bookings,
   card: CardScreen,
+  raise: Raise,
+  social: Social,
+  campaigns: Campaigns,
+  agents: Agents,
 };
 
 
