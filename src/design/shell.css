@@ -748,3 +748,75 @@
 @media (max-width: 900px) {
   .kova .vo-call-ms { margin-left: 0; }
 }
+
+/* ---- Contacts ---------------------------------------------------- */
+.kova .vo-roster { display: flex; gap: var(--s-3); flex-wrap: wrap; }
+.kova .vo-rostercard {
+  display: flex; align-items: center; gap: var(--s-3); text-align: left; cursor: pointer;
+  font: inherit; color: var(--ink); background: var(--surface); padding: var(--s-3);
+  border-radius: var(--r-md); border: 1px solid var(--line); min-width: 268px;
+  border-left: 3px solid var(--ok-txt);
+}
+.kova .vo-rostercard[data-stated="false"] { border-left-color: var(--warn-txt); border-left-style: dashed; }
+.kova .vo-rostercard[data-active="true"] { border-color: var(--line-strong); box-shadow: 0 0 0 1px var(--line-strong) inset; }
+.kova .vo-rostername { font-size: var(--t-body); font-weight: 600; }
+.kova .vo-rosterpct { margin-left: auto; font-size: var(--t-body); color: var(--ok-txt); }
+.kova .vo-rosterpct[data-stated="false"] { color: var(--warn-txt); }
+
+.kova .vo-prov {
+  display: flex; flex-direction: column; gap: var(--s-3);
+  border: 1px solid var(--line); border-left: 4px solid var(--ok-txt);
+  border-radius: var(--r-md); padding: var(--s-3);
+}
+.kova .vo-prov[data-stated="false"] { border-style: dashed; border-left-color: var(--warn-txt); }
+.kova .vo-prov-line { margin: 0; font-size: var(--t-lede, 1.05rem); color: var(--ink); max-width: 72ch; }
+.kova .vo-prov-line[data-stated="false"] { color: var(--warn-txt); }
+
+.kova .vo-signals { display: grid; gap: var(--s-2); }
+.kova .vo-signal { border-top: 1px solid var(--line); padding-top: var(--s-2); display: grid; gap: 4px; }
+.kova .vo-signal-head { display: flex; align-items: center; gap: var(--s-2); }
+.kova .vo-signal-name { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-dim); min-width: 9ch; }
+.kova .vo-signal-state { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ok-txt); }
+.kova .vo-signal-state[data-state="weak"] { color: var(--warn-txt); }
+.kova .vo-signal-state[data-state="silent"] { color: var(--ink-dim); }
+.kova .vo-signal-bar { margin-left: auto; width: 120px; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.kova .vo-signal-bar > span { display: block; height: 100%; background: var(--ok-txt); }
+.kova .vo-signal-bar > span[data-state="weak"] { background: var(--warn-txt); }
+.kova .vo-signal-bar > span[data-state="silent"] { background: transparent; }
+.kova .vo-signal-read { font-size: var(--t-body); color: var(--ink); }
+.kova .vo-signal[data-state="silent"] .vo-signal-read { color: var(--ink-dim); font-style: italic; }
+
+.kova .vo-track { position: relative; height: 30px; }
+.kova .vo-track-axis { position: absolute; left: 0; right: 0; top: 13px; height: 1px; background: var(--line-strong); }
+.kova .vo-track-dot {
+  position: absolute; top: 8px; width: 11px; height: 11px; margin-left: -5px;
+  border-radius: 50%; background: var(--accent, var(--ok-txt)); border: 2px solid var(--surface);
+}
+.kova .vo-track-dot[data-channel="scan"] { background: var(--ok-txt); }
+.kova .vo-track-dot[data-channel="email"] { background: var(--ink-dim); }
+.kova .vo-track-dot[data-channel="call"] { background: var(--ink); }
+.kova .vo-track-dot[data-channel="event"] { background: var(--warn-txt); }
+.kova .vo-track-end { position: absolute; right: 0; top: 0; font-size: var(--t-micro); color: var(--ink-dim); }
+
+.kova .vo-tp { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.kova .vo-tp li { display: flex; gap: var(--s-2); font-size: var(--t-body); color: var(--ink); }
+.kova .vo-tp-when { font-size: var(--t-micro); color: var(--ink-dim); min-width: 5ch; }
+.kova .vo-crossref {
+  border-left: 3px solid var(--warn-txt); padding: var(--s-2) var(--s-3);
+  font-size: var(--t-body); color: var(--ink); max-width: 72ch;
+}
+
+.kova .vo-found { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
+.kova .vo-found li { border-top: 1px solid var(--line); padding-top: var(--s-2); display: grid; gap: 2px; }
+.kova .vo-found-src { font-size: var(--t-body); color: var(--ink); }
+.kova .vo-found-what { font-size: var(--t-micro); color: var(--ink-dim); }
+.kova .vo-found-url { font-family: var(--font-mono, ui-monospace, monospace); }
+.kova .vo-nomatch { border: 1px dashed var(--warn-txt); border-radius: var(--r-md); padding: var(--s-3); display: grid; gap: 4px; }
+
+.kova .vo-draft {
+  border: 1px solid var(--line); border-left: 3px solid var(--ok-txt);
+  border-radius: var(--r-md); padding: var(--s-3); display: grid; gap: var(--s-2);
+}
+.kova .vo-draft[data-stated="false"] { border-style: dashed; border-left-color: var(--warn-txt); }
+.kova .vo-draft-open { margin: 0; font-size: var(--t-body); color: var(--ink); font-weight: 600; }
+.kova .vo-draft-body { margin: 0; font-size: var(--t-body); color: var(--ink-dim); }
