@@ -50,7 +50,7 @@ export const FlipCard = ({
 
       <span className="vo-flip-face vo-flip-back" style={{ borderTop: `3px solid ${accent}` }}>
         <span className="vo-qr">
-          <QRCodeSVG value={card.url} size={132} bgColor="#FFFFFF" fgColor="#101014" level="M" />
+          <QRCodeSVG value={card.url} size={132} bgColor="var(--qr-paper)" fgColor="var(--qr-ink)" level="M" />
         </span>
         <span className="vo-card-url">{card.url}</span>
         <span className="vo-card-hint">Tap to flip back</span>

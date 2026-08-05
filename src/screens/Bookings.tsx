@@ -9,7 +9,8 @@ import { useAppState } from "@/lib/AppState";
  * and rules, and the guest view sitting permanently next to the config.
  */
 const Bookings = () => {
-  const { orgs, inScope } = useAppState();
+  const { orgs, inScope, scope } = useAppState();
+  const scopeName = orgs.find((o) => o.id === scope)?.name ?? "All organizations";
   const scoped = useMemo(() => LINKS.filter((l) => inScope(l.org)), [inScope]);
   const [selectedId, setSelectedId] = useState(scoped[0]?.id ?? LINKS[0].id);
   const link = scoped.find((l) => l.id === selectedId) ?? scoped[0];
@@ -20,8 +21,8 @@ const Bookings = () => {
         <SectionHead title="Bookings" />
         <Card ungated>
           <div className="vo-empty">
-            <Eyebrow>Nothing in this scope</Eyebrow>
-            <Desc>No booking links belong to the current workspace.</Desc>
+            <Eyebrow>{scopeName}</Eyebrow>
+            <Desc>No booking links for {scopeName}. Switch scope in the rail to see the rest.</Desc>
           </div>
         </Card>
       </div>

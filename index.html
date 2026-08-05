@@ -8,7 +8,10 @@
     <meta name="author" content="Visi OS" />
     <meta name="theme-color" content="#02020A" />
     <style>
-      /* Pre-bundle fallback: the page is styled even if the JS never loads. */
+      /* Pre-bundle fallback: the page is styled even if the JS never loads.
+         The only hexes outside tokens.css, and deliberately so — this block
+         runs before any stylesheet resolves, so it cannot read var(--bg).
+         Keep it in sync with --bg/--text in src/design/tokens.css. */
       html[data-theme="dark"] { background: #08080B; color: #F7F7F9; }
       html[data-theme="light"] { background: #F4F4F7; color: #101014; }
       body { margin: 0; font-family: "Inter", system-ui, sans-serif; }

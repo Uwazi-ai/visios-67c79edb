@@ -17,7 +17,8 @@ import { useAppState } from "@/lib/AppState";
  * approved action reverting to pending would be the one unforgivable bug.
  */
 const Chat = () => {
-  const { inScope } = useAppState();
+  const { orgs, inScope, scope } = useAppState();
+  const scopeName = orgs.find((o) => o.id === scope)?.name ?? "All organizations";
   const { channels, messages, authors } = useChat();
   const [threadId, setThreadId] = useState<string | null>(null);
 
@@ -117,8 +118,8 @@ const Chat = () => {
             </div>
           ) : (
             <div className="vo-empty">
-              <Eyebrow>Nothing in scope</Eyebrow>
-              <Desc>No conversation belongs to this workspace. Switch scope in the rail.</Desc>
+              <Eyebrow>{scopeName}</Eyebrow>
+              <Desc>No conversations for {scopeName}. Switch scope in the rail to see the rest.</Desc>
             </div>
           )}
         </Card>

@@ -16,11 +16,11 @@ export interface PlatformDef {
 }
 
 export const PLATFORMS: PlatformDef[] = [
-  { id: "linkedin", label: "LinkedIn", color: "#2563EB" },
-  { id: "instagram", label: "Instagram", color: "#DB2777" },
-  { id: "x", label: "X", color: "#64748B" },
-  { id: "youtube", label: "YouTube", color: "#DC2626" },
-  { id: "newsletter", label: "Newsletter", color: "#0D9488" },
+  { id: "linkedin", label: "LinkedIn", color: "var(--sw-blue)" },
+  { id: "instagram", label: "Instagram", color: "var(--sw-magenta)" },
+  { id: "x", label: "X", color: "var(--sw-slate)" },
+  { id: "youtube", label: "YouTube", color: "var(--sw-red)" },
+  { id: "newsletter", label: "Newsletter", color: "var(--sw-teal)" },
 ];
 
 export const platformDef = (id: Platform) =>
