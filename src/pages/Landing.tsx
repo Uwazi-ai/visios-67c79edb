@@ -1,266 +1,284 @@
 import { useEffect, useRef, useState, ReactNode } from "react";
 import { Link } from "react-router-dom";
-import {
-  Layers, Sparkles, Plug, BookOpen, Check, Minus, ChevronDown, ArrowRight,
-  Mail, Calendar, FileText, Users,
-} from "lucide-react";
+import { Layers, Sparkles, ScanLine, Plug, ChevronDown, Check, Minus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import kovaWordmark from "@/assets/kova-wordmark.png";
 
-/* ── design tokens (page-local, dark marketing surface) ───────────── */
-const BG = "#0F172A";
-const SURFACE = "#1E293B";
-const ELEV = "#334155";
-const BLUE = "#0052CC";
-const GRAD = "linear-gradient(135deg, #0052CC 0%, #4D7FFF 100%)";
-const TEXT = "#F8FAFC";
-const MUTED = "#94A3B8";
-const DISPLAY = "'Monument Extended', system-ui, sans-serif";
-const BODY = "'Inter', system-ui, sans-serif";
+/* ──────────────────────────────────────────────────────────────
+   Kova landing — v4.1
+   THE COLOUR RULE: blue is the app, magenta is the thinking.
+   All colour lives in the token block below. No hex elsewhere.
+   ────────────────────────────────────────────────────────────── */
+
+const TOKENS = `
+.kova-lp {
+  --bg:       #08080B;
+  --nav-bg:   #0B0B0F;
+  --card:     #131317;
+  --inset:    #1D1D23;
+  --line:     #26262E;
+  --text:     #F7F7F9;
+  --dim:      #96969F;
+
+  --a-500:    #2563EB;
+  --a-400:    #3B82F6;
+  --a-300:    #60A5FA;
+
+  --p-500:    #D21FFF;
+  --p-600:    #BD1CE5;
+  --p-300:    #E272FF;
+
+  --ok:       #22C55E;
+  --warn:     #F59E0B;
+  --err:      #EF4444;
+
+  --org-blue:  #2563EB;
+  --org-green: #059669;
+  --org-red:   #EF4444;
+
+  --brand-gradient: linear-gradient(100deg,
+    #000E21 0%, #003276 14%, #0046A3 26%, #2542BC 38%,
+    #842FE1 52%, #B425F4 62%, #D21FFF 72%, #DF5FFF 84%, #EF9FFF 100%);
+
+  --m-hero:  clamp(38px, 7.2vw, 68px);
+  --m-h2:    clamp(28px, 4.4vw, 42px);
+  --m-h3:    clamp(19px, 2.2vw, 24px);
+  --m-body:  clamp(16px, 1.4vw, 17px);
+  --m-stat:  clamp(34px, 6.4vw, 52px);
+
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  min-height: 100vh;
+}
+.kova-lp .wrap { max-width: 1120px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+.kova-lp section { padding: clamp(64px, 9vw, 112px) 0; scroll-margin-top: 72px; }
+.kova-lp h1, .kova-lp h2, .kova-lp h3 {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-weight: 600; letter-spacing: -0.02em; margin: 0; line-height: 1.1;
+}
+.kova-lp h1 { font-size: var(--m-hero); }
+.kova-lp h2 { font-size: var(--m-h2); }
+.kova-lp h3 { font-size: var(--m-h3); }
+.kova-lp p { margin: 0; font-size: var(--m-body); line-height: 1.65; max-width: 68ch; }
+.kova-lp .dim { color: var(--dim); }
+.kova-lp .eyebrow {
+  font-weight: 500; text-transform: uppercase; letter-spacing: 0.16em;
+  font-size: 11px; color: var(--dim);
+}
+.kova-lp .stat {
+  font-family: "Inter Tight", system-ui, sans-serif;
+  font-weight: 700; letter-spacing: -0.04em; font-size: var(--m-stat); line-height: 1;
+}
+.kova-lp .card {
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+}
+.kova-lp .inset { background: var(--inset); border-radius: 12px; }
+.kova-lp .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 44px; padding: 0 20px; border-radius: 10px; font-size: 15px; font-weight: 500;
+  border: 1px solid transparent; cursor: pointer; text-decoration: none;
+  transition: background 150ms cubic-bezier(0.4,0,0.2,1);
+}
+.kova-lp .btn-lg { height: 48px; padding: 0 24px; font-size: 16px; }
+.kova-lp .btn-primary { background: var(--a-500); color: var(--text); }
+.kova-lp .btn-primary:hover { background: var(--a-400); }
+.kova-lp .btn-secondary { background: var(--inset); color: var(--text); }
+.kova-lp .btn-ghost { border-color: var(--line); color: var(--text); background: transparent; }
+.kova-lp a:focus-visible, .kova-lp button:focus-visible,
+.kova-lp input:focus-visible, .kova-lp select:focus-visible, .kova-lp summary:focus-visible {
+  outline: 2px solid var(--a-400); outline-offset: 2px;
+}
+.kova-lp .pill {
+  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
+  padding: 3px 10px; font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
+  text-transform: uppercase; border: 1px solid var(--line); color: var(--text);
+}
+.kova-lp .dot { width: 6px; height: 6px; border-radius: 999px; }
+.kova-lp .ai-mark {
+  display: inline-flex; align-items: center; gap: 5px; border-radius: 999px;
+  padding: 2px 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--p-300); border: 1px solid var(--p-600);
+}
+.kova-lp .grid2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+.kova-lp .grid3 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.kova-lp .grid4 { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.kova-lp input, .kova-lp select {
+  width: 100%; height: 48px; border-radius: 10px; padding: 0 14px;
+  background: var(--inset); border: 1px solid var(--line); color: var(--text);
+  font-size: 15px; font-family: inherit;
+}
+.kova-lp .reveal { opacity: 0; transform: translateY(8px); }
+.kova-lp .reveal.in {
+  opacity: 1; transform: none;
+  transition: opacity 180ms cubic-bezier(0.4,0,0.2,1), transform 180ms cubic-bezier(0.4,0,0.2,1);
+}
+@media (min-width: 860px) {
+  .kova-lp .grid2 { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .kova-lp .grid3 { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .kova-lp .grid4 { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kova-lp .reveal { opacity: 1; transform: none; transition: none; }
+}
+`;
 
 const ORGS = [
-  { name: "Northwind Studio", short: "Northwind", color: "#0052CC" },
-  { name: "Redline Capital", short: "Redline", color: "#DC2626" },
-  { name: "Verdant Labs", short: "Verdant", color: "#16A34A" },
+  { label: "Northwind", color: "var(--org-blue)" },
+  { label: "Verdant", color: "var(--org-green)" },
+  { label: "Redline", color: "var(--org-red)" },
 ];
 
-/* ── helpers ──────────────────────────────────────────────────────── */
 function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setShown(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      ([e]) => e.isIntersecting && setShown(true),
-      { threshold: 0.12 }
-    );
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setShown(true), { threshold: 0.1 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
   return (
-    <div
-      ref={ref}
-      style={{
-        opacity: shown ? 1 : 0,
-        transform: shown ? "none" : "translateY(18px)",
-        transition: `opacity .6s ease ${delay}ms, transform .6s ease ${delay}ms`,
-      }}
-    >
+    <div ref={ref} className={`reveal${shown ? " in" : ""}`} style={{ transitionDelay: `${delay}ms` }}>
       {children}
     </div>
   );
 }
 
-function Section({
-  id, children, tight,
-}: { id?: string; children: ReactNode; tight?: boolean }) {
+function OrgPill({ label, color }: { label: string; color: string }) {
   return (
-    <section id={id} className={tight ? "py-14 md:py-16" : "py-14 md:py-24"}>
-      <div className="mx-auto w-full max-w-[1200px] px-5 md:px-8">{children}</div>
-    </section>
-  );
-}
-
-function H2({ children }: { children: ReactNode }) {
-  return (
-    <h2
-      className="text-[1.9rem] md:text-[2.6rem] leading-[1.1] tracking-[-0.02em]"
-      style={{ fontFamily: DISPLAY, color: TEXT }}
-    >
-      {children}
-    </h2>
-  );
-}
-
-function GradButton({
-  children, onClick, as = "button", to, type,
-}: {
-  children: ReactNode; onClick?: () => void; as?: "button" | "link" | "a";
-  to?: string; type?: "button" | "submit";
-}) {
-  const cls =
-    "inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-[0.95rem] font-semibold text-white transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#4D7FFF] motion-reduce:transform-none";
-  const style = { background: GRAD, fontFamily: BODY };
-  if (as === "link" && to) return <Link to={to} className={cls} style={style}>{children}</Link>;
-  if (as === "a" && to) return <a href={to} className={cls} style={style}>{children}</a>;
-  return <button type={type ?? "button"} onClick={onClick} className={cls} style={style}>{children}</button>;
-}
-
-function OrgPill({ name, color, dense }: { name: string; color: string; dense?: boolean }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-2 rounded-full font-medium ${dense ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-xs"}`}
-      style={{
-        background: `${color}22`,
-        color: "#F8FAFC",
-        border: `1px solid ${color}66`,
-        fontFamily: BODY,
-      }}
-    >
-      <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: color }} />
-      {name}
+    <span className="pill">
+      <span className="dot" style={{ background: color }} />
+      {label}
     </span>
   );
 }
 
-function Card({ children, accent, className = "" }: { children: ReactNode; accent?: string; className?: string }) {
-  return (
-    <div
-      className={`relative overflow-hidden rounded-xl p-6 ${className}`}
-      style={{ background: SURFACE, border: `1px solid ${ELEV}` }}
-    >
-      <span
-        aria-hidden
-        className="absolute inset-y-0 left-0 w-[3px]"
-        style={{ background: accent ?? GRAD }}
-      />
-      {children}
-    </div>
-  );
-}
-
-/* ── hero product frame: always multi-org ─────────────────────────── */
+/* Product frame — always shows more than one org. */
 function ProductFrame() {
-  const feed = [
-    { org: 0, icon: Mail, title: "Contract redline from Acme legal", meta: "Inbox · 12m ago" },
-    { org: 1, icon: Calendar, title: "LP update call moved to Thursday", meta: "Calendar · 40m ago" },
-    { org: 2, icon: FileText, title: "Q3 grant narrative ready for review", meta: "Drive · 1h ago" },
-    { org: 0, icon: Users, title: "New lead: Harper & Co — referred by Redline", meta: "Pipeline · 2h ago" },
-    { org: 1, icon: Mail, title: "Wire confirmation, seed tranche 2", meta: "Inbox · 3h ago" },
+  const rows = [
+    { org: ORGS[0], text: "Contract review — Q3 retainer renewal", meta: "Inbox · 2:14 PM" },
+    { org: ORGS[1], text: "Series A data room checklist updated", meta: "Drive · 1:02 PM" },
+    { org: ORGS[2], text: "Standup moved to Thursday 9:30 AM", meta: "Calendar · 11:40 AM" },
   ];
   return (
-    <div
-      className="rounded-2xl p-3 md:p-4"
-      style={{ background: SURFACE, border: `1px solid ${ELEV}` }}
-      role="img"
-      aria-label="Kova dashboard showing three organizations — Northwind Studio, Redline Capital and Verdant Labs — side by side in one feed"
-    >
-      <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: BG, border: `1px solid ${ELEV}` }}>
-        <span className="mr-1 text-[11px] uppercase tracking-[0.14em]" style={{ color: MUTED, fontFamily: BODY }}>
-          All orgs
-        </span>
-        {ORGS.map((o) => <OrgPill key={o.name} name={o.short} color={o.color} dense />)}
+    <div className="card" style={{ overflow: "hidden" }}>
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+          padding: "12px 14px", borderBottom: "1px solid var(--line)", background: "var(--nav-bg)",
+        }}
+      >
+        {ORGS.map((o) => <OrgPill key={o.label} {...o} />)}
+        <span className="dim" style={{ fontSize: 11, marginLeft: "auto" }}>All orgs</span>
       </div>
-
-      <div className="grid gap-3 md:grid-cols-[1.5fr_1fr]">
-        <div className="space-y-2">
-          {feed.map((f, i) => {
-            const org = ORGS[f.org];
-            const Icon = f.icon;
-            return (
-              <div
-                key={i}
-                className="flex items-start gap-3 rounded-lg px-3 py-2.5"
-                style={{ background: BG, borderLeft: `3px solid ${org.color}`, border: `1px solid ${ELEV}`, borderLeftWidth: 3, borderLeftColor: org.color }}
-              >
-                <Icon className="mt-0.5 h-4 w-4 shrink-0" style={{ color: org.color }} aria-hidden />
-                <div className="min-w-0">
-                  <p className="truncate text-[13px]" style={{ color: TEXT, fontFamily: BODY }}>{f.title}</p>
-                  <p className="text-[11px]" style={{ color: MUTED, fontFamily: BODY }}>
-                    {org.short} · {f.meta}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="rounded-lg p-3" style={{ background: BG, border: `1px solid ${ELEV}` }}>
-          <div className="mb-2 flex items-center gap-2">
-            <Sparkles className="h-4 w-4" style={{ color: "#4D7FFF" }} aria-hidden />
-            <span className="text-[11px] uppercase tracking-[0.14em]" style={{ color: MUTED, fontFamily: BODY }}>
-              AI generated · Vision
-            </span>
-          </div>
-          <p className="text-[13px] leading-relaxed" style={{ color: TEXT, fontFamily: BODY }}>
-            Harper &amp; Co came in through Northwind but the intro came from a Redline LP.
-            Same person, two ventures — worth one reply, not two.
-          </p>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            <OrgPill name="Northwind" color={ORGS[0].color} dense />
-            <OrgPill name="Redline" color={ORGS[1].color} dense />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── feature illustration (also multi-org) ────────────────────────── */
-function FeatureVisual({ lines }: { lines: string[] }) {
-  return (
-    <div className="rounded-xl p-4" style={{ background: SURFACE, border: `1px solid ${ELEV}` }}>
-      <div className="mb-3 flex flex-wrap gap-1.5">
-        {ORGS.map((o) => <OrgPill key={o.name} name={o.short} color={o.color} dense />)}
-      </div>
-      <div className="space-y-2">
-        {lines.map((l, i) => {
-          const org = ORGS[i % 3];
-          return (
-            <div
-              key={l}
-              className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-[13px]"
-              style={{ background: BG, border: `1px solid ${ELEV}`, borderLeftWidth: 3, borderLeftColor: org.color, color: TEXT, fontFamily: BODY }}
-            >
-              <span className="text-[11px]" style={{ color: MUTED }}>{org.short}</span>
-              <span className="truncate">{l}</span>
+      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+        {rows.map((r) => (
+          <div
+            key={r.text}
+            className="inset"
+            style={{ padding: "12px 14px", borderLeft: `3px solid ${r.org.color}` }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 500 }}>{r.text}</div>
+            <div className="dim" style={{ fontSize: 12, marginTop: 4 }}>
+              {r.org.label} · {r.meta}
             </div>
-          );
-        })}
+          </div>
+        ))}
+        <div
+          style={{
+            padding: "12px 14px", borderRadius: 12,
+            border: "1px dashed var(--p-600)", background: "var(--inset)", opacity: 0.92,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <span className="ai-mark"><Sparkles size={11} /> Vision</span>
+            <span className="dim" style={{ fontSize: 11 }}>Draft — not sent</span>
+          </div>
+          <div style={{ fontSize: 14 }}>
+            Northwind's renewal and Verdant's raise both land next Tuesday. Move the standup?
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ── page ─────────────────────────────────────────────────────────── */
-const FEATURES = [
+/* Section 4 visual: authored beside model-written. */
+function MarkVisual() {
+  return (
+    <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+      <div className="inset" style={{ padding: 14, borderLeft: "3px solid var(--org-blue)" }}>
+        <div className="eyebrow" style={{ marginBottom: 6 }}>You wrote this</div>
+        <div style={{ fontSize: 14 }}>Confirming Thursday. I'll bring the updated deck.</div>
+      </div>
+      <div style={{ padding: 14, borderRadius: 12, border: "1px dashed var(--p-600)", background: "var(--inset)", opacity: 0.92 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <span className="ai-mark"><Sparkles size={11} /> Kova wrote this</span>
+        </div>
+        <div style={{ fontSize: 14 }}>
+          Suggested reply: propose Thursday 9:30 AM, attach the Q3 summary.
+        </div>
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <button className="btn btn-primary" style={{ height: 36, fontSize: 13 }}>Approve</button>
+          <button className="btn btn-ghost" style={{ height: 36, fontSize: 13 }}>Discard</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const HOW = [
   {
     icon: Layers,
     title: "One workspace, every venture",
-    body: "Each org is a first-class citizen, color-coded and scoped, with a real view across all of them. Not a switcher bolted onto separate accounts.",
-    lines: ["Pipeline · 14 open", "Portfolio · 3 active deals", "Programs · 6 in flight"],
+    body: "Each organisation is a first-class citizen, colour-coded and scoped, with a real view across all of them. Not a switcher bolted onto separate accounts.",
   },
   {
     icon: Sparkles,
     title: "An AI chief of staff that sees everything",
-    body: "Vision reads across all your entities at once: email, calendar, Drive, Slack, meetings, pipeline. Six personas — Chief of Staff, Writer, Researcher, Analyst, Advisor, Creative Director.",
-    lines: ["Draft the LP update", "Summarize this week across orgs", "Who have I not replied to?"],
+    body: "Vision reads across every entity at once: email, calendar, drive, meetings, pipeline. Six personas — Chief of Staff, Writer, Researcher, Analyst, Advisor, Creative Director.",
+  },
+  {
+    icon: ScanLine,
+    title: "You can always tell what it wrote",
+    body: "Model output carries a magenta mark; anything you authored stays blue. Nothing sends until you approve it.",
   },
   {
     icon: Plug,
     title: "Built on the tools you already run on",
-    body: "Google Workspace-native. Gmail, Calendar and Drive stay your source of truth. Kova is the layer that makes sense of them. No migration.",
-    lines: ["Gmail connected", "Calendar connected", "Drive connected"],
-  },
-  {
-    icon: BookOpen,
-    title: "The system of record for decisions",
-    body: "Task tools track what's due. Kova holds why things were decided — across every venture, retrievable later.",
-    lines: ["Why we dropped the retainer", "Why we moved the raise to Q4", "Why we split the program"],
+    body: "Google Workspace-native. Gmail, Calendar and Drive stay your source of truth. No migration.",
   },
 ];
 
-const FAQS = [
-  {
-    q: "Isn't this just Notion with AI?",
-    a: "Notion gives you a workspace per company and a switcher. Nothing is shared, nothing is visible across them, and the AI only sees whichever one you're currently in. That's the problem we exist to solve.",
-  },
-  {
-    q: "We're small — is this overkill?",
-    a: "If you run one company, we're probably not for you yet. If you run two, you already feel it.",
-  },
-  {
-    q: "What about SOC 2?",
-    a: "We're not certified yet, and we'd rather say so. Google OAuth means your Workspace data stays in Workspace — we read it live, we don't copy it. If you need SOC 2 today, we're not your vendor yet.",
-  },
-  {
-    q: "What happens when a big player ships this?",
-    a: "They might. But retrofitting multi-entity into a single-workspace product is a rebuild, not a release.",
-  },
+const AUDIENCE = [
+  { title: "Multi-brand agencies", color: "var(--org-blue)", body: "One org per client. One contact book behind all of them." },
+  { title: "Portfolio entrepreneurs", color: "var(--org-green)", body: "You didn't start a second business to double your admin." },
+  { title: "Fractional executives", color: "var(--org-red)", body: "Every client, one command center. Four clients means four stacks and a Monday spent remembering where everything is." },
+];
+
+const COMPARE = [
+  ["Multiple businesses", "Separate workspaces, manual switching", "One system, all orgs"],
+  ["AI context", "Sees only the workspace you're in", "Sees across every org"],
+  ["Human vs. AI output", "Indistinguishable", "Marked, always"],
+  ["Setup", "Rebuild your stack", "Connects to Google Workspace"],
+];
+
+const TIERS = [
+  { name: "Free", price: 0, unit: "", orgs: "2 orgs, 1 seat", line: "See both your businesses in one place." },
+  { name: "Starter", price: 29, unit: "/seat", orgs: "2 orgs, 3 seats", line: "Everything in one place, for one business." },
+  { name: "Growth", price: 79, unit: "/seat", orgs: "5 orgs, 25 seats", line: "Every venture you run, one system.", popular: true },
+  { name: "Enterprise", price: null, unit: "", orgs: "Unlimited orgs and seats", line: "White-label available." },
+];
+
+const FAQ = [
+  ["Isn't this just Notion with AI?", "Notion gives you a workspace per company and a switcher. Nothing is shared, nothing is visible across them, and the AI only sees whichever one you're in."],
+  ["We're small — is this overkill?", "If you run one company, we're probably not for you yet. If you run two, you already feel it."],
+  ["What about SOC 2?", "Not certified yet, and we'd rather say so. Google OAuth means your Workspace data stays in Workspace — we read it live, we don't copy it. If you need SOC 2 today, we're not your vendor yet."],
+  ["What happens when a big player ships this?", "They might. Retrofitting multi-entity into a single-workspace product is a rebuild, not a release."],
 ];
 
 export default function Landing() {
@@ -268,12 +286,15 @@ export default function Landing() {
   const [email, setEmail] = useState("");
   const [orgCount, setOrgCount] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "ok" | "dupe" | "error">("idle");
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
     document.title = "Kova — One workspace. Every venture.";
     const desc = document.querySelector('meta[name="description"]');
-    if (desc) desc.setAttribute("content", "Kova is the AI command center for operators running more than one business — every company, client and brand in a single system.");
+    if (desc)
+      desc.setAttribute(
+        "content",
+        "Kova is the AI command center for operators running more than one business — every company, client and brand in a single system."
+      );
   }, []);
 
   const submit = async (e: React.FormEvent) => {
@@ -294,374 +315,316 @@ export default function Landing() {
     setStatus("ok");
   };
 
-  const price = (n: number) => (annual ? Math.round(n * 10 / 12) : n);
+  const price = (n: number) => (annual ? Math.round((n * 10) / 12) : n);
 
   return (
-    <div style={{ background: BG, color: TEXT, fontFamily: BODY }} className="min-h-screen">
-      {/* Nav */}
+    <div className="kova-lp">
+      <style>{TOKENS}</style>
+
+      {/* 1 — Nav */}
       <header
-        className="fixed inset-x-0 top-0 z-50 backdrop-blur-xl"
-        style={{ background: "rgba(15,23,42,0.72)", borderBottom: `1px solid ${ELEV}` }}
+        style={{
+          position: "fixed", top: 0, left: 0, right: 0, zIndex: 40, height: 64,
+          background: "color-mix(in srgb, var(--nav-bg) 85%, transparent)",
+          backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+          borderBottom: "1px solid var(--line)",
+        }}
       >
-        <nav className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-5 py-3.5 md:px-8">
-          <a href="#top" className="text-lg tracking-[0.02em]" style={{ fontFamily: DISPLAY, color: TEXT }}>
-            Kova
-          </a>
-          <div className="hidden items-center gap-8 text-sm md:flex" style={{ color: MUTED }}>
-            <a href="#product" className="hover:text-white">Product</a>
-            <a href="#who" className="hover:text-white">Who It's For</a>
-            <a href="#pricing" className="hover:text-white">Pricing</a>
-          </div>
-          <GradButton as="link" to="/login">Start free</GradButton>
-        </nav>
+        <div className="wrap" style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Link to="/" aria-label="Kova home" style={{ display: "flex", alignItems: "center" }}>
+            <img src={kovaWordmark} alt="Kova" style={{ height: 22, width: "auto", filter: "grayscale(1) brightness(3)" }} />
+          </Link>
+          <nav className="dim" style={{ display: "flex", gap: 24, fontSize: 14 }}>
+            <a href="#product" style={{ color: "inherit", textDecoration: "none" }}>Product</a>
+            <a href="#who" style={{ color: "inherit", textDecoration: "none" }}>Who It's For</a>
+            <a href="#pricing" style={{ color: "inherit", textDecoration: "none" }}>Pricing</a>
+          </nav>
+          <Link to="/login?tab=signup" className="btn btn-primary">Start free</Link>
+        </div>
       </header>
 
-      <main id="top" className="pt-20">
-        {/* Hero */}
-        <Section>
-          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.05fr]">
+      <main style={{ paddingTop: 64 }}>
+        {/* 2 — Hero */}
+        <section>
+          <div className="wrap grid2" style={{ alignItems: "center" }}>
             <Reveal>
-              <h1
-                className="tracking-[-0.02em]"
-                style={{ fontFamily: DISPLAY, fontSize: "clamp(2.75rem, 6vw, 4.5rem)", lineHeight: 1.02 }}
-              >
-                One workspace.<br />Every venture.
-              </h1>
-              <p className="mt-6 max-w-xl text-[1.0625rem] leading-[1.7]" style={{ color: MUTED }}>
-                Kova is the AI command center for operators running more than one business.
-                Your companies, clients, and brands in a single system — with an AI chief of
-                staff that sees across all of them.
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <GradButton as="link" to="/login">
-                  Start free — connect your first two orgs <ArrowRight className="h-4 w-4" aria-hidden />
-                </GradButton>
-                <a
-                  href="#product"
-                  className="rounded-xl px-6 py-3 text-[0.95rem] font-medium"
-                  style={{ border: `1px solid ${ELEV}`, color: TEXT }}
-                >
-                  See how it works
-                </a>
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <h1>One workspace.<br />Every venture.</h1>
+                <p className="dim" style={{ maxWidth: "60ch" }}>
+                  Kova is the AI command center for operators running more than one business.
+                  Your companies, clients, and brands in a single system — with an AI chief of
+                  staff that sees across all of them.
+                </p>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <Link to="/login?tab=signup" className="btn btn-primary btn-lg">
+                    Start free — connect your first two orgs
+                  </Link>
+                  <a href="#product" className="btn btn-ghost btn-lg">See how it works</a>
+                </div>
+                <div className="dim" style={{ fontSize: 13 }}>
+                  Built by an operator running six organisations. Used daily to run all of them.
+                </div>
               </div>
-              <p className="mt-6 text-[13px]" style={{ color: MUTED }}>
-                Built by an operator running three organizations. Used daily to run all of them.
+            </Reveal>
+            <Reveal delay={80}><ProductFrame /></Reveal>
+          </div>
+        </section>
+
+        {/* 3 — The problem */}
+        <section>
+          <div className="wrap">
+            <Reveal>
+              <h2 style={{ maxWidth: "18ch" }}>Every tool assumes you run one company.</h2>
+            </Reveal>
+            <div className="grid3" style={{ marginTop: 36 }}>
+              {[
+                ["Three workspaces", "A login for each business. Nothing shared, nothing connected."],
+                ["Three sets of context", "The lead from one brand never reaches the other's pipeline."],
+                ["One person holding it together", "You are the integration layer between your own companies."],
+              ].map(([t, b], i) => (
+                <Reveal key={t} delay={i * 60}>
+                  <div className="card" style={{ padding: 24, height: "100%" }}>
+                    <h3>{t}</h3>
+                    <p className="dim" style={{ marginTop: 10, fontSize: 15 }}>{b}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+            <p className="dim" style={{ fontSize: 13, marginTop: 24 }}>
+              Harvard Business Review found workers toggle between applications roughly 1,200 times
+              a day — losing just under four hours a week, about 9% of work time, reorienting.
+            </p>
+          </div>
+        </section>
+
+        {/* 4 — How it works */}
+        <section id="product">
+          <div className="wrap">
+            <Reveal><div className="eyebrow">How it works</div></Reveal>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20, marginTop: 28 }}>
+              {HOW.map((h, i) => {
+                const Icon = h.icon;
+                const flip = i % 2 === 1;
+                return (
+                  <Reveal key={h.title} delay={i * 50}>
+                    <div className="card grid2" style={{ padding: 24, alignItems: "center" }}>
+                      <div style={{ order: flip ? 2 : 1 }}>
+                        <Icon size={22} style={{ color: "var(--a-300)" }} />
+                        <h3 style={{ marginTop: 14 }}>{h.title}</h3>
+                        <p className="dim" style={{ marginTop: 10, fontSize: 15 }}>{h.body}</p>
+                      </div>
+                      <div style={{ order: flip ? 1 : 2 }}>
+                        {i === 2 ? <MarkVisual /> : <ProductFrame />}
+                      </div>
+                    </div>
+                  </Reveal>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* 5 — Who it's for */}
+        <section id="who">
+          <div className="wrap">
+            <Reveal><h2>Who it's for</h2></Reveal>
+            <div className="grid3" style={{ marginTop: 32 }}>
+              {AUDIENCE.map((a, i) => (
+                <Reveal key={a.title} delay={i * 60}>
+                  <div className="card" style={{ padding: 24, borderLeft: `3px solid ${a.color}`, height: "100%" }}>
+                    <h3>{a.title}</h3>
+                    <p className="dim" style={{ marginTop: 10, fontSize: 15 }}>{a.body}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 6 — Why not just use Notion */}
+        <section>
+          <div className="wrap">
+            <Reveal>
+              <h2>Everyone's shipping an AI assistant this year.</h2>
+              <p className="dim" style={{ marginTop: 12 }}>
+                Nobody's shipping one that works across all your companies.
               </p>
             </Reveal>
-            <Reveal delay={120}><ProductFrame /></Reveal>
-          </div>
-        </Section>
-
-        {/* Problem */}
-        <Section id="problem">
-          <Reveal>
-            <H2>Every tool assumes you run one company.</H2>
-          </Reveal>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {[
-              ["Three workspaces", "A login for each business. Nothing shared, nothing connected.", ORGS[0].color],
-              ["Three sets of context", "The lead from one brand never reaches the other's pipeline.", ORGS[1].color],
-              ["One person holding it together", "You are the integration layer between your own companies.", ORGS[2].color],
-            ].map(([t, b, c], i) => (
-              <Reveal key={t} delay={i * 90}>
-                <Card accent={c}>
-                  <h3 className="text-[1.05rem] font-semibold" style={{ color: TEXT }}>{t}</h3>
-                  <p className="mt-2 text-[0.95rem] leading-[1.7]" style={{ color: MUTED }}>{b}</p>
-                </Card>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal>
-            <p className="mt-8 max-w-3xl text-[0.9rem] leading-[1.7]" style={{ color: MUTED }}>
-              Harvard Business Review found workers toggle between applications roughly 1,200 times
-              a day — losing just under four hours a week, about 9% of work time, just reorienting.
-            </p>
-          </Reveal>
-        </Section>
-
-        {/* How it works */}
-        <Section id="product">
-          <Reveal><H2>How it works</H2></Reveal>
-          <div className="mt-12 space-y-14">
-            {FEATURES.map((f, i) => {
-              const Icon = f.icon;
-              const flip = i % 2 === 1;
-              return (
-                <Reveal key={f.title}>
-                  <div className="grid items-center gap-8 md:grid-cols-2">
-                    <div className={flip ? "md:order-2" : ""}>
-                      <Card>
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-9 w-9 items-center justify-center rounded-lg" style={{ background: GRAD }}>
-                            <Icon className="h-4.5 w-4.5 text-white" aria-hidden />
-                          </span>
-                          <h3 className="text-[1.15rem] font-semibold" style={{ color: TEXT }}>{f.title}</h3>
-                        </div>
-                        <p className="mt-3 text-[0.98rem] leading-[1.7]" style={{ color: MUTED }}>{f.body}</p>
-                      </Card>
-                    </div>
-                    <div className={flip ? "md:order-1" : ""}>
-                      <FeatureVisual lines={f.lines} />
-                    </div>
-                  </div>
-                </Reveal>
-              );
-            })}
-          </div>
-        </Section>
-
-        {/* Who it's for */}
-        <Section id="who">
-          <Reveal><H2>Who it's for</H2></Reveal>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {[
-              ["Multi-brand agencies", ORGS[0].color, "One org per client. One contact book behind all of them. Per-seat, per-contact tools were never built for running twenty client accounts."],
-              ["Portfolio entrepreneurs", ORGS[1].color, "You didn't start a second business to double your admin. Every system assumes one company. You're the glue holding them together."],
-              ["Fractional executives", ORGS[2].color, "Every client, one command center. Four clients means four stacks, four contexts, and a Monday spent remembering where everything is."],
-            ].map(([t, c, b], i) => (
-              <Reveal key={t} delay={i * 90}>
-                <Card accent={c}>
-                  <OrgPill name={t} color={c} />
-                  <p className="mt-4 text-[0.95rem] leading-[1.7]" style={{ color: MUTED }}>{b}</p>
-                </Card>
-              </Reveal>
-            ))}
-          </div>
-        </Section>
-
-        {/* Comparison */}
-        <Section>
-          <Reveal>
-            <H2>Everyone's shipping an AI assistant this year.</H2>
-            <p className="mt-4 text-[1.0625rem]" style={{ color: MUTED }}>
-              Nobody's shipping one that works across all your companies.
-            </p>
-          </Reveal>
-          <Reveal delay={100}>
-            <div className="mt-10 overflow-x-auto rounded-xl" style={{ border: `1px solid ${ELEV}`, background: SURFACE }}>
-              <table className="w-full min-w-[620px] border-collapse text-left text-[0.95rem]">
-                <caption className="sr-only">Single-workspace tools compared with Kova</caption>
-                <thead>
-                  <tr style={{ borderBottom: `1px solid ${ELEV}` }}>
-                    <th scope="col" className="px-5 py-4 font-medium" style={{ color: MUTED }}> </th>
-                    <th scope="col" className="px-5 py-4 font-medium" style={{ color: MUTED }}>Single-workspace tools</th>
-                    <th scope="col" className="px-5 py-4 font-semibold" style={{ color: TEXT }}>Kova</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["Multiple businesses", "Separate workspaces, manual switching", "One system, all orgs"],
-                    ["AI context", "Sees only the workspace you're in", "Sees across every org"],
-                    ["Setup", "Rebuild your stack", "Connects to Google Workspace"],
-                    ["Built for", "One team", "One operator, several companies"],
-                  ].map(([label, them, us]) => (
-                    <tr key={label} style={{ borderTop: `1px solid ${ELEV}` }}>
-                      <th scope="row" className="px-5 py-4 font-medium" style={{ color: TEXT }}>{label}</th>
-                      <td className="px-5 py-4" style={{ color: MUTED }}>
-                        <span className="inline-flex items-center gap-2">
-                          <Minus className="h-4 w-4" aria-hidden />{them}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4" style={{ color: TEXT }}>
-                        <span className="inline-flex items-center gap-2">
-                          <Check className="h-4 w-4" style={{ color: "#4D7FFF" }} aria-hidden />{us}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <p className="mt-6 text-[0.95rem]" style={{ color: MUTED }}>
-              Multi-entity is an architecture decision, not a feature. It's in the data model from the first table.
-            </p>
-          </Reveal>
-        </Section>
-
-        {/* Pricing */}
-        <Section id="pricing">
-          <Reveal>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <H2>Pricing</H2>
-              <div className="flex items-center gap-3 text-sm" style={{ color: MUTED }}>
-                <span>Monthly</span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={annual}
-                  aria-label="Bill annually — two months free"
-                  onClick={() => setAnnual((v) => !v)}
-                  className="relative h-6 w-11 rounded-full transition-colors"
-                  style={{ background: annual ? BLUE : ELEV }}
-                >
-                  <span
-                    className="absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all"
-                    style={{ left: annual ? 22 : 2 }}
-                  />
-                </button>
-                <span style={{ color: annual ? TEXT : MUTED }}>Annual · 2 months free</span>
-              </div>
-            </div>
-          </Reveal>
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              { name: "Free", price: "$0", unit: "", meta: "1 org, 1 seat", body: "For the operator with one business and a second one coming." },
-              { name: "Starter", price: `$${price(29)}`, unit: "/seat", meta: "1 org, up to 3 seats", body: "Everything in one place, for one business." },
-              { name: "Growth", price: `$${price(79)}`, unit: "/seat", meta: "Up to 5 orgs, up to 25 seats", body: "Every venture you run, one system.", hot: true },
-              { name: "Enterprise", price: "Custom", unit: "", meta: "Unlimited orgs and seats", body: "White-label available." },
-            ].map((t, i) => (
-              <Reveal key={t.name} delay={i * 70}>
+            <Reveal delay={60}>
+              <div className="card" style={{ marginTop: 28, overflow: "hidden" }}>
                 <div
-                  className="relative flex h-full flex-col rounded-xl p-6"
                   style={{
-                    background: SURFACE,
-                    border: `1px solid ${t.hot ? "#4D7FFF" : ELEV}`,
-                    transform: t.hot ? "scale(1.02)" : undefined,
+                    display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0,
+                    borderBottom: "1px solid var(--line)", padding: "14px 20px",
                   }}
                 >
-                  {t.hot && (
-                    <span className="absolute -top-3 left-6 rounded-full px-3 py-1 text-[11px] font-semibold text-white" style={{ background: GRAD }}>
-                      Most popular
-                    </span>
-                  )}
-                  <h3 className="text-[1.05rem] font-semibold">{t.name}</h3>
-                  <div className="mt-3 flex items-baseline gap-1">
-                    <span className="text-[2rem] tracking-[-0.02em]" style={{ fontFamily: DISPLAY }}>{t.price}</span>
-                    <span className="text-sm" style={{ color: MUTED }}>{t.unit}</span>
-                  </div>
-                  <p className="mt-1 text-[13px]" style={{ color: MUTED }}>{t.meta}</p>
-                  <p className="mt-4 flex-1 text-[0.95rem] leading-[1.7]" style={{ color: MUTED }}>{t.body}</p>
-                  <div className="mt-6">
-                    <GradButton as="link" to="/login">
-                      {t.name === "Enterprise" ? "Talk to us" : "Start free"}
-                    </GradButton>
-                  </div>
+                  <div className="eyebrow">Single-workspace tools</div>
+                  <div className="eyebrow" style={{ color: "var(--a-300)" }}>Kova</div>
                 </div>
-              </Reveal>
-            ))}
+                {COMPARE.map(([label, them, us]) => (
+                  <div key={label} style={{ padding: "16px 20px", borderBottom: "1px solid var(--line)" }}>
+                    <div className="dim" style={{ fontSize: 12, marginBottom: 8 }}>{label}</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                      <div className="dim" style={{ fontSize: 15, display: "flex", gap: 8 }}>
+                        <Minus size={16} style={{ flexShrink: 0, marginTop: 3 }} /> {them}
+                      </div>
+                      <div style={{ fontSize: 15, display: "flex", gap: 8 }}>
+                        <Check size={16} style={{ flexShrink: 0, marginTop: 3, color: "var(--a-300)" }} /> {us}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div className="dim" style={{ padding: "16px 20px", fontSize: 14 }}>
+                  Multi-entity is an architecture decision, not a feature. It's in the data model
+                  from the first table.
+                </div>
+              </div>
+            </Reveal>
           </div>
-          <Reveal>
-            <p className="mt-8 text-[0.95rem]" style={{ color: MUTED }}>
-              Need more than five orgs? Per-org pricing available for agencies and portfolio operators.{" "}
-              <a href="mailto:hello@kova.app" className="underline" style={{ color: "#4D7FFF" }}>Contact us</a>
-            </p>
-          </Reveal>
-        </Section>
+        </section>
 
-        {/* FAQ */}
-        <Section>
-          <Reveal><H2>Honest answers</H2></Reveal>
-          <div className="mt-8 max-w-3xl space-y-3">
-            {FAQS.map((f, i) => {
-              const open = openFaq === i;
-              return (
-                <Reveal key={f.q} delay={i * 60}>
-                  <div className="rounded-xl" style={{ background: SURFACE, border: `1px solid ${ELEV}` }}>
-                    <h3>
-                      <button
-                        type="button"
-                        aria-expanded={open}
-                        onClick={() => setOpenFaq(open ? null : i)}
-                        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-[1rem] font-medium"
-                        style={{ color: TEXT }}
-                      >
-                        {f.q}
-                        <ChevronDown
-                          className="h-4 w-4 shrink-0 transition-transform motion-reduce:transition-none"
-                          style={{ color: MUTED, transform: open ? "rotate(180deg)" : "none" }}
-                          aria-hidden
-                        />
-                      </button>
-                    </h3>
-                    {open && (
-                      <p className="px-5 pb-5 text-[0.95rem] leading-[1.7]" style={{ color: MUTED }}>{f.a}</p>
+        {/* 7 — Pricing */}
+        <section id="pricing">
+          <div className="wrap">
+            <Reveal>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <h2>Pricing</h2>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  aria-pressed={annual}
+                  onClick={() => setAnnual((v) => !v)}
+                >
+                  {annual ? "Annual — two months free" : "Monthly — switch to annual"}
+                </button>
+              </div>
+            </Reveal>
+            <div className="grid4" style={{ marginTop: 32, alignItems: "stretch" }}>
+              {TIERS.map((t, i) => (
+                <Reveal key={t.name} delay={i * 50}>
+                  <div
+                    className="card"
+                    style={{
+                      padding: 22, height: "100%", display: "flex", flexDirection: "column", gap: 10,
+                      border: t.popular ? "1px solid var(--a-500)" : undefined,
+                      transform: t.popular ? "scale(1.02)" : undefined,
+                    }}
+                  >
+                    {t.popular && (
+                      <div className="eyebrow" style={{ color: "var(--a-300)" }}>Most popular</div>
                     )}
+                    <h3>{t.name}</h3>
+                    <div className="stat" style={{ fontSize: "clamp(28px, 4vw, 36px)" }}>
+                      {t.price === null ? "Custom" : `$${price(t.price)}`}
+                      <span className="dim" style={{ fontSize: 14, fontWeight: 400, letterSpacing: 0 }}>{t.unit}</span>
+                    </div>
+                    <div style={{ fontSize: 14 }}>{t.orgs}</div>
+                    <p className="dim" style={{ fontSize: 14 }}>{t.line}</p>
+                    <Link
+                      to="/login?tab=signup"
+                      className={`btn ${t.popular ? "btn-primary" : "btn-secondary"}`}
+                      style={{ marginTop: "auto" }}
+                    >
+                      {t.price === null ? "Talk to us" : "Start free"}
+                    </Link>
                   </div>
                 </Reveal>
-              );
-            })}
+              ))}
+            </div>
+            <p className="dim" style={{ fontSize: 14, marginTop: 20 }}>
+              Need more than five orgs? Per-org pricing for agencies and portfolio operators.
+            </p>
           </div>
-        </Section>
+        </section>
 
-        {/* Final CTA */}
-        <section style={{ background: GRAD }}>
-          <div className="mx-auto w-full max-w-[1200px] px-5 py-16 md:px-8 md:py-24">
-            <div className="max-w-2xl">
-              <h2 className="text-[2rem] leading-[1.1] tracking-[-0.02em] md:text-[2.75rem]" style={{ fontFamily: DISPLAY, color: "#fff" }}>
-                One workspace. Every venture.
-              </h2>
-              <p className="mt-4 text-[1.0625rem]" style={{ color: "rgba(255,255,255,0.85)" }}>
+        {/* 8 — Honest answers */}
+        <section>
+          <div className="wrap">
+            <Reveal><h2>Honest answers</h2></Reveal>
+            <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 12 }}>
+              {FAQ.map(([q, a], i) => (
+                <Reveal key={q} delay={i * 50}>
+                  <details className="card" style={{ padding: "18px 20px" }}>
+                    <summary
+                      style={{
+                        cursor: "pointer", listStyle: "none", display: "flex",
+                        alignItems: "center", justifyContent: "space-between", gap: 16,
+                        fontSize: 16, fontWeight: 500,
+                      }}
+                    >
+                      {q}
+                      <ChevronDown size={18} className="dim" style={{ flexShrink: 0 }} />
+                    </summary>
+                    <p className="dim" style={{ marginTop: 12, fontSize: 15 }}>{a}</p>
+                  </details>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 9 — Final CTA */}
+        <section style={{ background: "var(--brand-gradient)" }}>
+          <div className="wrap grid2" style={{ alignItems: "center" }}>
+            <div>
+              <h2>One workspace.<br />Every venture.</h2>
+            </div>
+            <div className="card" style={{ padding: 24 }}>
+              <p style={{ fontSize: 15, marginBottom: 16 }}>
                 Connect your first two orgs in under five minutes.
               </p>
-
               {status === "ok" ? (
-                <p className="mt-8 rounded-xl px-5 py-4 text-[0.95rem]" style={{ background: "rgba(15,23,42,0.35)", color: "#fff" }}>
-                  You're on the list. We'll be in touch shortly.
-                </p>
+                <div style={{ fontSize: 15, color: "var(--ok)" }}>
+                  You're on the list. We'll be in touch.
+                </div>
               ) : (
-                <form onSubmit={submit} className="mt-8 space-y-3" noValidate>
-                  <div className="flex flex-col gap-3 sm:flex-row">
-                    <label htmlFor="wl-email" className="sr-only">Email address</label>
-                    <input
-                      id="wl-email"
-                      type="email"
-                      required
-                      maxLength={255}
-                      value={email}
-                      onChange={(e) => { setEmail(e.target.value); if (status !== "loading") setStatus("idle"); }}
-                      placeholder="you@company.com"
-                      className="w-full rounded-xl px-4 py-3 text-[0.95rem] outline-none sm:max-w-sm"
-                      style={{ background: "rgba(15,23,42,0.55)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)" }}
-                    />
-                    <label htmlFor="wl-orgs" className="sr-only">How many businesses do you run?</label>
-                    <select
-                      id="wl-orgs"
-                      value={orgCount}
-                      onChange={(e) => setOrgCount(e.target.value)}
-                      className="rounded-xl px-4 py-3 text-[0.95rem] outline-none"
-                      style={{ background: "rgba(15,23,42,0.55)", color: "#fff", border: "1px solid rgba(255,255,255,0.35)" }}
-                    >
-                      <option value="">How many businesses?</option>
-                      <option value="1">1</option>
-                      <option value="2-4">2–4</option>
-                      <option value="5-10">5–10</option>
-                      <option value="10+">10+</option>
-                    </select>
-                    <button
-                      type="submit"
-                      disabled={status === "loading"}
-                      className="rounded-xl px-6 py-3 text-[0.95rem] font-semibold disabled:opacity-70"
-                      style={{ background: "#0F172A", color: "#fff" }}
-                    >
-                      {status === "loading" ? "Joining…" : "Join the waitlist"}
-                    </button>
-                  </div>
-                  <p aria-live="polite" className="min-h-[20px] text-[13px]" style={{ color: "rgba(255,255,255,0.9)" }}>
-                    {status === "dupe" && "You're already on the list — we've got you."}
-                    {status === "error" && "Enter a valid email address and try again."}
-                  </p>
+                <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <label className="eyebrow" htmlFor="lp-email">Email</label>
+                  <input
+                    id="lp-email" type="email" value={email} autoComplete="email"
+                    onChange={(e) => { setEmail(e.target.value); if (status !== "loading") setStatus("idle"); }}
+                    placeholder="you@company.com" required
+                  />
+                  <label className="eyebrow" htmlFor="lp-orgs">How many businesses do you run?</label>
+                  <select id="lp-orgs" value={orgCount} onChange={(e) => setOrgCount(e.target.value)}>
+                    <option value="">Prefer not to say</option>
+                    <option value="1">1</option>
+                    <option value="2-4">2–4</option>
+                    <option value="5-10">5–10</option>
+                    <option value="10+">10+</option>
+                  </select>
+                  <button type="submit" className="btn btn-primary btn-lg" disabled={status === "loading"}>
+                    {status === "loading" ? "Joining…" : "Join the waitlist"}
+                  </button>
+                  {status === "dupe" && (
+                    <div className="dim" style={{ fontSize: 13 }}>You're already on the list.</div>
+                  )}
+                  {status === "error" && (
+                    <div style={{ fontSize: 13, color: "var(--err)" }}>
+                      Enter a valid email address and try again.
+                    </div>
+                  )}
                 </form>
               )}
             </div>
           </div>
         </section>
 
-        {/* Footer */}
-        <footer style={{ borderTop: `1px solid ${ELEV}` }}>
-          <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-4 px-5 py-10 md:flex-row md:items-center md:justify-between md:px-8">
+        {/* 10 — Footer */}
+        <footer style={{ borderTop: "1px solid var(--line)", padding: "40px 0" }}>
+          <div className="wrap" style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", justifyContent: "space-between" }}>
             <div>
-              <p className="text-base" style={{ fontFamily: DISPLAY }}>Kova</p>
-              <p className="mt-1 text-[13px]" style={{ color: MUTED }}>
+              <img src={kovaWordmark} alt="Kova" style={{ height: 20, width: "auto", filter: "grayscale(1) brightness(3)" }} />
+              <div className="dim" style={{ fontSize: 13, marginTop: 8 }}>
                 The AI command center for operators running more than one business.
-              </p>
+              </div>
             </div>
-            <div className="flex items-center gap-6 text-[13px]" style={{ color: MUTED }}>
-              <Link to="/privacy" className="hover:text-white">Privacy</Link>
-              <Link to="/terms" className="hover:text-white">Terms</Link>
-              <a href="mailto:hello@kova.app" className="hover:text-white">Contact</a>
-              <span>© {new Date().getFullYear()} Kova</span>
+            <div className="dim" style={{ display: "flex", gap: 20, fontSize: 13 }}>
+              <a href="/privacy" style={{ color: "inherit", textDecoration: "none" }}>Privacy</a>
+              <a href="/terms" style={{ color: "inherit", textDecoration: "none" }}>Terms</a>
+              <a href="mailto:hello@kova.app" style={{ color: "inherit", textDecoration: "none" }}>Contact</a>
             </div>
+            <div className="dim" style={{ fontSize: 13 }}>© {new Date().getFullYear()} Kova</div>
           </div>
         </footer>
       </main>
