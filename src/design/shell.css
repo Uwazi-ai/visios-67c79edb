@@ -1032,7 +1032,7 @@
 .kova .vo-ladder { display: flex; align-items: flex-end; gap: 4px; width: 100%; }
 .kova .vo-rung {
   position: relative; display: flex; flex-direction: column; justify-content: flex-end;
-  min-width: 0; height: 148px; padding: 8px 8px 10px; text-align: left; cursor: pointer;
+  min-width: 58px; height: 148px; padding: 8px 8px 10px; text-align: left; cursor: pointer;
   background: var(--inset); border: 1px solid var(--line); border-radius: var(--r-inner);
   color: var(--text); overflow: hidden;
 }
