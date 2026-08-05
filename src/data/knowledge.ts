@@ -478,7 +478,7 @@ export const DOCS: Doc[] = [
 const STOPWORDS = new Set([
   "a", "an", "and", "any", "are", "as", "at", "be", "but", "by", "can", "did", "do", "does",
   "for", "from", "get", "had", "has", "have", "how", "i", "if", "in", "is", "it", "its", "me",
-  "my", "of", "on", "or", "our", "should", "show", "so", "että", "than", "that", "the", "их",
+  "my", "of", "on", "or", "our", "should", "show", "so", "than", "that", "the",
   "their", "them", "then", "there", "these", "they", "this", "to", "up", "us", "was", "we",
   "were", "what", "when", "where", "which", "who", "why", "will", "with", "would", "you", "your",
   "about", "find", "tell", "give", "need", "want", "know", "much", "many", "some", "please",
