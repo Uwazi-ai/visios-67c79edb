@@ -61,6 +61,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <TenantProvider>
           <OrgProvider>
             <TimezoneProvider>
             <UpgradeProvider>
