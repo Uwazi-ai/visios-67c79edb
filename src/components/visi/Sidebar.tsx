@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { VisiLogo } from "./Logo";
 import { OrgSwitcher } from "./OrgSwitcher";
+import { TenantSwitcher } from "./TenantSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrg } from "@/contexts/OrgContext";
 import { ORG_COLORS } from "@/lib/orgs";
@@ -69,8 +70,12 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
       </div>
 
       <div style={{ borderBottom: "1px solid var(--border-glass)" }}>
+      <TenantSwitcher />
+
+      <div style={{ borderBottom: "1px solid var(--border-glass)" }}>
         <OrgSwitcher />
       </div>
+
 
       <nav className="flex-1 overflow-y-auto py-3">
         {NAV.map((item) => {
