@@ -200,7 +200,7 @@ const MyCardSettings = () => {
                 <input className="input-glass" value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="Founder & CEO" />
               </Field>
               <Field label="Company">
-                <input className="input-glass" value={form.company} onChange={(e) => update("company", e.target.value)} placeholder="Visi OS" />
+                <input className="input-glass" value={form.company} onChange={(e) => update("company", e.target.value)} placeholder="Kova" />
               </Field>
             </div>
             <Field label={`Tagline (${form.tagline.length}/80)`}>

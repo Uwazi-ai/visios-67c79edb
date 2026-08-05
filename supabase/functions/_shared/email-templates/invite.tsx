@@ -19,12 +19,12 @@ export const InviteEmail = ({ siteName, siteUrl, confirmationUrl }: InviteEmailP
     <Body style={main}>
       <Container style={container}>
         <Section style={brandRow}>
-          <Text style={brand}>VISI OS <span style={slash}>/</span> {siteName}</Text>
+          <Text style={brand}>KOVA</Text>
         </Section>
         <Heading style={h1}>You're invited</Heading>
         <Text style={text}>
           You've been invited to join <Link href={siteUrl} style={link}><strong>{siteName}</strong></Link> on
-          Visi OS — your team's unified workspace for email, tasks, calendar and decisions.
+          Kova — your team's unified workspace for email, tasks, calendar and decisions.
         </Text>
         <Button style={button} href={confirmationUrl}>Accept invite</Button>
         <Text style={footer}>If you weren't expecting this, you can safely ignore this email.</Text>

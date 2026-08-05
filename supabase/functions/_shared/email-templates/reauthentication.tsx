@@ -17,7 +17,7 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
     <Body style={main}>
       <Container style={container}>
         <Section style={brandRow}>
-          <Text style={brand}>VISI OS <span style={slash}>/</span> VERIFY</Text>
+          <Text style={brand}>KOVA <span style={slash}>/</span> VERIFY</Text>
         </Section>
         <Heading style={h1}>Confirm it's you</Heading>
         <Text style={text}>Use the code below to confirm your identity:</Text>

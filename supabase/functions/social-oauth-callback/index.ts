@@ -1,6 +1,6 @@
 // Exchanges an OAuth `code` for tokens, fetches the account profile, and stores
 // the result in social_platform_tokens. Called from the public /oauth-callback
-// page in the VisiOS popup, which forwards `code`, `platform`, and `redirect_uri`.
+// page in the Kova popup, which forwards `code`, `platform`, and `redirect_uri`.
 import { corsHeaders, jsonResponse, getAuthedUserFromReq, adminClient } from "../_shared/google.ts";
 
 type Platform = "instagram" | "facebook" | "tiktok" | "linkedin" | "youtube";

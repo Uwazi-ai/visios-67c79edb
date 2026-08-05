@@ -311,7 +311,7 @@ export function SettingsView() {
               Disconnect {PLATFORM_META[confirmDisconnect.platform].label}?
             </div>
             <div style={{ fontSize: 12, color: "var(--text-secondary)" }} className="mb-4">
-              VisiOS will no longer be able to post or read data for this account. You can reconnect at any time.
+              Kova will no longer be able to post or read data for this account. You can reconnect at any time.
             </div>
             <div className="flex justify-end gap-2">
               <button className="btn-ghost" onClick={() => setConfirmDisconnect(null)}>Cancel</button>

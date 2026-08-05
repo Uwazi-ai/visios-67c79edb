@@ -230,7 +230,7 @@ export const CardPreview = ({ data, cardUrl, compact }: Props) => {
             <QrIcon size={11} /> Download QR
           </button>
           <div style={{ fontSize: 10, color: fgMuted, marginTop: 6, fontFamily: "JetBrains Mono, monospace" }}>
-            Powered by Visi OS
+            Powered by Kova
           </div>
         </div>
       )}

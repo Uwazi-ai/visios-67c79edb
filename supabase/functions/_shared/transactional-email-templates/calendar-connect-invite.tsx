@@ -5,7 +5,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_NAME = 'visios'
+const SITE_NAME = 'Kova'
 
 interface Props {
   inviterName?: string
@@ -24,12 +24,12 @@ const CalendarConnectInvite = ({ inviterName, recipientName, signInUrl }: Props)
       <Body style={main}>
         <Container style={container}>
           <Section style={brandRow}>
-            <Text style={brand}>VISI OS <span style={slash}>/</span> {SITE_NAME}</Text>
+            <Text style={brand}>KOVA</Text>
           </Section>
           <Heading style={h1}>Connect your Google Calendar</Heading>
           <Text style={text}>{hi}</Text>
           <Text style={text}>
-            {who} would like to see your calendar in the team view on Visi so your group can
+            {who} would like to see your calendar in the team view on Kova so your group can
             coordinate meetings, find open slots, and plan together.
           </Text>
           <Text style={text}>
@@ -48,7 +48,7 @@ const CalendarConnectInvite = ({ inviterName, recipientName, signInUrl }: Props)
 export const template = {
   component: CalendarConnectInvite,
   subject: (data: Record<string, any>) =>
-    data?.inviterName ? `${data.inviterName} wants to see your calendar on Visi` : 'Connect your Google Calendar on Visi',
+    data?.inviterName ? `${data.inviterName} wants to see your calendar on Kova` : 'Connect your Google Calendar on Kova',
   displayName: 'Calendar connect invite',
   previewData: { inviterName: 'Mychal', recipientName: 'Anna', signInUrl: 'https://visios.uwazi.ai/login' },
 } satisfies TemplateEntry

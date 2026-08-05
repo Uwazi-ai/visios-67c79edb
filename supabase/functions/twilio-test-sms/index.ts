@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     const params = new URLSearchParams({
       To: to_number,
       From: from_number,
-      Body: "Visi OS test message ✓",
+      Body: "Kova test message ✓",
     });
 
     const tw = await fetch(url, {

@@ -46,7 +46,7 @@ export const Topbar = () => {
 
       <div className="hidden md:flex items-center min-w-0">
         <span className="t-nav truncate" style={{ color: "var(--text-secondary)" }}>
-          {activeOrgId === "all" ? "All Orgs" : activeOrg?.name ?? "Visi"}
+          {activeOrgId === "all" ? "All Orgs" : activeOrg?.name ?? "Kova"}
         </span>
         <span className="slash">/</span>
         <span className="t-nav truncate" style={{ color: "var(--text-primary)" }}>{title}</span>

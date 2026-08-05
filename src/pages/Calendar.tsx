@@ -1038,10 +1038,10 @@ function PlanMyDayPanel({ date, events, orgs, onClose, onApplied }: {
       for (const b of toWrite) {
         const { error } = await supabase.functions.invoke("calendar-create-event", {
           body: {
-            summary: `[Visi OS] ${b.title}`,
+            summary: `[Kova] ${b.title}`,
             start: b.start,
             end: b.end,
-            description: `Auto-scheduled by Visi OS · type=${b.type}`,
+            description: `Auto-scheduled by Kova · type=${b.type}`,
             colorId: b.type === "deep_work" ? "9" : b.type === "break" ? "8" : "7",
           },
         });

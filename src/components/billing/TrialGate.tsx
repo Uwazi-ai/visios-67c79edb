@@ -76,7 +76,7 @@ function TrialEndedBlock({ onChoose }: { onChoose: () => void }) {
             <AlertTriangle size={22} />
           </div>
           <h1 className="t-hero mb-2">Your free trial has ended</h1>
-          <p style={{ color: "var(--text-secondary)" }}>Choose a plan to keep using VisiOS.</p>
+          <p style={{ color: "var(--text-secondary)" }}>Choose a plan to keep using Kova.</p>
         </div>
         <div className="grid gap-4 md:grid-cols-3 mb-6">
           {(["solo", "team", "growth"] as const).map((t) => {

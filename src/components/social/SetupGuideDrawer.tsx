@@ -16,7 +16,7 @@ const GUIDES: Record<SocialPlatform, { steps: GuideStep[]; estimated: string; li
       { title: "Configure redirect URI", body: "Set the OAuth redirect URI to {ORIGIN}/oauth-callback/instagram." },
       { title: "Submit for App Review", body: "Request the scopes: instagram_business_content_publish, instagram_business_manage_comments, instagram_business_manage_insights." },
       { title: "Connect as developer", body: "While in review, you can still connect your own account as the app developer." },
-      { title: "Paste credentials in VisiOS", body: "Once approved, copy App ID and App Secret into Social Settings → API Credentials." },
+      { title: "Paste credentials in Kova", body: "Once approved, copy App ID and App Secret into Social Settings → API Credentials." },
     ],
   },
   facebook: {
@@ -57,10 +57,10 @@ const GUIDES: Record<SocialPlatform, { steps: GuideStep[]; estimated: string; li
     estimated: "30 minutes",
     link: "https://console.cloud.google.com",
     steps: [
-      { title: "Use your existing Google project", body: "Open the Google Cloud Console project that powers VisiOS sign-in." },
+      { title: "Use your existing Google project", body: "Open the Google Cloud Console project that powers Kova sign-in." },
       { title: "Enable YouTube Data API v3", body: "Under APIs & Services → Library, enable YouTube Data API v3." },
       { title: "Add YouTube scopes", body: "Add youtube.upload and youtube.readonly to your existing OAuth consent screen." },
-      { title: "Connect YouTube", body: "Click Connect YouTube in VisiOS — uses your existing Google credentials." },
+      { title: "Connect YouTube", body: "Click Connect YouTube in Kova — uses your existing Google credentials." },
     ],
   },
 };

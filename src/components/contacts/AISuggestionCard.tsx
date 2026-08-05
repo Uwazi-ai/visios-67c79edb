@@ -56,7 +56,7 @@ Suggest one specific follow-up action — one sentence — that would move this 
       try {
         const { data, error } = await supabase.functions.invoke("ai-draft-email", {
           body: {
-            thread: [{ from: "Visi (you)", timestamp: new Date().toISOString(), body: prompt }],
+            thread: [{ from: "Kova (you)", timestamp: new Date().toISOString(), body: prompt }],
             user_name: "Myke Shaw",
             user_org: orgName ?? "UWAZI.AI",
           },

@@ -101,7 +101,7 @@ export default function ConnectionsTab() {
     <div className="flex flex-col gap-4">
       <div>
         <p className="t-mono" style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-          Manage what Visi OS and Vision can access. Vision only reads data from sources you've enabled.
+          Manage what Kova and Vision can access. Vision only reads data from sources you've enabled.
         </p>
       </div>
 
@@ -219,7 +219,7 @@ export default function ConnectionsTab() {
         provider="twilio"
         title="SMS Quick Capture"
         icon={Phone}
-        description="Text Visi from your phone — captures land in your inbox automatically."
+        description="Text Kova from your phone — captures land in your inbox automatically."
         fields={[
           { key: "account_sid", label: "Account SID", type: "password" },
           { key: "auth_token", label: "Auth token", type: "password" },

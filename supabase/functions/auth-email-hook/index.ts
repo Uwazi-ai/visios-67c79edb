@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "visios"
+const SITE_NAME = "Kova"
 const SENDER_DOMAIN = "notify.visios.uwazi.ai"
 const ROOT_DOMAIN = "visios.uwazi.ai"
 const FROM_DOMAIN = "notify.visios.uwazi.ai" // Domain shown in From address (may be root or sender subdomain)

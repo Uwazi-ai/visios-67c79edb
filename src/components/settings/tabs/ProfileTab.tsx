@@ -201,7 +201,7 @@ export default function ProfileTab() {
       <div className="grid gap-4" style={{ gridTemplateColumns: "minmax(0,1fr) 320px" }}>
         <SectionCard
           title="Personal Information"
-          subtitle="Identity used across Visi OS: Chat, Digital Card, team presence."
+          subtitle="Identity used across Kova: Chat, Digital Card, team presence."
         >
           {/* Avatar */}
           <div className="flex items-center gap-4 mb-4">

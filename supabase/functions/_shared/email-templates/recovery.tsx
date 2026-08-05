@@ -18,7 +18,7 @@ export const RecoveryEmail = ({ siteName, confirmationUrl }: RecoveryEmailProps)
     <Body style={main}>
       <Container style={container}>
         <Section style={brandRow}>
-          <Text style={brand}>VISI OS <span style={slash}>/</span> {siteName}</Text>
+          <Text style={brand}>KOVA</Text>
         </Section>
         <Heading style={h1}>Reset your password</Heading>
         <Text style={text}>

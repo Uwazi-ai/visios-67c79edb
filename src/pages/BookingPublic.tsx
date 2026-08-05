@@ -340,13 +340,13 @@ const PublicShell = ({ children }: { children: React.ReactNode }) => (
     <header className="relative z-10 px-5 py-4 flex items-center justify-between">
       <VisiLogo />
       <div className="t-mono flex items-center gap-1" style={{ fontSize: 10 }}>
-        <Sparkles size={11} /> POWERED BY VISI OS
+        <Sparkles size={11} /> POWERED BY KOVA
       </div>
     </header>
     <main className="relative z-10 max-w-6xl mx-auto px-4 py-6 page-enter">
       {children}
       <div className="text-center mt-8">
-        <Link to="/" className="t-mono" style={{ fontSize: 10, color: "var(--text-muted)" }}>← Back to Visi OS</Link>
+        <Link to="/" className="t-mono" style={{ fontSize: 10, color: "var(--text-muted)" }}>← Back to Kova</Link>
       </div>
     </main>
   </div>

@@ -13,11 +13,11 @@ const STEPS = [
   },
   {
     title: "Add your Anthropic credentials in Make",
-    body: "When Make prompts for an API key, paste the same Anthropic key you stored here. Make stores its own copy — VisiOS never transmits the key to Make on your behalf.",
+    body: "When Make prompts for an API key, paste the same Anthropic key you stored here. Make stores its own copy — Kova never transmits the key to Make on your behalf.",
   },
   {
-    title: "Wire VisiOS as the trigger (optional)",
-    body: "Use a Make.com Webhook trigger and call it from a VisiOS edge function or automation. The webhook URL belongs in Make, not here.",
+    title: "Wire Kova as the trigger (optional)",
+    body: "Use a Make.com Webhook trigger and call it from a Kova edge function or automation. The webhook URL belongs in Make, not here.",
   },
   {
     title: "Test end-to-end",
@@ -125,7 +125,7 @@ export default function MakeIntegration() {
         <div className="space-y-2">
           {[
             { label: "Claude proxy (auth required)", url: `${WEBHOOK_BASE}/claude-proxy` },
-            { label: "VisiOS MCP server", url: `${WEBHOOK_BASE}/visi-mcp` },
+            { label: "Kova MCP server", url: `${WEBHOOK_BASE}/visi-mcp` },
           ].map((e) => (
             <div
               key={e.url}

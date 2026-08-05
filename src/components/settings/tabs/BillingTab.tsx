@@ -209,7 +209,7 @@ export default function BillingTab() {
         <CheckCircle2 size={16} style={{ color: "#2563EB", marginTop: 2 }} />
         <div className="text-sm" style={{ color: "var(--text-secondary)" }}>
           <strong style={{ color: "var(--text-primary)" }}>Built-in payments.</strong>{" "}
-          VisiOS handles checkout, tax, and invoicing automatically. No external account setup required.
+          Kova handles checkout, tax, and invoicing automatically. No external account setup required.
         </div>
       </div>
 

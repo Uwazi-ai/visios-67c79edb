@@ -35,7 +35,7 @@ export function buildSystemPrompt(personaKey: PersonaKey, ctx: AIContextSnapshot
 
   const sections: string[] = [];
 
-  sections.push(`You are Visi, ${userName}'s AI assistant, currently in the ${persona.name} ${persona.emoji} role.`);
+  sections.push(`You are Kova, ${userName}'s AI assistant, currently in the ${persona.name} ${persona.emoji} role.`);
   sections.push(persona.systemDescription);
 
   sections.push(`\n=== CONTEXT ===\nToday is ${today}.${ctx.profile?.timezone ? ` Timezone: ${ctx.profile.timezone}.` : ""}${ctx.active_org_name ? ` Active org: ${ctx.active_org_name}.` : ""}${options?.surface ? ` User is currently on the ${options.surface} screen.` : ""}`);
