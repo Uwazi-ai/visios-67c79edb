@@ -138,12 +138,88 @@
 /* ---------- focus, both themes ---------- */
 .kova :focus-visible { outline: 2px solid var(--a-400); outline-offset: 2px; border-radius: var(--r-sm); }
 
+/* ---------- daily brief ----------
+   A lead, then a strip. The lead is the only large type in the block;
+   the cells are deliberately smaller so the eye lands on the lead first. */
+.kova .vo-brief { padding: var(--s-5); }
+.kova .vo-brief-lead { max-width: 62ch; margin-bottom: var(--s-2); }
+.kova .vo-brief-lead[data-tone="risk"] { color: var(--err-txt); }
+.kova .vo-brief-lead[data-tone="warn"] { color: var(--warn-txt); }
+.kova .vo-brief-lead[data-tone="ok"] { color: var(--ok-txt); }
+.kova .vo-brief-why { max-width: 78ch; }
+.kova .vo-brief-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+.kova .vo-brief-cell {
+  display: flex; flex-direction: column; gap: var(--s-1); text-align: left;
+  font: inherit; cursor: pointer;
+  background: var(--inset); border: 1px solid transparent;
+  border-radius: var(--r-md); padding: var(--s-3); color: var(--ink);
+}
+.kova .vo-brief-cell:hover { border-color: var(--line-strong); }
+.kova .vo-brief-count {
+  font-family: var(--display); font-size: 26px; font-weight: 700;
+  letter-spacing: -0.04em; line-height: 1.05;
+}
+.kova .vo-brief-notable { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kova .vo-brief-foot {
+  margin-top: var(--s-4); padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+/* ---------- agent proposals ----------
+   Pending reads as unfinished on sight: dashed amber edge, dimmed heading.
+   Approved is solid green, rejected solid grey and stepped back. */
+.kova .vo-prop {
+  display: flex; flex-direction: column; gap: var(--s-3);
+  background: var(--surface); border: var(--card-border);
+  border-radius: var(--r-lg); padding: var(--s-4);
+  border-left: 3px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.kova .vo-prop[data-status="pending"] {
+  border-left: 3px dashed var(--warn);
+  background: transparent; box-shadow: none;
+}
+.kova .vo-prop[data-status="pending"] .vo-title { color: var(--ink-dim); }
+.kova .vo-prop[data-status="approved"] { border-left: 3px solid var(--ok); }
+.kova .vo-prop[data-status="rejected"] { border-left: 3px solid var(--line-strong); opacity: 0.55; }
+.kova .vo-prop[data-status="approved"] .vo-track > i { background: var(--ok); }
+.kova .vo-prop-conf { background: var(--inset); border-radius: var(--r-md); padding: var(--s-3); }
+
 /* ---------- charts ---------- */
 .kova .vo-bars { display: flex; align-items: flex-end; gap: 3px; height: 64px; }
 .kova .vo-bar { flex: 1; border-radius: var(--r-sm) var(--r-sm) 0 0; background: var(--a-500); min-height: 2px; }
 .kova .vo-bar[data-projected="true"] { background: var(--line-strong); }
 .kova .vo-track { height: 6px; border-radius: var(--r-pill); background: var(--inset); overflow: hidden; }
 .kova .vo-track > i { display: block; height: 100%; background: var(--a-500); border-radius: var(--r-pill); }
+
+/* 46-bar comb: recorded bright, projected dim. */
+.kova .vo-comb { display: flex; align-items: flex-end; gap: 2px; height: 104px; }
+.kova .vo-comb-bar {
+  flex: 1; min-width: 3px; min-height: 2px;
+  border-radius: 2px 2px 0 0; background: var(--a-500);
+}
+.kova .vo-comb-bar[data-projected="true"] { background: var(--a-500); opacity: 0.26; }
+
+.kova .vo-throughput-stats { margin-top: var(--s-4); gap: var(--s-6); flex-wrap: wrap; }
+.kova .vo-note {
+  margin: var(--s-3) 0 0; font-size: var(--t-meta);
+  border-radius: var(--r-md); padding: var(--s-2) var(--s-3);
+}
+.kova .vo-note[data-tone="warn"] { background: var(--warn-soft); color: var(--warn-txt); }
+
+/* area chart */
+.kova .vo-area { width: 100%; height: 200px; display: block; overflow: visible; }
+.kova .vo-area-fill { fill: url(#kova-area); stroke: none; }
+.kova .vo-area-line { fill: none; stroke: var(--a-500); stroke-width: 2; vector-effect: non-scaling-stroke; }
+.kova .vo-marker line { stroke: var(--dim); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.kova .vo-marker circle { fill: var(--a-400); }
+.kova .vo-marker text { font-family: var(--body); font-size: 11px; fill: var(--dim); }
+.kova .vo-marker[data-kind="peak"] circle { fill: var(--ok); }
+.kova .vo-marker[data-kind="low"] circle { fill: var(--err); }
+
 
 /* ============================================================
    Nav rail — 228px, always dark surface (--nav-bg)
