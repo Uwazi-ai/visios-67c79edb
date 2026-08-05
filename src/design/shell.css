@@ -569,7 +569,7 @@
 .kova .vo-searchbox {
   display: flex; align-items: center; gap: var(--s-2);
   padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--surface-2); color: var(--ink-dim);
+  background: var(--inset); color: var(--ink-dim);
 }
 .kova .vo-searchbox:focus-within { border-color: var(--a-400); }
 .kova .vo-searchbox input {
@@ -581,7 +581,7 @@
 .kova .vo-chip {
   font: inherit; font-size: var(--t-meta); color: var(--ink-dim);
   border: 1px solid var(--line); border-radius: var(--r-pill);
-  background: var(--surface-2); padding: 3px 9px; cursor: pointer;
+  background: var(--inset); padding: 3px 9px; cursor: pointer;
 }
 .kova button.vo-chip:hover { color: var(--ink); border-color: var(--a-400); }
 
@@ -590,7 +590,7 @@
 .kova .vo-hit {
   display: grid; gap: var(--s-2);
   padding: var(--s-3); border: 1px solid var(--line);
-  border-radius: var(--r-md); background: var(--surface-2);
+  border-radius: var(--r-md); background: var(--inset);
 }
 /* Under 50% is a lead, not an answer — dashed so it reads as provisional
    at a glance, the same language the approval gate already uses. */
