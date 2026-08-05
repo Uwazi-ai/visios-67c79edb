@@ -7,6 +7,7 @@ import { Button, Card, Desc, Eyebrow, SectionHead } from "@/components/primitive
 import Dashboard from "@/screens/Dashboard";
 import Settings from "@/screens/Settings";
 import Tasks from "@/screens/Tasks";
+import Knowledge from "@/screens/Knowledge";
 
 /**
  * Screen registry. Port a screen by writing it under src/screens and adding
@@ -20,6 +21,7 @@ const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   dashboard: Dashboard,
   settings: Settings,
   tasks: Tasks,
+  knowledge: Knowledge,
 };
 
 

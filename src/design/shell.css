@@ -563,3 +563,98 @@
   .kova .vo-gantt { grid-template-columns: minmax(0, 1fr); }
   .kova .vo-gantt-labels { display: none; }
 }
+
+/* ---- Knowledge ------------------------------------------------------ */
+
+.kova .vo-searchbox {
+  display: flex; align-items: center; gap: var(--s-2);
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
+  background: var(--inset); color: var(--ink-dim);
+}
+.kova .vo-searchbox:focus-within { border-color: var(--a-400); }
+.kova .vo-searchbox input {
+  flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
+  color: var(--ink); font: inherit; font-size: var(--t-body);
+}
+.kova .vo-searchbox input::placeholder { color: var(--ink-dim); }
+
+.kova .vo-chip {
+  font: inherit; font-size: var(--t-meta); color: var(--ink-dim);
+  border: 1px solid var(--line); border-radius: var(--r-pill);
+  background: var(--inset); padding: 3px 9px; cursor: pointer;
+}
+.kova button.vo-chip:hover { color: var(--ink); border-color: var(--a-400); }
+
+.kova .vo-hits { display: grid; gap: var(--s-3); }
+
+.kova .vo-hit {
+  display: grid; gap: var(--s-2);
+  padding: var(--s-3); border: 1px solid var(--line);
+  border-radius: var(--r-md); background: var(--inset);
+}
+/* Under 50% is a lead, not an answer — dashed so it reads as provisional
+   at a glance, the same language the approval gate already uses. */
+.kova .vo-hit[data-weak="true"] { border-style: dashed; opacity: .86; }
+.kova .vo-hit-head { gap: var(--s-2); align-items: flex-start; }
+.kova .vo-hit-foot { justify-content: space-between; gap: var(--s-2); flex-wrap: wrap; }
+
+.kova .vo-orgdot { width: 8px; height: 8px; border-radius: var(--r-pill); flex: 0 0 auto; }
+
+.kova .vo-relnum { font-size: var(--t-meta); font-weight: 700; color: var(--ok-txt); font-variant-numeric: tabular-nums; }
+.kova .vo-relnum[data-weak="true"] { color: var(--warn-txt); }
+
+.kova .vo-relbar { height: 5px; border-radius: var(--r-pill); background: var(--line); overflow: hidden; }
+.kova .vo-relbar-fill { display: block; height: 100%; background: var(--ok-txt); border-radius: var(--r-pill); }
+.kova .vo-relbar-fill[data-weak="true"] {
+  background: repeating-linear-gradient(90deg, var(--warn-txt) 0 4px, transparent 4px 7px);
+}
+
+.kova .vo-quote {
+  display: flex; gap: var(--s-2); margin: 0;
+  padding-left: var(--s-2); border-left: 2px solid var(--a-400);
+  color: var(--ink); font-size: var(--t-body); line-height: 1.55;
+}
+.kova .vo-quote svg { flex: 0 0 auto; margin-top: 4px; color: var(--ink-dim); }
+
+.kova .vo-why { margin: 0; font-size: var(--t-meta); color: var(--ink-dim); line-height: 1.5; }
+.kova .vo-why strong { color: var(--ink); font-weight: 600; }
+.kova .vo-why[data-weak="true"] { color: var(--warn-txt); }
+
+.kova .vo-warn {
+  display: flex; gap: var(--s-2); align-items: flex-start;
+  padding: var(--s-3); border-radius: var(--r-md);
+  border: 1px dashed var(--warn-txt); color: var(--warn-txt);
+  font-size: var(--t-meta); line-height: 1.55;
+}
+.kova .vo-warn svg { flex: 0 0 auto; margin-top: 2px; }
+.kova .vo-warn strong { color: var(--warn-txt); }
+.kova .vo-warn .vo-meta { color: var(--ink-dim); }
+
+.kova .vo-covlist { display: grid; gap: var(--s-3); }
+.kova .vo-cov { display: grid; gap: 5px; }
+.kova .vo-cov-name { font-size: var(--t-body); font-weight: 600; color: var(--ink); }
+.kova .vo-covbar {
+  display: flex; height: 7px; border-radius: var(--r-pill);
+  background: var(--line); overflow: hidden;
+}
+.kova .vo-covbar-fill { background: var(--a-400); }
+/* Waiting is hatched, not just a paler fill: "less colour" reads as "less
+   important", and this segment is the one that silently breaks answers. */
+.kova .vo-covbar-wait {
+  background: repeating-linear-gradient(115deg, var(--warn-txt) 0 3px, transparent 3px 6px);
+}
+
+.kova .vo-cited { display: flex; align-items: center; gap: var(--s-2); }
+.kova .vo-cited-name {
+  display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1 1 auto;
+  font-size: var(--t-meta); color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kova .vo-cited-name svg { flex: 0 0 auto; color: var(--ink-dim); }
+.kova .vo-cited-bar { flex: 0 0 68px; height: 5px; border-radius: var(--r-pill); background: var(--line); overflow: hidden; }
+.kova .vo-cited-bar span { display: block; height: 100%; background: var(--a-400); border-radius: var(--r-pill); }
+.kova .vo-cited-n { flex: 0 0 auto; width: 24px; text-align: right; font-size: var(--t-meta); font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+
+@media (max-width: 900px) {
+  .kova .vo-cited-bar { display: none; }
+}
