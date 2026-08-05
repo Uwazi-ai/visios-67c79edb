@@ -119,15 +119,19 @@ export interface EmailItem {
   from: string;
   initials: string;
   subject: string;
+  /** Days since they wrote and nobody replied. 7+ is a lead candidate. */
+  waitingDays: number;
   tone: "risk" | "warn" | "accent";
 }
 
-/** select id, org, from_name, subject, priority from email_threads
- *  where needs_attention order by received_at desc limit 6; */
+/** select id, org, from_name, subject, priority,
+ *         extract(day from now() - last_inbound_at) as waiting_days
+ *  from email_threads where needs_attention order by waiting_days desc; */
 export const EMAIL: EmailItem[] = [
-  { id: "m1", org: "uwazi", from: "Alex Sutter", initials: "AS", subject: "Re: Q2 partnership terms", tone: "risk" },
-  { id: "m2", org: "uwazi", from: "Mira Khan", initials: "MK", subject: "Notes from Tuesday's product sync", tone: "accent" },
-  { id: "m3", org: "bin", from: "Devon Rios", initials: "DR", subject: "Updated deck — your review please", tone: "warn" },
+  { id: "m1", org: "uwazi", from: "Alex Sutter", initials: "AS", subject: "Re: Q2 partnership terms", waitingDays: 11, tone: "risk" },
+  { id: "m2", org: "bin", from: "Devon Rios", initials: "DR", subject: "Updated deck — your review please", waitingDays: 8, tone: "warn" },
+  { id: "m3", org: "cc", from: "Priya Nandi", initials: "PN", subject: "Loft contract — signature needed", waitingDays: 4, tone: "warn" },
+  { id: "m4", org: "uwazi", from: "Mira Khan", initials: "MK", subject: "Notes from Tuesday's product sync", waitingDays: 1, tone: "accent" },
 ];
 
 export interface DueItem {
@@ -136,18 +140,23 @@ export interface DueItem {
   title: string;
   project: string;
   due: string;
+  /** Explicit, not parsed from the label. */
+  dueToday: boolean;
+  overdue?: boolean;
   tone: "risk" | "warn" | "accent";
 }
 
 /** select id, org, title, project, due_at from tasks
  *  where state <> 'done' and due_at < now() + interval '7 days'; */
 export const DUE: DueItem[] = [
-  { id: "t1", org: "uwazi", title: "Sign Uwazi funding doc", project: "Fundraise", due: "Today", tone: "risk" },
-  { id: "t2", org: "bin", title: "Draft BIN newsletter", project: "Newsletter", due: "Tomorrow", tone: "warn" },
-  { id: "t3", org: "cc", title: "Book Culture Club venue", project: "Events", due: "Fri", tone: "accent" },
-  { id: "t4", org: "uwazi", title: "Refactor onboarding copy", project: "Platform", due: "Next week", tone: "accent" },
-  { id: "t5", org: ANY_ORG, title: "Sign the shared insurance renewal", project: "Operations", due: "Thu", tone: "warn" },
+  { id: "t1", org: "uwazi", title: "Sign Uwazi funding doc", project: "Fundraise", due: "Today", dueToday: true, tone: "risk" },
+  { id: "t2", org: "bin", title: "Draft BIN newsletter", project: "Newsletter", due: "Tomorrow", dueToday: false, tone: "warn" },
+  { id: "t3", org: "cc", title: "Book Culture Club venue", project: "Events", due: "Fri", dueToday: false, tone: "accent" },
+  { id: "t4", org: "uwazi", title: "Refactor onboarding copy", project: "Platform", due: "Next week", dueToday: false, tone: "accent" },
+  { id: "t5", org: ANY_ORG, title: "Sign the shared insurance renewal", project: "Operations", due: "Thu", dueToday: false, tone: "warn" },
+  { id: "t6", org: "cc", title: "Confirm caterer headcount", project: "Events", due: "Today", dueToday: true, tone: "warn" },
 ];
+
 
 /**
  * Scope filter. "__any" rows belong to no single venture — a general
