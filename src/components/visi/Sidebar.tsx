@@ -69,12 +69,13 @@ export const Sidebar = ({ variant = "desktop" }: { variant?: "desktop" | "mobile
         <VisiLogo size={32} />
       </div>
 
-      <div style={{ borderBottom: "1px solid var(--border-glass)" }}>
       <TenantSwitcher />
 
       <div style={{ borderBottom: "1px solid var(--border-glass)" }}>
         <OrgSwitcher />
       </div>
+
+
 
 
       <nav className="flex-1 overflow-y-auto py-3">
