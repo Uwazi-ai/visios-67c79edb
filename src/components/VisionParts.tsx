@@ -117,7 +117,7 @@ export const GateCard = ({
       </Desc>
     ) : (
       <div className="vo-vgate-actions">
-        <button type="button" className="vo-btn vo-btn-primary" onClick={() => onDecide("approved")}>
+        <button type="button" className="vo-btn" data-variant="primary" onClick={() => onDecide("approved")}>
           Approve
         </button>
         <button type="button" className="vo-btn" onClick={() => onDecide("declined")}>

@@ -108,7 +108,7 @@ const Vision = () => {
                   placeholder="Ask across UWAZI, Culture Club, BIN, Raia, 1Flock…"
                   aria-label="Ask Vision"
                 />
-                <button type="submit" className="vo-btn vo-btn-primary" disabled={!draft.trim()}>
+                <button type="submit" className="vo-btn" data-variant="primary" disabled={!draft.trim()}>
                   Ask
                 </button>
               </form>
