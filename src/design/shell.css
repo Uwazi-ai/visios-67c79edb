@@ -1,0 +1,251 @@
+/* ============================================================
+   Kova — app shell
+   Structure only. Every colour reads a token from tokens.css.
+   No hex codes in this file. Responsive spans live here, never in JS.
+   ============================================================ */
+
+.kova {
+  /* Aliases onto the Kova token set. Components speak in roles
+     (--ink, --surface) and the theme decides what a role looks like. */
+  --surface: var(--card);
+  --rail: var(--nav-bg);
+  --ink: var(--text);
+  --ink-dim: var(--dim);
+  --accent: var(--accent-txt);
+  --accent-ink: var(--text);
+  --line-strong: var(--line);
+  --accent-soft: color-mix(in srgb, var(--a-500) 18%, transparent);
+  --risk: var(--err-txt);
+  --ok-soft: color-mix(in srgb, var(--ok) 16%, transparent);
+  --warn-soft: color-mix(in srgb, var(--warn) 16%, transparent);
+  --risk-soft: color-mix(in srgb, var(--err) 16%, transparent);
+
+  --r-sm: 6px;
+  --r-md: var(--r-inner);
+  --r-lg: var(--r-card);
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+
+  --t-eyebrow: 11px;
+  --t-meta: 12px;
+  --t-body: 14px;
+  --t-title: 16px;
+  --t-head: 20px;
+
+  --rail-w: 228px;
+
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+/* ---------- layout ---------- */
+.kova .vo-shell { display: flex; min-height: 100vh; align-items: stretch; }
+.kova .vo-main { flex: 1; min-width: 0; padding: var(--s-5); }
+.kova .vo-bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--s-4); }
+.kova .vo-col { min-width: 0; display: flex; flex-direction: column; gap: var(--s-4); }
+.kova .vo-row { display: flex; align-items: center; gap: var(--s-3); }
+.kova .vo-between { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+.kova .vo-stack { display: flex; flex-direction: column; gap: var(--s-2); }
+
+/* ---------- surfaces ---------- */
+.kova .vo-card {
+  background: var(--surface);
+  border: var(--card-border);
+  border-radius: var(--r-lg);
+  padding: var(--s-4);
+  box-shadow: var(--shadow);
+}
+.kova .vo-card[data-ungated="true"] {
+  border: 1px dashed var(--line-strong);
+  background: transparent;
+  box-shadow: none;
+}
+.kova .vo-inset { background: var(--inset); border-radius: var(--r-md); padding: var(--s-3); }
+
+/* ---------- type ----------
+   De-emphasis comes from size and position. There is no third grey. */
+.kova .vo-eyebrow {
+  font-size: var(--t-eyebrow); letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--ink-dim); font-weight: 600;
+}
+.kova .vo-title { font-size: var(--t-title); font-weight: 600; color: var(--ink); margin: 0; font-family: var(--display); letter-spacing: -0.02em; }
+.kova .vo-head { font-size: var(--t-head); font-weight: 700; color: var(--ink); margin: 0; font-family: var(--display); letter-spacing: -0.02em; }
+.kova .vo-hero { font-size: var(--t-hero); font-family: var(--display); letter-spacing: -0.02em; line-height: 1.15; margin: 0; }
+.kova .vo-desc { font-size: var(--t-body); color: var(--ink-dim); margin: 0; line-height: 1.5; }
+.kova .vo-meta { font-size: var(--t-meta); color: var(--ink-dim); }
+.kova .vo-stat {
+  font-family: var(--display); font-size: var(--t-stat); font-weight: 700;
+  letter-spacing: -0.04em; line-height: 1.02; color: var(--ink);
+}
+
+/* ---------- tag ---------- */
+.kova .vo-tag {
+  display: inline-flex; align-items: center; gap: var(--s-1);
+  font-size: var(--t-eyebrow); font-weight: 600; letter-spacing: 0.04em;
+  padding: 2px var(--s-2); border-radius: var(--r-pill);
+  background: var(--inset); color: var(--ink-dim); text-transform: uppercase;
+}
+.kova .vo-tag[data-tone="ok"] { background: var(--ok-soft); color: var(--ok-txt); }
+.kova .vo-tag[data-tone="warn"] { background: var(--warn-soft); color: var(--warn-txt); }
+.kova .vo-tag[data-tone="risk"] { background: var(--risk-soft); color: var(--err-txt); }
+.kova .vo-tag[data-tone="accent"] { background: var(--accent-soft); color: var(--accent); }
+
+/* ---------- face: one component for people and orgs ---------- */
+.kova .vo-face {
+  width: 28px; height: 28px; flex: none; border-radius: var(--r-pill);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: var(--t-eyebrow); font-weight: 700; letter-spacing: 0.02em;
+  background: var(--inset); color: var(--ink);
+  background-size: cover; background-position: center; overflow: hidden;
+}
+.kova .vo-face[data-shape="square"] { border-radius: var(--r-sm); }
+.kova .vo-face[data-size="lg"] { width: 36px; height: 36px; font-size: var(--t-meta); }
+.kova .vo-face img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.kova .vo-face[data-tinted="true"] { color: var(--a-500); }
+
+/* ---------- buttons ---------- */
+.kova .vo-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
+  font: inherit; font-size: var(--t-body); font-weight: 500;
+  padding: var(--s-2) var(--s-3); border-radius: var(--r-md);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
+}
+.kova .vo-btn:hover:not(:disabled) { border-color: var(--line-strong); }
+.kova .vo-btn[data-variant="primary"] { background: var(--a-500); border-color: var(--a-500); color: var(--text); }
+[data-theme="light"] .kova .vo-btn[data-variant="primary"] { color: var(--nav-bg); }
+.kova .vo-btn[data-variant="quiet"] { background: transparent; border-color: transparent; color: var(--ink-dim); }
+.kova .vo-btn:disabled { cursor: not-allowed; opacity: 0.55; }
+
+/* A gated action reads as blocked before it is clicked, not after. */
+.kova .vo-btn[data-blocked="true"] {
+  border-style: dashed; border-color: var(--warn-txt); color: var(--warn-txt);
+  background: transparent; opacity: 1;
+}
+
+/* ---------- proposal gate ---------- */
+.kova .vo-gate { border: 1px dashed var(--line-strong); border-radius: var(--r-md); padding: var(--s-3); background: transparent; }
+.kova .vo-gate[data-approved="true"] { border-style: solid; border-color: var(--line); background: var(--surface); }
+.kova .vo-gate[data-approved="false"] .vo-title { color: var(--ink-dim); }
+
+/* ---------- focus, both themes ---------- */
+.kova :focus-visible { outline: 2px solid var(--a-400); outline-offset: 2px; border-radius: var(--r-sm); }
+
+/* ---------- charts ---------- */
+.kova .vo-bars { display: flex; align-items: flex-end; gap: 3px; height: 64px; }
+.kova .vo-bar { flex: 1; border-radius: var(--r-sm) var(--r-sm) 0 0; background: var(--a-500); min-height: 2px; }
+.kova .vo-bar[data-projected="true"] { background: var(--line-strong); }
+.kova .vo-track { height: 6px; border-radius: var(--r-pill); background: var(--inset); overflow: hidden; }
+.kova .vo-track > i { display: block; height: 100%; background: var(--a-500); border-radius: var(--r-pill); }
+
+/* ============================================================
+   Nav rail — 228px, always dark surface (--nav-bg)
+   ============================================================ */
+.kova .vo-rail {
+  width: var(--rail-w); flex: none; background: var(--rail);
+  border-right: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: var(--s-4);
+  padding: var(--s-4) var(--s-3);
+  position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto;
+}
+
+/* workspace switcher */
+.kova .vo-ws { position: relative; }
+.kova .vo-ws-btn {
+  display: flex; align-items: center; gap: var(--s-2); width: 100%;
+  font: inherit; font-size: var(--t-body); text-align: left;
+  padding: var(--s-2); border-radius: var(--r-md);
+  border: 1px solid var(--line); background: var(--inset); color: var(--ink); cursor: pointer;
+}
+.kova .vo-ws-btn:hover { border-color: var(--line-strong); }
+.kova .vo-ws-name { font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kova .vo-ws-role { font-size: var(--t-meta); color: var(--ink-dim); line-height: 1.2; }
+.kova .vo-ws-menu {
+  position: absolute; z-index: 20; top: calc(100% + var(--s-1)); left: 0; right: 0;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: var(--s-1); display: flex; flex-direction: column; gap: 1px;
+  box-shadow: var(--shadow); max-height: 320px; overflow-y: auto;
+}
+.kova .vo-ws-opt {
+  display: flex; align-items: center; gap: var(--s-2); width: 100%; text-align: left;
+  font: inherit; font-size: var(--t-body); padding: var(--s-2);
+  border: 0; background: transparent; color: var(--ink); border-radius: var(--r-sm); cursor: pointer;
+}
+.kova .vo-ws-opt:hover { background: var(--inset); }
+.kova .vo-ws-opt[aria-selected="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.kova .vo-dot { width: 8px; height: 8px; border-radius: var(--r-pill); flex: none; }
+
+/* The 3px strip: the rail wears the colour of whatever you are scoped to.
+   On "all" it is transparent — no single venture owns the view. */
+.kova .vo-strip { height: 3px; border-radius: var(--r-pill); background: transparent; }
+
+/* menu */
+.kova .vo-navgroup { display: flex; flex-direction: column; gap: 2px; }
+.kova .vo-navitem {
+  display: flex; align-items: center; gap: var(--s-2);
+  width: 100%; text-align: left; font: inherit; font-size: var(--t-body);
+  padding: var(--s-2) var(--s-3); border-radius: var(--r-md);
+  border: 1px solid transparent; background: transparent; color: var(--ink-dim); cursor: pointer;
+}
+.kova .vo-navitem:hover { background: var(--inset); color: var(--ink); }
+.kova .vo-navitem[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.kova .vo-navitem svg { flex: none; }
+.kova .vo-navitem-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kova .vo-caret { margin-left: auto; transition: transform 120ms ease; }
+.kova .vo-caret[data-open="true"] { transform: rotate(90deg); }
+.kova .vo-subgroup { padding-left: var(--s-4); display: flex; flex-direction: column; gap: 2px; }
+
+/* Ask Vision */
+.kova .vo-vision {
+  border-radius: var(--r-inner); padding: var(--s-3);
+  background: linear-gradient(135deg, var(--a-700), var(--a-500) 55%, var(--a-400));
+  color: var(--text); border: 0; text-align: left; cursor: pointer; width: 100%; font: inherit;
+}
+[data-theme="light"] .kova .vo-vision { color: var(--nav-bg); }
+.kova .vo-vision-title { font-family: var(--display); letter-spacing: -0.02em; font-weight: 700; font-size: var(--t-title); }
+.kova .vo-vision-sub { font-size: var(--t-meta); opacity: 0.85; margin-top: 2px; }
+
+.kova .vo-rail-foot { margin-top: auto; display: flex; flex-direction: column; gap: var(--s-2); }
+
+/* ---------- placeholder ---------- */
+.kova .vo-empty { display: flex; flex-direction: column; gap: var(--s-3); align-items: flex-start; }
+
+/* ============================================================
+   Under 768px the rail is a horizontal strip: labels drop, icons stay.
+   Spans are CSS. Nothing here is computed from window.innerWidth.
+   ============================================================ */
+@media (max-width: 767px) {
+  .kova .vo-shell { flex-direction: column; }
+  .kova .vo-rail {
+    width: 100%; max-height: none; position: static;
+    flex-direction: row; align-items: center; gap: var(--s-2);
+    overflow-x: auto; overflow-y: visible;
+    border-right: 0; border-bottom: 1px solid var(--line);
+    padding: var(--s-2) var(--s-3);
+  }
+  .kova .vo-rail-foot { margin-top: 0; flex-direction: row; }
+  .kova .vo-navgroup, .kova .vo-subgroup { flex-direction: row; padding-left: 0; }
+  .kova .vo-navitem { white-space: nowrap; padding: var(--s-2); }
+  .kova .vo-navitem-label, .kova .vo-rail-eyebrow, .kova .vo-caret { display: none; }
+  .kova .vo-ws { flex: none; min-width: 132px; }
+  .kova .vo-strip { display: none; }
+  .kova .vo-vision { width: auto; padding: var(--s-2) var(--s-3); }
+  .kova .vo-vision-sub { display: none; }
+  .kova .vo-main { padding: var(--s-3); }
+  .kova .vo-bento { grid-template-columns: repeat(4, 1fr); }
+  .kova .vo-col { grid-column: span 4 !important; }
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  .kova .vo-bento { grid-template-columns: repeat(8, 1fr); }
+  .kova .vo-col[data-span="12"] { grid-column: span 8; }
+  .kova .vo-col[data-span="7"], .kova .vo-col[data-span="5"] { grid-column: span 8; }
+  .kova .vo-col[data-span="4"] { grid-column: span 4; }
+}

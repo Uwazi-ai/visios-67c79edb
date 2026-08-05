@@ -60,7 +60,7 @@ export const WhoClosed = ({ scope }: { scope: string }) => {
             <Face initials={p.name.slice(0, 2).toUpperCase()} title={p.name} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="vo-between">
-                <span className="vo-desc" style={{ color: "var(--ink)" }}>
+                <span className="vo-desc" style={{ color: "var(--text)" }}>
                   {p.name}
                 </span>
                 <span className="vo-meta">{p.closes}</span>

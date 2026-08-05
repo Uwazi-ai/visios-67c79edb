@@ -4,6 +4,8 @@
  * The shapes are the contract the screens depend on.
  */
 
+import { ANY_ORG } from "@/lib/AppState";
+
 /** Confidence = agreement across signals, NOT probability of being correct.
  *  Those are different claims, and the difference is why the approve step
  *  exists. Keep the definition visible in the UI. */
@@ -65,6 +67,7 @@ export const EVENTS: EventItem[] = [
   { id: "e2", org: "uwazi", at: "11:30", title: "Funder call — Wexler", who: "Myke, Mira" },
   { id: "e3", org: "cc", at: "11:45", title: "Venue walkthrough", who: "Devon", conflict: true },
   { id: "e4", org: "bin", at: "15:00", title: "Editorial review", who: "Alex" },
+  { id: "e5", org: ANY_ORG, at: "16:30", title: "All-hands — every venture", who: "Everyone" },
 ];
 
 export interface EmailItem {
@@ -100,8 +103,15 @@ export const DUE: DueItem[] = [
   { id: "t2", org: "bin", title: "Draft BIN newsletter", project: "Newsletter", due: "Tomorrow", tone: "warn" },
   { id: "t3", org: "cc", title: "Book Culture Club venue", project: "Events", due: "Fri", tone: "accent" },
   { id: "t4", org: "uwazi", title: "Refactor onboarding copy", project: "Platform", due: "Next week", tone: "accent" },
+  { id: "t5", org: ANY_ORG, title: "Sign the shared insurance renewal", project: "Operations", due: "Thu", tone: "warn" },
 ];
 
+/**
+ * Scope filter. "__any" rows belong to no single venture — a general
+ * channel, a shared doc, a platform notice — and survive every filter.
+ * Drop that clause and the cross-org layer vanishes the moment a founder
+ * scopes down, which is exactly when they still need it.
+ */
 export function byScope<T extends { org: string }>(rows: T[], scope: string): T[] {
-  return scope === "all" ? rows : rows.filter((r) => r.org === scope);
+  return rows.filter((r) => scope === "all" || r.org === scope || r.org === ANY_ORG);
 }
