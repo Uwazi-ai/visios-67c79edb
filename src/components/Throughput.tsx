@@ -122,7 +122,7 @@ export const VelocityChart = ({ scope }: { scope: string }) => {
   return (
     <Card span={12}>
       <div className="vo-between" style={{ marginBottom: "var(--s-3)" }}>
-        <Title>Velocity</Title>
+        <Title>Daily closes, peak and low</Title>
         <Eyebrow>40 days</Eyebrow>
       </div>
       <svg
