@@ -1,21 +1,20 @@
-import logoSrc from "@/assets/visi-logo.png";
-import wordmarkSrc from "@/assets/visi-wordmark.png";
-import { withVersion } from "@/lib/assetVersion";
+import kovaWordmark from "@/assets/kova-wordmark.png.asset.json";
 
 interface LogoProps {
   size?: number;
-  /** Show the wordmark next to the V mark. */
+  /** Show the wordmark next to the mark. */
   showWordmark?: boolean;
 }
 
 export const VisiLogo = ({ size = 28, showWordmark = false }: LogoProps) => {
-  void logoSrc;
-  const wordmarkHeight = (size > 30 ? 20 : 15) * 5;
+  void showWordmark;
+  // 3x the previous scale so the wordmark reads clearly at every placement.
+  const wordmarkHeight = (size > 30 ? 20 : 15) * 3;
   return (
     <div className="flex items-center">
       <img
-        src={withVersion(wordmarkSrc)}
-        alt="Visi OS"
+        src={kovaWordmark.url}
+        alt="Kova"
         style={{ height: wordmarkHeight, width: "auto", objectFit: "contain", display: "block" }}
       />
     </div>
