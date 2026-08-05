@@ -51,15 +51,15 @@ export interface Me {
  * time. A founder wears four hats before lunch.
  */
 export const ORGS: Org[] = [
-  { id: "all", name: "All organizations", role: "Everything, unfiltered", color: "var(--org-all)" },
-  { id: "uwazi", name: "UWAZI.AI", role: "Founder", color: "var(--org-uwazi)" },
-  { id: "cc", name: "Culture Club", role: "Managing partner", color: "var(--org-cc)" },
-  { id: "bin", name: "BIN", role: "Black Innovators Network", color: "var(--org-bin)" },
-  { id: "raia", name: "Raia Ventures Inc.", role: "Owner", color: "var(--org-raia)" },
-  { id: "1flock", name: "1Flock", role: "Ship & handoff", color: "var(--org-1flock)" },
+  { id: "all", name: "All organizations", role: "Everything, unfiltered", color: "var(--ws-all)" },
+  { id: "uwazi", name: "UWAZI.AI", role: "Founder", color: "var(--ws-uwazi)" },
+  { id: "cc", name: "Culture Club", role: "Managing partner", color: "var(--ws-cc)" },
+  { id: "bin", name: "BIN", role: "Black Innovators Network", color: "var(--ws-bin)" },
+  { id: "raia", name: "Raia Ventures Inc.", role: "Owner", color: "var(--ws-raia)" },
+  { id: "1flock", name: "1Flock", role: "Ship & handoff", color: "var(--ws-1flock)" },
 ];
 
-const ME: Me = { name: "Myke", initials: "MY", color: "var(--org-uwazi)" };
+const ME: Me = { name: "Myke", initials: "MY", color: "var(--ws-uwazi)" };
 
 interface AppStateValue {
   theme: Theme;
