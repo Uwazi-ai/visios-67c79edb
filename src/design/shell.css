@@ -1027,3 +1027,163 @@
 .kova .vo-ev[data-short="true"] .vo-ev-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .kova .vo-ev-time { white-space: nowrap; }
 .kova .vo-ev[data-short="true"] .vo-ev-time { font-size: 9px; }
+
+/* ============ Raise ============ */
+.kova .vo-ladder { display: flex; align-items: flex-end; gap: 4px; width: 100%; }
+.kova .vo-rung {
+  position: relative; display: flex; flex-direction: column; justify-content: flex-end;
+  min-width: 0; height: 148px; padding: 8px 8px 10px; text-align: left; cursor: pointer;
+  background: var(--inset); border: 1px solid var(--line); border-radius: var(--r-inner);
+  color: var(--text); overflow: hidden;
+}
+.kova .vo-rung[data-empty="true"] { border-style: dashed; background: transparent; }
+.kova .vo-rung[data-active="true"] { border-color: var(--a-400); }
+.kova .vo-rung-fill {
+  position: absolute; left: 0; right: 0; bottom: 0; background: var(--a-500); opacity: .22;
+}
+.kova .vo-rung[data-empty="true"] .vo-rung-fill { display: none; }
+.kova .vo-rung-money { position: relative; font-family: var(--display); font-size: 15px; letter-spacing: -.02em; }
+.kova .vo-rung-label { position: relative; font-size: 11px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kova .vo-rung-count { position: relative; font-size: 10px; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.kova .vo-opp {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  padding: 10px 12px; background: var(--inset); border-radius: var(--r-inner);
+  border-left: 3px solid var(--line);
+}
+.kova .vo-opp-name { font-size: 13px; font-weight: 600; }
+.kova .vo-opp-amt { font-family: var(--display); font-size: 15px; letter-spacing: -.02em; white-space: nowrap; }
+
+.kova .vo-dots { display: flex; gap: 7px; flex-wrap: wrap; }
+.kova .vo-dot { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid var(--line); background: transparent; }
+.kova .vo-dot[data-filled="true"] { background: var(--a-500); border-color: var(--a-500); }
+.kova .vo-dot[data-edge="true"] { background: var(--warn); border-color: var(--warn); }
+.kova .vo-capnote {
+  padding: 10px 12px; border-radius: var(--r-inner); font-size: 12.5px; line-height: 1.5;
+  border: 1px dashed var(--warn); color: var(--text);
+}
+.kova .vo-capnote[data-tone="cap"] { background: color-mix(in srgb, var(--warn) 10%, transparent); }
+
+.kova .vo-months { display: flex; gap: 5px; }
+.kova .vo-month { flex: 1; height: 34px; border-radius: 5px; background: var(--a-500); }
+.kova .vo-month[data-state="committed"] { background: color-mix(in srgb, var(--a-500) 32%, transparent); border: 1px dashed var(--a-400); }
+.kova .vo-month[data-state="gone"] { background: var(--inset); }
+.kova .vo-cliff { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text); }
+.kova .vo-cliff-mark { width: 3px; height: 16px; background: var(--err); border-radius: 2px; }
+
+/* ============ Social ============ */
+.kova .vo-month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.kova .vo-month-dow { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); padding: 2px 4px; }
+.kova .vo-month-cell {
+  min-height: 92px; padding: 6px; border-radius: 10px; background: var(--inset);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.kova .vo-month-cell[data-outside="true"] { background: transparent; min-height: 0; }
+.kova .vo-month-cell[data-weekend="true"] { background: color-mix(in srgb, var(--inset) 45%, transparent); }
+.kova .vo-month-cell[data-gap="true"] {
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--warn) 12%, transparent) 0 7px, transparent 7px 14px);
+  outline: 1px dashed color-mix(in srgb, var(--warn) 60%, transparent); outline-offset: -1px;
+}
+.kova .vo-month-num { font-size: 11px; color: var(--dim); }
+.kova .vo-chip {
+  display: flex; align-items: center; gap: 5px; font-size: 10.5px; line-height: 1.25;
+  padding: 3px 5px; border: 1px solid; border-radius: 6px;
+  background: var(--card); overflow: hidden;
+}
+.kova .vo-chip[data-draft="true"] { border-style: dashed; opacity: .85; }
+.kova .vo-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.kova .vo-pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; font-size: 12px;
+  border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--inset); color: var(--text); cursor: pointer;
+}
+.kova .vo-pill[data-active="true"] { background: var(--a-500); border-color: var(--a-500); color: #fff; }
+
+.kova .vo-mirror { display: flex; align-items: stretch; gap: 6px; height: 220px; }
+.kova .vo-mirror-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.kova .vo-mirror-half { flex: 1; display: flex; }
+.kova .vo-mirror-half[data-side="up"] { align-items: flex-end; }
+.kova .vo-mirror-half[data-side="down"] { align-items: flex-start; }
+.kova .vo-mirror-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--a-500); }
+.kova .vo-mirror-bar[data-side="down"] { border-radius: 0 0 4px 4px; background: var(--warn); }
+.kova .vo-mirror-axis { height: 1px; background: var(--line); }
+.kova .vo-mirror-label { font-size: 9.5px; color: var(--dim); text-align: center; padding-top: 4px; }
+.kova .vo-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--dim); }
+.kova .vo-legend-swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--a-500); }
+.kova .vo-legend-swatch[data-side="down"], .kova .vo-legend-swatch[data-kind="over"] { background: var(--warn); }
+.kova .vo-legend-swatch[data-kind="draft"] { background: transparent; border: 1px dashed var(--dim); }
+.kova .vo-legend-swatch[data-kind="under"] { background: var(--ok); }
+.kova .vo-verdict {
+  display: flex; flex-direction: column; gap: 4px; padding: 11px 13px;
+  border-radius: var(--r-inner); border-left: 3px solid var(--warn);
+  background: color-mix(in srgb, var(--warn) 9%, transparent); font-size: 13px;
+}
+.kova .vo-verdict[data-tone="ok"] { border-left-color: var(--ok); background: color-mix(in srgb, var(--ok) 9%, transparent); }
+.kova .vo-split { display: flex; height: 12px; border-radius: var(--r-pill); overflow: hidden; background: var(--inset); }
+.kova .vo-split-fill[data-kind="sched"] { background: var(--a-500); }
+.kova .vo-split-fill[data-kind="draft"] {
+  background: repeating-linear-gradient(135deg, var(--dim) 0 4px, transparent 4px 8px);
+}
+
+/* ============ Campaigns ============ */
+.kova .vo-devgrid { display: flex; flex-direction: column; gap: 10px; }
+.kova .vo-devrow { display: grid; grid-template-columns: 190px 1fr 52px; align-items: center; gap: var(--s-3); }
+.kova .vo-devname { display: flex; align-items: center; gap: 7px; font-size: 12.5px; min-width: 0; }
+.kova .vo-devtrack { position: relative; height: 20px; background: var(--inset); border-radius: 6px; }
+.kova .vo-devcentre { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1.5px; background: var(--dim); }
+.kova .vo-devbar { position: absolute; top: 3px; bottom: 3px; background: var(--warn); border-radius: 4px; }
+.kova .vo-devbar[data-under="true"] { background: var(--ok); }
+.kova .vo-devnum { font-family: var(--display); font-size: 13px; text-align: right; color: var(--warn-txt); }
+.kova .vo-devnum[data-under="true"] { color: var(--ok-txt); }
+
+.kova .vo-funnel-step { display: flex; flex-direction: column; gap: 4px; }
+.kova .vo-funnel-label { font-size: 12.5px; font-weight: 600; }
+.kova .vo-funnel-value { font-family: var(--display); font-size: 14px; }
+.kova .vo-funnel-track { height: 10px; background: var(--inset); border-radius: var(--r-pill); overflow: hidden; }
+.kova .vo-funnel-fill { display: block; height: 100%; background: var(--a-500); border-radius: var(--r-pill); }
+
+.kova .vo-lead { display: flex; flex-direction: column; gap: 6px; }
+.kova .vo-lead-score { font-family: var(--display); font-size: 16px; letter-spacing: -.02em; }
+.kova .vo-lead-track { position: relative; height: 12px; background: var(--inset); border-radius: var(--r-pill); }
+.kova .vo-lead-fill { display: block; height: 100%; border-radius: var(--r-pill); background: var(--warn); }
+.kova .vo-lead-fill[data-band="scale"] { background: var(--ok); }
+.kova .vo-lead-fill[data-band="kill"] { background: var(--err); }
+.kova .vo-lead-mark { position: absolute; top: -5px; bottom: -5px; width: 1.5px; background: var(--text); opacity: .55; }
+.kova .vo-lead-mark::after {
+  content: attr(data-label); position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; color: var(--dim);
+}
+
+/* ============ Agents ============ */
+.kova .vo-comb { display: flex; align-items: flex-end; gap: 5px; height: 68px; }
+.kova .vo-comb-col { position: relative; flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.kova .vo-comb-bar { width: 100%; border-radius: 3px 3px 0 0; background: var(--a-500); }
+.kova .vo-comb-bar[data-failed="true"] {
+  background: repeating-linear-gradient(135deg, var(--err) 0 3px, transparent 3px 6px);
+  border: 1px solid var(--err);
+}
+.kova .vo-comb-notch {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: -8px;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--ok);
+}
+.kova .vo-comb-notch[data-miss="true"] { background: var(--warn); }
+.kova .vo-claim {
+  display: flex; flex-direction: column; gap: 3px; padding: 9px 11px; font-size: 12.5px;
+  background: var(--inset); border-radius: var(--r-inner);
+}
+.kova .vo-hit {
+  display: flex; align-items: center; gap: var(--s-3); padding: 10px 12px;
+  border-radius: var(--r-inner); border-left: 3px solid var(--ok);
+  background: color-mix(in srgb, var(--ok) 8%, transparent); font-size: 12.5px;
+}
+.kova .vo-hit[data-tone="warn"] { border-left-color: var(--warn); background: color-mix(in srgb, var(--warn) 8%, transparent); }
+.kova .vo-hit[data-tone="risk"] { border-left-color: var(--err); background: color-mix(in srgb, var(--err) 8%, transparent); }
+.kova .vo-hit-num { font-family: var(--display); font-size: 26px; letter-spacing: -.03em; }
+.kova .vo-perms { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.kova .vo-gatetag {
+  display: inline-flex; align-items: center; padding: 2px 8px; font-size: 11px;
+  border: 1px dashed var(--warn); color: var(--warn-txt); border-radius: var(--r-pill);
+}
+@media (max-width: 900px) {
+  .kova .vo-devrow { grid-template-columns: 130px 1fr 44px; }
+  .kova .vo-perms { grid-template-columns: 1fr; }
+}
