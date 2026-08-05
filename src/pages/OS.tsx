@@ -10,6 +10,7 @@ import Tasks from "@/screens/Tasks";
 import Knowledge from "@/screens/Knowledge";
 import Vision from "@/screens/Vision";
 import Contacts from "@/screens/Contacts";
+import Chat from "@/screens/Chat";
 
 /**
  * Screen registry. Port a screen by writing it under src/screens and adding
@@ -26,6 +27,7 @@ const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   knowledge: Knowledge,
   vision: Vision,
   contacts: Contacts,
+  chat: Chat,
 };
 
 
