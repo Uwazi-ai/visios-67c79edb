@@ -67,8 +67,8 @@ export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void })
             <Col span={6} key={p.id}>
               <AgentProposalCard
                 proposal={p}
-                onApprove={() => setStatus(p.id, "approved")}
-                onReject={() => setStatus(p.id, "rejected")}
+                onApprove={() => setProposalStatus(p.id, "approved")}
+                onReject={() => setProposalStatus(p.id, "rejected")}
               />
             </Col>
           ))}
