@@ -93,7 +93,7 @@ const CardPublic = () => {
     return (
       <div style={{ minHeight: "100vh", background: "#02020A", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, fontFamily: "Satoshi, sans-serif", padding: 24, textAlign: "center" }}>
         <div style={{ fontSize: 22, fontWeight: 700 }}>Card not found</div>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>This Visi card doesn't exist yet.</div>
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>This Kova card doesn't exist yet.</div>
         <Link to="/" style={{ marginTop: 12, color: "#6366F1", fontSize: 13 }}>Go to Kova →</Link>
       </div>
     );

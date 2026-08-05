@@ -234,7 +234,7 @@ export const AIAssistantPanel = ({ open, onClose }: { open: boolean; onClose: ()
       <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: "1px solid var(--border-glass)" }}>
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-[hsl(258,90%,66%)]" />
-          <span className="font-display font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Visi AI</span>
+          <span className="font-display font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>Kova AI</span>
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         </div>
         <div className="flex-1" />
@@ -341,7 +341,7 @@ export const AIAssistantPanel = ({ open, onClose }: { open: boolean; onClose: ()
                 sendMessage(input);
               }
             }}
-            placeholder="Ask Visi anything..."
+            placeholder="Ask Kova anything..."
             rows={1}
             className="flex-1 bg-transparent resize-none outline-none text-sm"
             style={{ color: "var(--text-primary)", maxHeight: 160 }}
@@ -411,7 +411,7 @@ export const AIAssistantFAB = () => {
           background: "linear-gradient(135deg, hsl(217,91%,60%), hsl(258,90%,66%))",
           boxShadow: "0 8px 30px rgba(99,102,241,0.45)",
         }}
-        title="Visi AI Assistant"
+        title="Kova AI Assistant"
       >
         <Sparkles size={20} className="text-white" />
       </button>

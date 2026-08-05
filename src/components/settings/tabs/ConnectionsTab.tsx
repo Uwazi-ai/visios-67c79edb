@@ -219,7 +219,7 @@ export default function ConnectionsTab() {
         provider="twilio"
         title="SMS Quick Capture"
         icon={Phone}
-        description="Text Visi from your phone — captures land in your inbox automatically."
+        description="Text Kova from your phone — captures land in your inbox automatically."
         fields={[
           { key: "account_sid", label: "Account SID", type: "password" },
           { key: "auth_token", label: "Auth token", type: "password" },

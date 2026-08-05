@@ -115,7 +115,7 @@ export default function AISettings() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="t-section flex items-center gap-2"><Sparkles size={20} /> AI Assistant</h1>
-          <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Train Visi to know your voice, your business, and your workflows.</p>
+          <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>Train Kova to know your voice, your business, and your workflows.</p>
         </div>
       </div>
 
@@ -346,7 +346,7 @@ const Step5Test = ({ t }: { t: TrainingRow }) => {
 
   return (
     <div className="glass p-5 space-y-4">
-      <h2 className="t-card-title">Test Visi</h2>
+      <h2 className="t-card-title">Test Kova</h2>
       <textarea className="input-glass w-full" rows={3} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
       <button onClick={test} disabled={busy} className="btn-primary flex items-center gap-2">
         {busy && <Loader2 size={12} className="animate-spin" />} Run test

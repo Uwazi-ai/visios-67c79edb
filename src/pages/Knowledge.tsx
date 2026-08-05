@@ -94,7 +94,7 @@ export default function KnowledgePage() {
         <div>
           <h1 className="t-section flex items-center gap-2"><BookOpen size={20} /> Knowledge Base</h1>
           <p className="text-sm" style={{ color: "var(--text-tertiary)" }}>
-            Searchable docs powering Visi AI's responses.
+            Searchable docs powering Kova AI's responses.
           </p>
         </div>
         <div className="flex items-center gap-2">
