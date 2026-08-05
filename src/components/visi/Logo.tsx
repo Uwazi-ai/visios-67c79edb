@@ -1,4 +1,4 @@
-import kovaWordmark from "@/assets/kova-wordmark.png.asset.json";
+import kovaWordmark from "@/assets/kova-wordmark.png";
 
 interface LogoProps {
   size?: number;
@@ -8,12 +8,11 @@ interface LogoProps {
 
 export const VisiLogo = ({ size = 28, showWordmark = false }: LogoProps) => {
   void showWordmark;
-  // 3x the previous scale so the wordmark reads clearly at every placement.
-  const wordmarkHeight = (size > 30 ? 20 : 15) * 3;
+  const wordmarkHeight = (size > 30 ? 20 : 15) * 1.5;
   return (
     <div className="flex items-center">
       <img
-        src={kovaWordmark.url}
+        src={kovaWordmark}
         alt="Kova"
         style={{ height: wordmarkHeight, width: "auto", objectFit: "contain", display: "block" }}
       />
