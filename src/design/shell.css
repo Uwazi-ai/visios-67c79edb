@@ -317,11 +317,18 @@
   .kova .vo-main { padding: var(--s-3); }
   .kova .vo-bento { grid-template-columns: repeat(4, 1fr); }
   .kova .vo-col { grid-column: span 4 !important; }
+  .kova .vo-brief { padding: var(--s-4); }
+  .kova .vo-brief-strip { grid-template-columns: repeat(2, 1fr); }
+  .kova .vo-comb { height: 72px; gap: 1px; }
+  .kova .vo-area { height: 160px; }
 }
 
 @media (min-width: 768px) and (max-width: 1099px) {
   .kova .vo-bento { grid-template-columns: repeat(8, 1fr); }
   .kova .vo-col[data-span="12"] { grid-column: span 8; }
   .kova .vo-col[data-span="7"], .kova .vo-col[data-span="5"] { grid-column: span 8; }
+  .kova .vo-col[data-span="6"] { grid-column: span 8; }
   .kova .vo-col[data-span="4"] { grid-column: span 4; }
+  .kova .vo-brief-strip { grid-template-columns: repeat(2, 1fr); }
 }
+
