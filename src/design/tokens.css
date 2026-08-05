@@ -36,6 +36,19 @@
   --ws-bin: #EF4444;
   --ws-raia: #7C3AED;
   --ws-1flock: #8A8A99;
+
+  /* Text sitting on a saturated fill. Not a third text colour — it is the
+     one value that stays put across themes, because a blue button is blue
+     in both and the label on it has to survive. */
+  --on-fill: #FFFFFF;
+
+  /* Scrim over an image. Fixed, for the same reason. */
+  --scrim: #000000;
+
+  /* A QR code is a scanner target before it is a design element: paper and
+     ink never follow the theme, or a light-mode card stops scanning. */
+  --qr-paper: #FFFFFF;
+  --qr-ink: #101014;
 }
 
 

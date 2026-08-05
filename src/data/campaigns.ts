@@ -21,12 +21,12 @@ export interface Campaign {
 }
 
 export const CAMPAIGNS: Campaign[] = [
-  { id: "c1", name: "Civic pilot — decision makers", platform: "LinkedIn", org: "uwazi", color: "#2563EB", spend: 6400, cpm: 28.5, benchmark: 35, status: "live" },
-  { id: "c2", name: "Showcase tickets", platform: "Instagram", org: "cc", color: "#DB2777", spend: 3100, cpm: 11.2, benchmark: 9.5, status: "live" },
-  { id: "c3", name: "Mentor intake", platform: "Meta", org: "bin", color: "#4F46E5", spend: 2200, cpm: 7.8, benchmark: 8.5, status: "live" },
-  { id: "c4", name: "Pilot demo pre-roll", platform: "YouTube", org: "uwazi", color: "#DC2626", spend: 4300, cpm: 19.4, benchmark: 14, status: "live" },
-  { id: "c5", name: "Founder thread boost", platform: "X", org: "uwazi", color: "#64748B", spend: 900, cpm: 6.1, benchmark: 6.4, status: "paused" },
-  { id: "c6", name: "Cohort applications", platform: "TikTok", org: "bin", color: "#0D9488", spend: 1500, cpm: 5.2, benchmark: 4.1, status: "live" },
+  { id: "c1", name: "Civic pilot — decision makers", platform: "LinkedIn", org: "uwazi", color: "var(--sw-blue)", spend: 6400, cpm: 28.5, benchmark: 35, status: "live" },
+  { id: "c2", name: "Showcase tickets", platform: "Instagram", org: "cc", color: "var(--sw-magenta)", spend: 3100, cpm: 11.2, benchmark: 9.5, status: "live" },
+  { id: "c3", name: "Mentor intake", platform: "Meta", org: "bin", color: "var(--sw-indigo)", spend: 2200, cpm: 7.8, benchmark: 8.5, status: "live" },
+  { id: "c4", name: "Pilot demo pre-roll", platform: "YouTube", org: "uwazi", color: "var(--sw-red)", spend: 4300, cpm: 19.4, benchmark: 14, status: "live" },
+  { id: "c5", name: "Founder thread boost", platform: "X", org: "uwazi", color: "var(--sw-slate)", spend: 900, cpm: 6.1, benchmark: 6.4, status: "paused" },
+  { id: "c6", name: "Cohort applications", platform: "TikTok", org: "bin", color: "var(--sw-teal)", spend: 1500, cpm: 5.2, benchmark: 4.1, status: "live" },
 ];
 
 /** Signed deviation from the platform's own benchmark, as a percentage. */
@@ -82,10 +82,10 @@ export const BAND_LABEL: Record<"kill" | "hold" | "scale", string> = {
 };
 
 export const CREATIVES: Creative[] = [
-  { id: "cr1", name: "Resident-owned data — plain text", campaign: "Civic pilot", color: "#2563EB", score: 88, spend: 2400, cpl: 41 },
-  { id: "cr2", name: "Committee room photo", campaign: "Civic pilot", color: "#2563EB", score: 76, spend: 1800, cpl: 58 },
-  { id: "cr3", name: "Pilot demo — 15s cut", campaign: "Pilot demo", color: "#DC2626", score: 74, spend: 2100, cpl: 61 },
-  { id: "cr4", name: "Showcase lineup carousel", campaign: "Showcase tickets", color: "#DB2777", score: 69, spend: 1400, cpl: 22 },
-  { id: "cr5", name: "Mentor quote card", campaign: "Mentor intake", color: "#4F46E5", score: 54, spend: 900, cpl: 74 },
-  { id: "cr6", name: "Stock office b-roll", campaign: "Cohort applications", color: "#0D9488", score: 31, spend: 1100, cpl: 168 },
+  { id: "cr1", name: "Resident-owned data — plain text", campaign: "Civic pilot", color: "var(--sw-blue)", score: 88, spend: 2400, cpl: 41 },
+  { id: "cr2", name: "Committee room photo", campaign: "Civic pilot", color: "var(--sw-blue)", score: 76, spend: 1800, cpl: 58 },
+  { id: "cr3", name: "Pilot demo — 15s cut", campaign: "Pilot demo", color: "var(--sw-red)", score: 74, spend: 2100, cpl: 61 },
+  { id: "cr4", name: "Showcase lineup carousel", campaign: "Showcase tickets", color: "var(--sw-magenta)", score: 69, spend: 1400, cpl: 22 },
+  { id: "cr5", name: "Mentor quote card", campaign: "Mentor intake", color: "var(--sw-indigo)", score: 54, spend: 900, cpl: 74 },
+  { id: "cr6", name: "Stock office b-roll", campaign: "Cohort applications", color: "var(--sw-teal)", score: 31, spend: 1100, cpl: 168 },
 ];
