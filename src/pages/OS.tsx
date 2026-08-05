@@ -5,6 +5,7 @@ import { AppStateProvider, useAppState } from "@/lib/AppState";
 import { Nav, NAV } from "@/components/Nav";
 import { Button, Card, Desc, Eyebrow, SectionHead } from "@/components/primitives";
 import Dashboard from "@/screens/Dashboard";
+import Settings from "@/screens/Settings";
 
 /**
  * Screen registry. Port a screen by writing it under src/screens and adding
@@ -16,6 +17,7 @@ interface ScreenProps {
 
 const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   dashboard: Dashboard,
+  settings: Settings,
 };
 
 
