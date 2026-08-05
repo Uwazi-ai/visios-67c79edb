@@ -42,6 +42,7 @@ import MakeIntegration from "./pages/MakeIntegration";
 import OAuthCallback from "./pages/OAuthCallback";
 import CivicIntel from "./pages/CivicIntel";
 import Onboarding from "./pages/Onboarding";
+import OS from "./pages/OS";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { AppUpdateListener } from "@/components/AppUpdateListener";
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="/about" element={<AboutPage />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/onboarding" element={<Onboarding />} />
+              <Route path="/os" element={<OS />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
               <Route path="/meet/:token" element={<ContactMeetPublic />} />
