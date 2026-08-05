@@ -24,7 +24,7 @@ const CalendarConnectInvite = ({ inviterName, recipientName, signInUrl }: Props)
       <Body style={main}>
         <Container style={container}>
           <Section style={brandRow}>
-            <Text style={brand}>KOVA <span style={slash}>/</span> {SITE_NAME}</Text>
+            <Text style={brand}>KOVA</Text>
           </Section>
           <Heading style={h1}>Connect your Google Calendar</Heading>
           <Text style={text}>{hi}</Text>

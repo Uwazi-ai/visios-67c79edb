@@ -18,7 +18,7 @@ export const MagicLinkEmail = ({ siteName, confirmationUrl }: MagicLinkEmailProp
     <Body style={main}>
       <Container style={container}>
         <Section style={brandRow}>
-          <Text style={brand}>KOVA <span style={slash}>/</span> {siteName}</Text>
+          <Text style={brand}>KOVA</Text>
         </Section>
         <Heading style={h1}>Sign in to {siteName}</Heading>
         <Text style={text}>Tap the button below to sign in. This link expires shortly for your security.</Text>

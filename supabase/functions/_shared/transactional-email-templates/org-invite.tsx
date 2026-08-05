@@ -23,7 +23,7 @@ const OrgInviteEmail = ({ orgName, inviterName, signupUrl }: OrgInviteProps) => 
       <Body style={main}>
         <Container style={container}>
           <Section style={brandRow}>
-            <Text style={brand}>KOVA <span style={slash}>/</span> {SITE_NAME}</Text>
+            <Text style={brand}>KOVA</Text>
           </Section>
           <Heading style={h1}>You're invited to {org}</Heading>
           <Text style={text}>

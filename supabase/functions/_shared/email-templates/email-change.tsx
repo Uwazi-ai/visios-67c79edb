@@ -23,7 +23,7 @@ export const EmailChangeEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={brandRow}>
-          <Text style={brand}>KOVA <span style={slash}>/</span> {siteName}</Text>
+          <Text style={brand}>KOVA</Text>
         </Section>
         <Heading style={h1}>Confirm your email change</Heading>
         <Text style={text}>
