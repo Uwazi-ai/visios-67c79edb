@@ -69,8 +69,8 @@ export const LEDGER: LedgerRow[] = build();
 
 /** Throughput is derived at render time, never precomputed — that is what
  *  lets the workspace scope filter it. */
-export function scoped(scope: string): LedgerRow[] {
-  return scope === "all" ? LEDGER : LEDGER.filter((r) => r.org === scope);
+export function scoped(scope: string, rows: LedgerRow[] = LEDGER): LedgerRow[] {
+  return scope === "all" ? rows : rows.filter((r) => r.org === scope);
 }
 
 const DAY = 86_400_000;
@@ -84,8 +84,8 @@ export interface Throughput {
   byPerson: { name: string; closes: number }[];
 }
 
-export function throughput(scope: string): Throughput {
-  const rows = scoped(scope);
+export function throughput(scope: string, source: LedgerRow[] = LEDGER): Throughput {
+  const rows = scoped(scope, source);
   const now = Date.now();
   const weeks = new Array(8).fill(0);
 
@@ -123,8 +123,8 @@ export function throughput(scope: string): Throughput {
    ============================================================ */
 
 /** Closes per day for the last `n` days, oldest → newest. */
-export function dailyCloses(scope: string, n: number): number[] {
-  const rows = scoped(scope);
+export function dailyCloses(scope: string, n: number, source: LedgerRow[] = LEDGER): number[] {
+  const rows = scoped(scope, source);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const start = today.getTime() - (n - 1) * DAY;
@@ -161,8 +161,8 @@ export interface Comb {
  * signed off on — when it is only arithmetic on the last ten days. If the
  * line slopes up, a founder plans against it. Keep it flat and caption it.
  */
-export function comb(scope: string): Comb {
-  const recorded = dailyCloses(scope, RECORDED_DAYS);
+export function comb(scope: string, source: LedgerRow[] = LEDGER): Comb {
+  const recorded = dailyCloses(scope, RECORDED_DAYS, source);
   const trailing = recorded.slice(-10);
   const mean = trailing.reduce((a, b) => a + b, 0) / trailing.length;
   const projected = new Array(PROJECTED_DAYS).fill(mean);
@@ -183,8 +183,8 @@ export interface Velocity {
   labels: string[];
 }
 
-export function velocity(scope: string): Velocity {
-  const days = dailyCloses(scope, VELOCITY_DAYS);
+export function velocity(scope: string, source: LedgerRow[] = LEDGER): Velocity {
+  const days = dailyCloses(scope, VELOCITY_DAYS, source);
   let peakIdx = 0;
   let lowIdx = 0;
   for (let i = 1; i < days.length; i++) {
