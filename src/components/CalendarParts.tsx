@@ -47,29 +47,31 @@ export const WeekGrid = ({
             {Array.from({ length: END_HOUR - START_HOUR }, (_, i) => (
               <div key={i} className="vo-week-slot" aria-hidden />
             ))}
-            {events
-              .filter((e) => e.day === day)
-              .map((e) => (
-                <div
-                  key={e.id}
-                  className="vo-ev"
-                  data-conflict={conflictIds.has(e.id) ? "true" : undefined}
-                  style={{
-                    top: `${top(e.start)}%`,
-                    height: `${height(e.start, e.end)}%`,
-                    borderLeftColor: colorOf(e.org),
-                  }}
-                  title={`${e.title} · ${fmtRange(e.start, e.end)} · ${calendarLabel(e.calendar)}`}
-                >
-                  <span className="vo-ev-time">{fmtRange(e.start, e.end)}</span>
-                  <span className="vo-ev-title">{e.title}</span>
-                  {e.where ? <span className="vo-ev-where">{e.where}</span> : null}
-                </div>
-              ))}
+            {laneOut(events.filter((e) => e.day === day)).map(({ e, lane, lanes }) => (
+              <div
+                key={e.id}
+                className="vo-ev"
+                data-conflict={conflictIds.has(e.id) ? "true" : undefined}
+                data-short={mins(e.end) - mins(e.start) <= 30 ? "true" : undefined}
+                style={{
+                  top: `${top(e.start)}%`,
+                  height: `${height(e.start, e.end)}%`,
+                  left: `calc(${(lane / lanes) * 100}% + 3px)`,
+                  width: `calc(${100 / lanes}% - 6px)`,
+                  borderLeftColor: colorOf(e.org),
+                }}
+                title={`${e.title} · ${fmtRange(e.start, e.end)} · ${calendarLabel(e.calendar)}`}
+              >
+                <span className="vo-ev-time">{fmtRange(e.start, e.end)}</span>
+                <span className="vo-ev-title">{e.title}</span>
+                {e.where ? <span className="vo-ev-where">{e.where}</span> : null}
+              </div>
+            ))}
           </div>
         </div>
       ))}
     </div>
+
   );
 };
 
