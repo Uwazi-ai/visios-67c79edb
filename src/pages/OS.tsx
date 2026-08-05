@@ -3,6 +3,8 @@ import "@/design/tokens.css";
 import "@/design/shell.css";
 import { AppStateProvider, useAppState } from "@/lib/AppState";
 import { Nav, NAV } from "@/components/Nav";
+import { KovaDataProvider } from "@/data/live/KovaData";
+import DataStatus from "@/components/DataStatus";
 import { Button, Card, Desc, Eyebrow, SectionHead } from "@/components/primitives";
 import Dashboard from "@/screens/Dashboard";
 import Settings from "@/screens/Settings";
@@ -85,6 +87,9 @@ const Shell = () => {
       <div className="vo-shell">
         <Nav active={active} onNavigate={setActive} />
         <main className="vo-main">
+          <div className="vo-shellbar">
+            <DataStatus />
+          </div>
           {Screen ? <Screen navigate={setActive} /> : <Placeholder id={active} onBack={() => setActive("dashboard")} />}
         </main>
       </div>
@@ -94,7 +99,9 @@ const Shell = () => {
 
 const OS = () => (
   <AppStateProvider>
-    <Shell />
+    <KovaDataProvider>
+      <Shell />
+    </KovaDataProvider>
   </AppStateProvider>
 );
 

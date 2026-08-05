@@ -1187,3 +1187,38 @@
   .kova .vo-devrow { grid-template-columns: 130px 1fr 44px; }
   .kova .vo-perms { grid-template-columns: 1fr; }
 }
+
+/* ---------------------------------------------------------------- data mode
+   The header says where the numbers came from. Amber is not decoration:
+   sample data quoted as real is the worst failure this app can have. */
+.vo-shellbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--s-4);
+}
+.vo-datamode {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: default;
+}
+button.vo-datamode { cursor: pointer; }
+.vo-datamode-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.vo-datamode[data-state="live"] { color: #34d399; }
+.vo-datamode[data-state="sample"] { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); }
+.vo-datamode[data-state="degraded"] { color: #f59e0b; }
+.vo-datamode[data-state="loading"] { opacity: 0.6; }
