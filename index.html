@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,6 +7,12 @@
     <meta name="description" content="Visi OS unifies  your tech stack! Email, tasks, calendar, team comms, with your Ai chief of staff, Vision!">
     <meta name="author" content="Visi OS" />
     <meta name="theme-color" content="#02020A" />
+    <style>
+      /* Pre-bundle fallback: the page is styled even if the JS never loads. */
+      html[data-theme="dark"] { background: #08080B; color: #F7F7F9; }
+      html[data-theme="light"] { background: #F4F4F7; color: #101014; }
+      body { margin: 0; font-family: "Inter", system-ui, sans-serif; }
+    </style>
 
     <link rel="manifest" href="/manifest.json?v=20260505b" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico?v=20260505b">

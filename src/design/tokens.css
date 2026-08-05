@@ -1,10 +1,84 @@
 /* ============================================================
-   Visi OS — design tokens
+   Kova — design tokens
    THE RULE: no hex codes anywhere outside this file.
-   Contrast ratios are measured (WCAG AA), not eyeballed.
-   There is deliberately no third grey — the next step down
-   fails on --inset. De-emphasise with size and position.
+   Exactly two text colours per theme: --text and --dim.
+   Light mode is not an inversion — status colours darken.
    ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --a-500: #2563EB; /* fills, bars, buttons — white text on it: 5.17:1 */
+  --a-400: #3B82F6;
+  --a-300: #60A5FA; /* blue text on dark */
+  --a-700: #1D4ED8; /* blue text on light */
+
+  --ok: #22C55E;
+  --warn: #F59E0B;
+  --err: #EF4444;
+
+  --r-card: 18px;
+  --r-inner: 12px;
+  --r-pill: 999px;
+
+  --display: "Inter Tight", system-ui, sans-serif;
+  --body: "Inter", system-ui, sans-serif;
+
+  --t-hero: clamp(24px, 4.6vw, 31px);
+  --t-stat: clamp(30px, 6.4vw, 42px);
+}
+
+[data-theme="dark"] {
+  --bg: #08080B;
+  --nav-bg: #0B0B0F;
+  --card: #131317;
+  --inset: #1D1D23;
+  --line: #26262E;
+  --text: #F7F7F9;
+  --dim: #96969F;
+  --accent-txt: var(--a-300);
+  --ok-txt: #22C55E;
+  --warn-txt: #F59E0B;
+  --err-txt: #EF4444;
+  --card-border: 1px solid #1E1E25;
+  --shadow: none;
+}
+
+[data-theme="light"] {
+  --bg: #F4F4F7;
+  --nav-bg: #FFFFFF;
+  --card: #FFFFFF;
+  --inset: #EDEDF1;
+  --line: #E1E1E8;
+  --text: #101014;
+  --dim: #5F5F6B;
+  --accent-txt: var(--a-700);
+  --ok-txt: #15803D;
+  --warn-txt: #B45309;
+  --err-txt: #B91C1C;
+  --card-border: 1px solid transparent;
+  --shadow: 0 1px 2px rgba(16, 16, 26, .04), 0 10px 28px rgba(16, 16, 26, .06);
+}
+
+/* Display type: the tracking is what makes it read, not the family. */
+.kova-display { font-family: var(--display); letter-spacing: -0.02em; }
+.kova-stat { font-family: var(--display); font-size: var(--t-stat); letter-spacing: -0.04em; line-height: 1.02; }
+.kova-hero { font-family: var(--display); font-size: var(--t-hero); letter-spacing: -0.02em; line-height: 1.15; }
+
+/* Visible keyboard focus on both themes. */
+[data-theme] :focus-visible { outline: 2px solid var(--a-400); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- legacy Visi OS scaffold (/os) ---------- */
+
 
 .visi-os[data-theme="dark"] {
   --bg: #0b0d10;
