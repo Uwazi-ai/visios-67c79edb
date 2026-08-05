@@ -11,7 +11,8 @@ import { useAppState } from "@/lib/AppState";
  * for a decision that lives in a dashed box.
  */
 const Inbox = () => {
-  const { orgs, inScope } = useAppState();
+  const { orgs, inScope, scope } = useAppState();
+  const scopeName = orgs.find((o) => o.id === scope)?.name ?? "All organizations";
   const sends = useSends();
   const scoped = useMemo(() => THREADS.filter((t) => inScope(t.org)), [inScope]);
   const [selectedId, setSelectedId] = useState(scoped[0]?.id ?? THREADS[0].id);
@@ -26,8 +27,8 @@ const Inbox = () => {
         <SectionHead title="Inbox" />
         <Card ungated>
           <div className="vo-empty">
-            <Eyebrow>Nothing in this scope</Eyebrow>
-            <Desc>No threads belong to the current workspace.</Desc>
+            <Eyebrow>{scopeName}</Eyebrow>
+            <Desc>No threads for {scopeName}. Switch scope in the rail to see the rest.</Desc>
           </div>
         </Card>
       </div>

@@ -12,7 +12,8 @@ import { useAppState } from "@/lib/AppState";
  * shown apart, and a claim only when two of them agree.
  */
 const Contacts = ({ navigate }: { navigate: (id: string) => void }) => {
-  const { orgs, inScope } = useAppState();
+  const { orgs, inScope, scope } = useAppState();
+  const scopeName = orgs.find((o) => o.id === scope)?.name ?? "All organizations";
   const { contacts } = useKovaData();
   const scoped = useMemo(() => contacts.filter((c) => inScope(c.org)), [contacts, inScope]);
   const [selectedId, setSelectedId] = useState(scoped[0]?.id ?? "");
@@ -27,8 +28,8 @@ const Contacts = ({ navigate }: { navigate: (id: string) => void }) => {
         <SectionHead title="Contacts" />
         <Card ungated>
           <div className="vo-empty">
-            <Eyebrow>Nothing in this scope</Eyebrow>
-            <Desc>No cards have been scanned under the current workspace.</Desc>
+            <Eyebrow>{scopeName}</Eyebrow>
+            <Desc>No contacts for {scopeName}. Nothing has been scanned under this workspace — switch scope in the rail.</Desc>
           </div>
         </Card>
       </div>
