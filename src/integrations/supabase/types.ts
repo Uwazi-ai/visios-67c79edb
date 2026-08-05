@@ -177,6 +177,63 @@ export type Database = {
           },
         ]
       }
+      ai_token_usage: {
+        Row: {
+          cache_read_tokens: number
+          cache_write_tokens: number
+          call_type: string | null
+          created_at: string
+          error: string | null
+          id: string
+          input_tokens: number
+          latency_ms: number | null
+          model: string
+          ok: boolean
+          org_id: string | null
+          output_tokens: number
+          provider: string
+          streamed: boolean
+          total_tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          cache_read_tokens?: number
+          cache_write_tokens?: number
+          call_type?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          input_tokens?: number
+          latency_ms?: number | null
+          model: string
+          ok?: boolean
+          org_id?: string | null
+          output_tokens?: number
+          provider?: string
+          streamed?: boolean
+          total_tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          cache_read_tokens?: number
+          cache_write_tokens?: number
+          call_type?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          input_tokens?: number
+          latency_ms?: number | null
+          model?: string
+          ok?: boolean
+          org_id?: string | null
+          output_tokens?: number
+          provider?: string
+          streamed?: boolean
+          total_tokens?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_training: {
         Row: {
           canned_responses: Json
@@ -1658,6 +1715,535 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kova_agent_runs: {
+        Row: {
+          agent: string
+          at_risk: number
+          id: string
+          ok: boolean
+          ran_at: string
+          right_calls: number
+          runs: number
+          user_id: string
+        }
+        Insert: {
+          agent: string
+          at_risk?: number
+          id?: string
+          ok?: boolean
+          ran_at?: string
+          right_calls?: number
+          runs?: number
+          user_id?: string
+        }
+        Update: {
+          agent?: string
+          at_risk?: number
+          id?: string
+          ok?: boolean
+          ran_at?: string
+          right_calls?: number
+          runs?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_agents: {
+        Row: {
+          autonomous: string[]
+          cadence: string | null
+          call_line: string | null
+          created_at: string
+          description: string
+          enabled: boolean
+          gated: string[]
+          icon: string | null
+          id: string
+          key: string
+          last_call: string | null
+          name: string
+          org: string
+          user_id: string
+        }
+        Insert: {
+          autonomous?: string[]
+          cadence?: string | null
+          call_line?: string | null
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          gated?: string[]
+          icon?: string | null
+          id?: string
+          key: string
+          last_call?: string | null
+          name: string
+          org?: string
+          user_id?: string
+        }
+        Update: {
+          autonomous?: string[]
+          cadence?: string | null
+          call_line?: string | null
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          gated?: string[]
+          icon?: string | null
+          id?: string
+          key?: string
+          last_call?: string | null
+          name?: string
+          org?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_board_states: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          name: string
+          position: number
+          user_id: string
+          wip_limit: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          name: string
+          position?: number
+          user_id?: string
+          wip_limit?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          name?: string
+          position?: number
+          user_id?: string
+          wip_limit?: number | null
+        }
+        Relationships: []
+      }
+      kova_chat_messages: {
+        Row: {
+          action: Json | null
+          action_state: string | null
+          author: string
+          body: string
+          channel: string
+          created_at: string
+          id: string
+          reactions: Json
+          user_id: string
+        }
+        Insert: {
+          action?: Json | null
+          action_state?: string | null
+          author: string
+          body?: string
+          channel: string
+          created_at?: string
+          id?: string
+          reactions?: Json
+          user_id?: string
+        }
+        Update: {
+          action?: Json | null
+          action_state?: string | null
+          author?: string
+          body?: string
+          channel?: string
+          created_at?: string
+          id?: string
+          reactions?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_connections: {
+        Row: {
+          created_at: string
+          detail: string
+          id: string
+          key: string
+          name: string
+          position: number
+          scope: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string
+          id?: string
+          key: string
+          name: string
+          position?: number
+          scope?: string | null
+          status?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string
+          id?: string
+          key?: string
+          name?: string
+          position?: number
+          scope?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_contacts: {
+        Row: {
+          cal_signal: Json | null
+          card_used: string | null
+          company: string | null
+          confidence: number
+          created_at: string
+          id: string
+          loc_signal: Json | null
+          name: string
+          org: string
+          overlap_signal: Json | null
+          role: string | null
+          scanned_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cal_signal?: Json | null
+          card_used?: string | null
+          company?: string | null
+          confidence?: number
+          created_at?: string
+          id?: string
+          loc_signal?: Json | null
+          name: string
+          org?: string
+          overlap_signal?: Json | null
+          role?: string | null
+          scanned_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          cal_signal?: Json | null
+          card_used?: string | null
+          company?: string | null
+          confidence?: number
+          created_at?: string
+          id?: string
+          loc_signal?: Json | null
+          name?: string
+          org?: string
+          overlap_signal?: Json | null
+          role?: string | null
+          scanned_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_doc_chunks: {
+        Row: {
+          content: string
+          created_at: string
+          document_id: string
+          embedding: string | null
+          id: string
+          ord: number
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          document_id: string
+          embedding?: string | null
+          id?: string
+          ord?: number
+          user_id?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          document_id?: string
+          embedding?: string | null
+          id?: string
+          ord?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kova_doc_chunks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "kova_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kova_documents: {
+        Row: {
+          body: string
+          category: string
+          cited_count: number
+          content_hash: string | null
+          created_at: string
+          id: string
+          indexed: boolean
+          org: string
+          source: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          category?: string
+          cited_count?: number
+          content_hash?: string | null
+          created_at?: string
+          id?: string
+          indexed?: boolean
+          org?: string
+          source?: string | null
+          title: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          cited_count?: number
+          content_hash?: string | null
+          created_at?: string
+          id?: string
+          indexed?: boolean
+          org?: string
+          source?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_orgs: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          position: number
+          role: string | null
+          slug: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          position?: number
+          role?: string | null
+          slug: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          position?: number
+          role?: string | null
+          slug?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_permissions: {
+        Row: {
+          allowed: boolean
+          detail: string | null
+          id: string
+          key: string
+          label: string | null
+          locked: boolean
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allowed?: boolean
+          detail?: string | null
+          id?: string
+          key: string
+          label?: string | null
+          locked?: boolean
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          allowed?: boolean
+          detail?: string | null
+          id?: string
+          key?: string
+          label?: string | null
+          locked?: boolean
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_proposals: {
+        Row: {
+          agent: string
+          confidence: number
+          created_at: string
+          id: string
+          org: string
+          proposal: string
+          rationale: string
+          ref: string | null
+          signals: string[]
+          state: string
+          user_id: string
+        }
+        Insert: {
+          agent: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          org?: string
+          proposal: string
+          rationale?: string
+          ref?: string | null
+          signals?: string[]
+          state?: string
+          user_id?: string
+        }
+        Update: {
+          agent?: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          org?: string
+          proposal?: string
+          rationale?: string
+          ref?: string | null
+          signals?: string[]
+          state?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_tasks: {
+        Row: {
+          assignee: string | null
+          closed_at: string | null
+          created_at: string
+          due_at: string | null
+          id: string
+          org: string
+          priority: string
+          project: string | null
+          started_at: string | null
+          state: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assignee?: string | null
+          closed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          org?: string
+          priority?: string
+          project?: string | null
+          started_at?: string | null
+          state?: string
+          title: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          assignee?: string | null
+          closed_at?: string | null
+          created_at?: string
+          due_at?: string | null
+          id?: string
+          org?: string
+          priority?: string
+          project?: string | null
+          started_at?: string | null
+          state?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      kova_tool_calls: {
+        Row: {
+          args: Json
+          created_at: string
+          id: string
+          message_id: string | null
+          ms: number
+          ok: boolean
+          tool: string
+          user_id: string
+        }
+        Insert: {
+          args?: Json
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          ms?: number
+          ok?: boolean
+          tool: string
+          user_id?: string
+        }
+        Update: {
+          args?: Json
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          ms?: number
+          ok?: boolean
+          tool?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kova_tool_calls_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "kova_chat_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -3739,6 +4325,22 @@ export type Database = {
       is_super_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
+      kova_match_chunks: {
+        Args: {
+          match_count?: number
+          org_filter?: string
+          query_embedding: string
+        }
+        Returns: {
+          category: string
+          chunk_id: string
+          content: string
+          document_id: string
+          org: string
+          similarity: number
+          title: string
+        }[]
+      }
       list_owned_orgs_full: {
         Args: never
         Returns: {
