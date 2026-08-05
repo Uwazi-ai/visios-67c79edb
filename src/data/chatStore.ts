@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { ActionState, CHANNELS, Channel, ME, Message, SEED } from "@/data/chat";
+import { ActionState, AUTHORS, Author, CHANNELS, Channel, ME, Message, SEED } from "@/data/chat";
 
 /**
  * Chat state lives outside the component tree for one specific reason:
@@ -15,11 +15,29 @@ import { ActionState, CHANNELS, Channel, ME, Message, SEED } from "@/data/chat";
 interface ChatState {
   channels: Channel[];
   messages: Message[];
+  /** Authors come with the rows. A live workspace has different people in
+   *  it than the fixture set, and a message whose author is missing renders
+   *  as a blank avatar. */
+  authors: Record<string, Author>;
 }
 
-let state: ChatState = { channels: CHANNELS, messages: SEED };
+let state: ChatState = { channels: CHANNELS, messages: SEED, authors: AUTHORS };
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
+
+/** Decisions already taken survive a re-read, for the same reason they
+ *  survive a re-render: the action happened. */
+export function hydrateChat(next: { channels: Channel[]; messages: Message[]; authors: Record<string, Author> }) {
+  const decided = new Map(
+    state.messages.filter((m) => m.actionState && m.actionState !== "pending").map((m) => [m.id, m.actionState!]),
+  );
+  state = {
+    channels: next.channels,
+    authors: { ...next.authors },
+    messages: next.messages.map((m) => ({ ...m, actionState: decided.get(m.id) ?? m.actionState })),
+  };
+  emit();
+}
 
 let n = 1000;
 const newId = () => `m${++n}`;

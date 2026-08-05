@@ -19,6 +19,17 @@ const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((l) => l());
 
+/**
+ * Live rows replace the fixtures wholesale. Approvals already decided in
+ * this session are kept: a re-read of the table must not walk an approved
+ * item back to pending just because the row has not been written yet.
+ */
+export function hydrateProposals(next: Proposal[]) {
+  const decided = new Map(records.filter((r) => r.status !== "pending").map((r) => [r.id, r.status]));
+  records = next.map((p) => ({ ...p, status: decided.get(p.id) ?? p.status }));
+  emit();
+}
+
 export function setProposalStatus(id: string, status: ProposalStatus) {
   records = records.map((r) => (r.id === id ? { ...r, status } : r));
   emit();

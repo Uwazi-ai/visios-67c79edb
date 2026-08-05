@@ -16,6 +16,13 @@ let records: Task[] = TASKS.map((t) => ({ ...t }));
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
+/** Live rows replace the fixtures; local completions are preserved. */
+export function hydrateTasks(next: Task[]) {
+  const closed = new Set(records.filter((t) => t.done).map((t) => t.id));
+  records = next.map((t) => ({ ...t, done: t.done || closed.has(t.id) }));
+  emit();
+}
+
 export function toggleTask(id: string) {
   records = records.map((t) => (t.id === id ? { ...t, done: !t.done } : t));
   emit();
