@@ -211,7 +211,9 @@
 .kova .vo-note[data-tone="warn"] { background: var(--warn-soft); color: var(--warn-txt); }
 
 /* area chart */
-.kova .vo-area { width: 100%; height: 200px; display: block; overflow: visible; }
+/* Markers float on stems outside the plot box, so the SVG needs room above
+   and below or the low label collides with the caption. */
+.kova .vo-area { width: 100%; height: 200px; display: block; overflow: visible; margin: var(--s-4) 0 var(--s-6); }
 .kova .vo-area-fill { fill: url(#kova-area); stroke: none; }
 .kova .vo-area-line { fill: none; stroke: var(--a-500); stroke-width: 2; vector-effect: non-scaling-stroke; }
 .kova .vo-marker line { stroke: var(--dim); stroke-width: 1; vector-effect: non-scaling-stroke; }
