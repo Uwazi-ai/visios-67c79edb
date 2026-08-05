@@ -114,3 +114,89 @@ export function throughput(scope: string): Throughput {
 
   return { weeks, projection, total, deltaPct, noisy, byPerson };
 }
+
+/* ============================================================
+   Daily derivations. Everything below is computed from LEDGER at call
+   time — nothing is precomputed and cached, which is exactly what lets
+   the workspace scope filter it. Change scope, call again, get a
+   different comb from the same rows.
+   ============================================================ */
+
+/** Closes per day for the last `n` days, oldest → newest. */
+export function dailyCloses(scope: string, n: number): number[] {
+  const rows = scoped(scope);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = today.getTime() - (n - 1) * DAY;
+
+  const out = new Array(n).fill(0);
+  for (const r of rows) {
+    const t = new Date(r.closed_at);
+    t.setHours(0, 0, 0, 0);
+    const idx = Math.round((t.getTime() - start) / DAY);
+    if (idx >= 0 && idx < n) out[idx] += 1;
+  }
+  return out;
+}
+
+export const RECORDED_DAYS = 30;
+export const PROJECTED_DAYS = 16;
+export const COMB_BARS = RECORDED_DAYS + PROJECTED_DAYS; // 46
+
+export interface Comb {
+  recorded: number[];   // 30 real days, oldest → newest
+  projected: number[];  // 16 flat days
+  /** Trailing 10-day mean. Flat on purpose. */
+  mean: number;
+  /** Closes inside the current scope across the recorded window. */
+  closes: number;
+  /** Under 40 the percentage is noise and the UI must say so. */
+  thin: boolean;
+}
+
+/**
+ * The projection is a flat trailing 10-day mean. No trend is baked in.
+ *
+ * A projection with growth in it reads as a forecast — something a person
+ * signed off on — when it is only arithmetic on the last ten days. If the
+ * line slopes up, a founder plans against it. Keep it flat and caption it.
+ */
+export function comb(scope: string): Comb {
+  const recorded = dailyCloses(scope, RECORDED_DAYS);
+  const trailing = recorded.slice(-10);
+  const mean = trailing.reduce((a, b) => a + b, 0) / trailing.length;
+  const projected = new Array(PROJECTED_DAYS).fill(mean);
+  const closes = recorded.reduce((a, b) => a + b, 0);
+  return { recorded, projected, mean, closes, thin: closes < 40 };
+}
+
+export const VELOCITY_DAYS = 40;
+
+export interface Velocity {
+  days: number[];
+  /** Real indices, found in the data. Hardcode a position and swapping the
+   *  data leaves the annotation lying about which day it points at. */
+  peakIdx: number;
+  lowIdx: number;
+  peak: number;
+  low: number;
+  labels: string[];
+}
+
+export function velocity(scope: string): Velocity {
+  const days = dailyCloses(scope, VELOCITY_DAYS);
+  let peakIdx = 0;
+  let lowIdx = 0;
+  for (let i = 1; i < days.length; i++) {
+    if (days[i] > days[peakIdx]) peakIdx = i;
+    if (days[i] < days[lowIdx]) lowIdx = i;
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const labels = days.map((_, i) => {
+    const d = new Date(today.getTime() - (VELOCITY_DAYS - 1 - i) * DAY);
+    return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  });
+  return { days, peakIdx, lowIdx, peak: days[peakIdx], low: days[lowIdx], labels };
+}
+
