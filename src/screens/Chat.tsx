@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { Card, Desc, Eyebrow, SectionHead } from "@/components/primitives";
 import { ChannelRail, Composer, MessageRow } from "@/components/ChatParts";
-import { AUTHORS, grouped as isGrouped, Message } from "@/data/chat";
+import { grouped as isGrouped, Message } from "@/data/chat";
 import { decideAction, markRead, postMessage, postReply, toggleReaction, useChat } from "@/data/chatStore";
 import { useAppState } from "@/lib/AppState";
 
@@ -18,7 +18,7 @@ import { useAppState } from "@/lib/AppState";
  */
 const Chat = () => {
   const { inScope } = useAppState();
-  const { channels, messages } = useChat();
+  const { channels, messages, authors } = useChat();
   const [threadId, setThreadId] = useState<string | null>(null);
 
   const visible = useMemo(() => channels.filter((c) => inScope(c.org)), [channels, inScope]);
@@ -41,7 +41,7 @@ const Chat = () => {
   const thread: Message | undefined = threadId ? messages.find((m) => m.id === threadId) : undefined;
   const pending = feed.filter((m) => m.action && (m.actionState ?? "pending") === "pending").length;
 
-  const peer = channel?.peer ? AUTHORS[channel.peer] : undefined;
+  const peer = channel?.peer ? authors[channel.peer] : undefined;
   const title = channel ? (channel.kind === "dm" ? channel.name : `#${channel.name}`) : "Chat";
 
   return (
@@ -83,7 +83,7 @@ const Chat = () => {
                 </div>
                 {channel.kind === "channel" ? (
                   <div className="vo-chmembers">
-                    {Object.values(AUTHORS)
+                    {Object.values(authors)
                       .filter((a) => a.kind === "agent")
                       .map((a) => (
                         <span key={a.id} className="vo-chagent" title={a.remit}>
@@ -131,7 +131,7 @@ const Chat = () => {
                   <div className="vo-chtitle">Thread</div>
                   <div className="vo-meta">
                     {thread.replies.length} {thread.replies.length === 1 ? "reply" : "replies"} ·{" "}
-                    {AUTHORS[thread.author]?.name}
+                    {authors[thread.author]?.name}
                   </div>
                 </div>
                 <button type="button" className="vo-chaction" onClick={() => setThreadId(null)} title="Close thread">

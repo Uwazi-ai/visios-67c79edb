@@ -4,7 +4,8 @@ import { Button, Card, Col, Desc, Eyebrow, SectionHead, Tag, Title } from "@/com
 import {
   CitedRow, CoverageRow, NeverCited, ResultRow, WaitingNotice,
 } from "@/components/KnowledgeParts";
-import { CATEGORIES, DOCS, coverage, queryTerms, search } from "@/data/knowledge";
+import { CATEGORIES, coverage, queryTerms, search } from "@/data/knowledge";
+import { useKovaData } from "@/data/live/KovaData";
 import { useAppState } from "@/lib/AppState";
 
 const EXAMPLES = [
@@ -22,6 +23,7 @@ const EXAMPLES = [
  */
 const Knowledge = () => {
   const { orgs, inScope, scope } = useAppState();
+  const { docs } = useKovaData();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
 
@@ -29,8 +31,8 @@ const Knowledge = () => {
   const nameOf = (org: string) => orgs.find((o) => o.id === org)?.name ?? "Cross-org";
 
   const scoped = useMemo(
-    () => DOCS.filter((d) => inScope(d.org) && (!category || d.category === category)),
-    [inScope, category],
+    () => docs.filter((d) => inScope(d.org) && (!category || d.category === category)),
+    [docs, inScope, category],
   );
 
   const terms = queryTerms(query);

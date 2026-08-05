@@ -10,7 +10,7 @@ import {
   Surface,
   Toggle,
 } from "@/components/SettingsParts";
-import { CONNECTIONS, GUARDRAILS } from "@/data/connections";
+import { useKovaData } from "@/data/live/KovaData";
 import { setGuardrail, useGuardrails } from "@/data/guardrailStore";
 import { EVENTS } from "@/data/mock";
 
@@ -220,6 +220,7 @@ const OrgsSection = () => {
 
 const ConnectionsSection = () => {
   const { orgs } = useAppState();
+  const { connections } = useKovaData();
   const nameFor = (id: string) =>
     id === ANY_ORG ? "All ventures" : orgs.find((o) => o.id === id)?.name ?? id;
 
@@ -236,7 +237,7 @@ const ConnectionsSection = () => {
         </div>
 
         <div className="vo-conn-list">
-          {CONNECTIONS.map((c) => (
+          {connections.map((c) => (
             <div key={c.id} className="vo-conn" data-health={c.health}>
               <div className="vo-stack" style={{ gap: 2, minWidth: 0 }}>
                 <span className="vo-row" style={{ gap: "var(--s-2)" }}>
@@ -265,8 +266,9 @@ const ConnectionsSection = () => {
 
 const GuardrailsSection = () => {
   const values = useGuardrails();
-  const allowed = GUARDRAILS.filter((g) => !g.locked);
-  const locked = GUARDRAILS.filter((g) => g.locked);
+  const { guardrails } = useKovaData();
+  const allowed = guardrails.filter((g) => !g.locked);
+  const locked = guardrails.filter((g) => g.locked);
 
   return (
     <Card>

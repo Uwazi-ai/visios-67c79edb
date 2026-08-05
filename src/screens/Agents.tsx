@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { Bento, Card, Col, Desc, Eyebrow, SectionHead } from "@/components/primitives";
 import { AgentCard } from "@/components/AgentsParts";
-import { AGENTS, hitRate } from "@/data/agents";
+import { hitRate } from "@/data/agents";
+import { useKovaData } from "@/data/live/KovaData";
 import { useAppState } from "@/lib/AppState";
 
 /**
@@ -10,7 +11,8 @@ import { useAppState } from "@/lib/AppState";
  */
 const Agents = () => {
   const { orgs, inScope } = useAppState();
-  const rows = useMemo(() => AGENTS.filter((a) => inScope(a.org)), [inScope]);
+  const { agents } = useKovaData();
+  const rows = useMemo(() => agents.filter((a) => inScope(a.org)), [agents, inScope]);
   const colorOf = (id: string) => orgs.find((o) => o.id === id)?.color ?? "var(--ws-all)";
 
   const calls = rows.reduce((s, a) => s + hitRate(a).calls, 0);

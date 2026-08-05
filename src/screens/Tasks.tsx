@@ -4,7 +4,8 @@ import { Card, Desc, Eyebrow, SectionHead } from "@/components/primitives";
 import { Segmented } from "@/components/SettingsParts";
 import { BoardView, ListView, ProjectCard } from "@/components/TaskViews";
 import { Gantt, GanttKey } from "@/components/TaskGantt";
-import { PROJECTS, isOverdue } from "@/data/tasks";
+import { isOverdue } from "@/data/tasks";
+import { useKovaData } from "@/data/live/KovaData";
 import { toggleTask, useTaskRecords } from "@/data/taskStore";
 import { useAppState } from "@/lib/AppState";
 
@@ -18,6 +19,7 @@ type View = "list" | "board" | "timeline";
  */
 const Tasks = () => {
   const { orgs, inScope, scope } = useAppState();
+  const { projects: PROJECTS } = useKovaData();
   const records = useTaskRecords();
   const [view, setView] = useState<View>("list");
   const [picked, setPicked] = useState<string | null>(null);
@@ -29,11 +31,11 @@ const Tasks = () => {
   );
   const orgOf = useMemo(
     () => (project: string) => PROJECTS.find((p) => p.id === project)?.org ?? "all",
-    [],
+    [PROJECTS],
   );
   const projectName = useMemo(
     () => (id: string) => PROJECTS.find((p) => p.id === id)?.name ?? id,
-    [],
+    [PROJECTS],
   );
 
   /* Workspace scope first, then the optional project pick. Scoping down
