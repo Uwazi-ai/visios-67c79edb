@@ -334,3 +334,111 @@
   .kova .vo-brief-strip { grid-template-columns: repeat(2, 1fr); }
 }
 
+
+/* ---------- settings ---------- */
+.kova .vo-set-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-5); }
+
+.kova .vo-hidden-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.kova .vo-well {
+  position: relative; width: 56px; height: 56px; flex: none; padding: 0;
+  border-radius: var(--r-pill); border: 1px solid var(--line); overflow: hidden;
+  background: var(--inset); cursor: pointer;
+}
+.kova .vo-well[data-shape="square"] { border-radius: var(--r-md); }
+.kova .vo-well img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.kova .vo-well-fill {
+  display: flex; width: 100%; height: 100%; align-items: center; justify-content: center;
+  font-family: var(--display); font-size: var(--t-title); font-weight: 700; color: var(--nav-bg);
+}
+[data-theme="light"] .kova .vo-well-fill { color: #FFFFFF; }
+.kova .vo-well-hover {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, #000 55%, transparent); color: #FFFFFF; opacity: 0;
+}
+.kova .vo-well:hover .vo-well-hover,
+.kova .vo-well:focus-visible .vo-well-hover { opacity: 1; }
+
+.kova .vo-link {
+  display: inline-flex; align-items: center; gap: var(--s-1); background: none; border: 0; padding: 0;
+  font: inherit; font-size: var(--t-meta); font-weight: 600; color: var(--accent); cursor: pointer;
+}
+.kova .vo-link[data-quiet="true"] { color: var(--ink-dim); font-weight: 500; }
+.kova .vo-link:hover { text-decoration: underline; }
+
+.kova .vo-note {
+  font-size: var(--t-meta); color: var(--ink-dim); line-height: 1.45;
+  border-left: 2px solid var(--line-strong); padding-left: var(--s-2);
+}
+
+.kova .vo-swatch {
+  width: 24px; height: 24px; flex: none; padding: 0; cursor: pointer;
+  border-radius: var(--r-pill); border: 1px solid var(--line);
+}
+.kova .vo-swatch[data-active="true"] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--a-400); }
+.kova .vo-swatch-custom { position: relative; display: inline-flex; border-style: dashed; background: transparent; overflow: hidden; }
+.kova .vo-swatch-ring { position: absolute; inset: 3px; border-radius: var(--r-pill); }
+.kova .vo-swatch-custom input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+
+.kova .vo-surface { border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--s-3); display: flex; flex-direction: column; gap: var(--s-2); }
+.kova .vo-minicard { display: flex; align-items: center; gap: var(--s-3); background: var(--inset); border-top: 3px solid var(--line); border-radius: var(--r-sm); padding: var(--s-3); }
+.kova .vo-check { width: 14px; height: 14px; flex: none; border: 1.5px solid var(--line-strong); border-radius: 4px; }
+.kova .vo-topface { background: none; border: 0; padding: 0; cursor: pointer; }
+
+.kova .vo-org-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-4);
+  border-top: 1px solid var(--line); padding-top: var(--s-4);
+}
+.kova .vo-org-row:first-of-type { border-top: 0; padding-top: 0; }
+.kova .vo-org-preview { display: flex; flex-direction: column; gap: var(--s-2); }
+.kova .vo-strip-demo { width: 3px; height: auto; min-height: 64px; border-radius: var(--r-pill); }
+.kova .vo-spine { border-left: 2px solid var(--line); padding-left: var(--s-2); }
+
+.kova .vo-conn-list, .kova .vo-toggle-list { display: flex; flex-direction: column; }
+.kova .vo-conn {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-3);
+  flex-wrap: wrap; padding: var(--s-3) 0; border-top: 1px solid var(--line);
+}
+.kova .vo-conn:first-child { border-top: 0; }
+.kova .vo-conn[data-health="down"] { border-left: 2px solid var(--err-txt); padding-left: var(--s-3); }
+
+.kova .vo-toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+  padding: var(--s-3) 0; border-top: 1px solid var(--line);
+}
+.kova .vo-toggle-list .vo-toggle-row:first-child { border-top: 0; }
+.kova .vo-toggle-row[data-locked="true"] .vo-toggle-label { color: var(--ink-dim); }
+.kova .vo-toggle-label { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--t-body); font-weight: 500; color: var(--ink); }
+.kova .vo-nowrap { white-space: nowrap; }
+
+/* A switch that is off by policy must also be off in the DOM — the disabled
+   attribute does that; this only makes it look the way it behaves. */
+.kova .vo-switch {
+  appearance: none; -webkit-appearance: none; margin: 0; flex: none; cursor: pointer;
+  width: 38px; height: 22px; border-radius: var(--r-pill);
+  background: var(--inset); border: 1px solid var(--line); position: relative;
+}
+.kova .vo-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  border-radius: var(--r-pill); background: var(--ink-dim); transition: transform .15s ease;
+}
+@media (prefers-reduced-motion: reduce) { .kova .vo-switch::after { transition: none; } }
+.kova .vo-switch:checked { background: var(--a-500); border-color: var(--a-500); }
+.kova .vo-switch:checked::after { transform: translateX(16px); background: #FFFFFF; }
+.kova .vo-switch:disabled { cursor: not-allowed; opacity: .5; border-style: dashed; }
+
+.kova .vo-policy { background: var(--inset); border-radius: var(--r-md); padding: var(--s-3); }
+
+.kova .vo-seg { display: inline-flex; gap: 2px; padding: 2px; background: var(--inset); border-radius: var(--r-pill); }
+.kova .vo-seg-opt {
+  display: inline-flex; align-items: center; gap: var(--s-2); cursor: pointer;
+  padding: var(--s-2) var(--s-3); border-radius: var(--r-pill);
+  font-size: var(--t-meta); font-weight: 600; color: var(--ink-dim);
+}
+.kova .vo-seg-opt[data-active="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.kova .vo-seg-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.kova .vo-seg-opt:focus-within { outline: 2px solid var(--a-400); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .kova .vo-set-grid, .kova .vo-org-row { grid-template-columns: minmax(0, 1fr); }
+}
