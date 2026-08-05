@@ -62,7 +62,11 @@ export const OPPS: Opportunity[] = [
 ];
 
 export const money = (n: number) =>
-  n >= 1000 ? `$${Math.round(n / 1000)}K` : `$${n}`;
+  n >= 1000000
+    ? `$${(n / 1000000).toFixed(2).replace(/0$/, "")}M`
+    : n >= 1000
+      ? `$${Math.round(n / 1000)}K`
+      : `$${n}`;
 
 export const moneyLong = (n: number) => `$${n.toLocaleString("en-US")}`;
 
