@@ -658,3 +658,93 @@
 @media (max-width: 900px) {
   .kova .vo-cited-bar { display: none; }
 }
+
+/* ---------- Vision ----------
+   The trace is part of the answer, not a debug affordance: it sits above the
+   text, inline, in the same card. A collapsed chip keeps the reply readable
+   while making the reading checkable in one click. */
+.kova .vo-chat { display: flex; flex-direction: column; gap: var(--s-5); }
+.kova .vo-msg { display: flex; gap: var(--s-3); align-items: flex-start; }
+.kova .vo-msg-who {
+  flex: 0 0 auto; width: 28px; height: 28px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: var(--t-micro); font-weight: 600; color: var(--text);
+  letter-spacing: 0;
+}
+.kova .vo-msg-who[data-vision="true"] { background: var(--surface); border: 1px solid var(--line-strong); color: var(--ink); }
+.kova .vo-msg-body { min-width: 0; display: flex; flex-direction: column; gap: var(--s-3); }
+.kova .vo-msg[data-role="user"] .vo-msg-body { color: var(--ink); font-weight: 500; }
+.kova .vo-msg-text { margin: 0; max-width: 74ch; color: var(--ink); line-height: 1.55; }
+
+.kova .vo-trace-chip {
+  display: inline-flex; align-items: center; gap: var(--s-2); flex-wrap: wrap;
+  font: inherit; font-size: var(--t-micro); color: var(--ink-dim);
+  background: transparent; border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px var(--s-3); cursor: pointer;
+}
+.kova .vo-trace-chip:hover { border-color: var(--line-strong); }
+.kova .vo-trace-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--ok-txt); }
+.kova .vo-trace-dot[data-bad="true"] { background: var(--warn-txt); }
+.kova .vo-trace-more { text-decoration: underline; text-underline-offset: 2px; }
+
+.kova .vo-calls { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.kova .vo-call {
+  border: 1px solid var(--line); border-left: 3px solid var(--ok-txt);
+  border-radius: var(--r-sm); padding: var(--s-2) var(--s-3); background: var(--surface);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.kova .vo-call[data-status="denied"] { border-left-color: var(--err-txt); border-style: dashed; }
+.kova .vo-call[data-status="failed"] { border-left-color: var(--warn-txt); border-style: dashed; }
+.kova .vo-call-head { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+.kova .vo-call-head .vo-mono, .kova .vo-call-args { font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--t-micro); }
+.kova .vo-call-args { color: var(--ink-dim); word-break: break-word; }
+.kova .vo-call-status { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ok-txt); }
+.kova .vo-call-status[data-status="denied"] { color: var(--err-txt); }
+.kova .vo-call-status[data-status="failed"] { color: var(--warn-txt); }
+.kova .vo-call-ms { margin-left: auto; font-size: var(--t-micro); color: var(--ink-dim); }
+.kova .vo-call-result { font-size: var(--t-micro); color: var(--ink-dim); max-width: 78ch; }
+
+/* Inference is separated from record so nobody quotes it as a number. */
+.kova .vo-inferred {
+  border-left: 3px solid var(--warn-txt); padding: var(--s-2) var(--s-3);
+  background: transparent; max-width: 78ch;
+}
+
+.kova .vo-vgate { display: flex; flex-direction: column; gap: var(--s-3); max-width: 72ch; }
+.kova .vo-vgate[data-decision="approved"] { border-style: solid; border-color: var(--ok-txt); }
+.kova .vo-vgate[data-decision="declined"] { border-style: solid; border-color: var(--line); opacity: 0.62; }
+.kova .vo-vgate-body { margin: 0; padding-left: var(--s-3); border-left: 2px solid var(--line-strong); color: var(--ink); }
+.kova .vo-vgate-effect { margin: 0; display: grid; gap: var(--s-2); }
+.kova .vo-vgate-effect > div { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+.kova .vo-vgate-effect dt { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-dim); min-width: 12ch; }
+.kova .vo-vgate-effect dd { margin: 0; font-size: var(--t-body); color: var(--ink); }
+.kova .vo-vgate-actions { display: flex; gap: var(--s-2); }
+
+.kova .vo-ask { display: flex; gap: var(--s-2); align-items: center; }
+.kova .vo-input {
+  flex: 1 1 auto; min-width: 0; font: inherit; font-size: var(--t-body);
+  padding: var(--s-2) var(--s-3); border-radius: var(--r-md);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.kova .vo-input::placeholder { color: var(--ink-dim); }
+
+.kova .vo-sight { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.kova .vo-sight-row { border-top: 1px solid var(--line); padding-top: var(--s-2); }
+.kova .vo-sight-name { display: flex; align-items: center; gap: var(--s-2); font-size: var(--t-body); color: var(--ink); }
+.kova .vo-sight-row[data-blocked="true"] .vo-sight-name { color: var(--ink-dim); }
+.kova .vo-sight-flag {
+  font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--err-txt); border: 1px dashed var(--err-txt); border-radius: var(--r-sm); padding: 0 6px;
+}
+
+.kova .vo-starters { display: flex; flex-direction: column; gap: var(--s-2); margin-top: var(--s-3); }
+.kova .vo-starter {
+  text-align: left; font: inherit; font-size: var(--t-body); color: var(--ink);
+  border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: var(--s-2) var(--s-3); background: transparent; cursor: pointer;
+}
+.kova .vo-starter:hover { border-color: var(--line-strong); }
+
+@media (max-width: 900px) {
+  .kova .vo-call-ms { margin-left: 0; }
+}

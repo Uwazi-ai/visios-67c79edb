@@ -8,6 +8,7 @@ import Dashboard from "@/screens/Dashboard";
 import Settings from "@/screens/Settings";
 import Tasks from "@/screens/Tasks";
 import Knowledge from "@/screens/Knowledge";
+import Vision from "@/screens/Vision";
 
 /**
  * Screen registry. Port a screen by writing it under src/screens and adding
@@ -22,6 +23,7 @@ const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   settings: Settings,
   tasks: Tasks,
   knowledge: Knowledge,
+  vision: Vision,
 };
 
 
