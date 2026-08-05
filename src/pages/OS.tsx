@@ -57,7 +57,7 @@ const Shell = () => {
       <div className="vo-shell">
         <Nav active={active} onNavigate={setActive} />
         <main className="vo-main">
-          {Screen ? <Screen /> : <Placeholder id={active} onBack={() => setActive("dashboard")} />}
+          {Screen ? <Screen navigate={setActive} /> : <Placeholder id={active} onBack={() => setActive("dashboard")} />}
         </main>
       </div>
     </div>
