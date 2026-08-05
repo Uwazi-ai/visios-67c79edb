@@ -11,6 +11,10 @@ import Knowledge from "@/screens/Knowledge";
 import Vision from "@/screens/Vision";
 import Contacts from "@/screens/Contacts";
 import Chat from "@/screens/Chat";
+import Inbox from "@/screens/Inbox";
+import CalendarScreen from "@/screens/Calendar";
+import Bookings from "@/screens/Bookings";
+import CardScreen from "@/screens/Card";
 
 /**
  * Screen registry. Port a screen by writing it under src/screens and adding
@@ -28,6 +32,10 @@ const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   vision: Vision,
   contacts: Contacts,
   chat: Chat,
+  inbox: Inbox,
+  calendar: CalendarScreen,
+  bookings: Bookings,
+  card: CardScreen,
 };
 
 
