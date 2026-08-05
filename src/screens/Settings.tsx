@@ -220,6 +220,7 @@ const OrgsSection = () => {
 
 const ConnectionsSection = () => {
   const { orgs } = useAppState();
+  const { connections } = useKovaData();
   const nameFor = (id: string) =>
     id === ANY_ORG ? "All ventures" : orgs.find((o) => o.id === id)?.name ?? id;
 
