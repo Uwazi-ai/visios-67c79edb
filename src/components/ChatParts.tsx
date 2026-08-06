@@ -204,7 +204,23 @@ export const MessageRow = ({
           </div>
         )}
 
-        <p className="vo-chtext">{message.text}</p>
+        {isAgent && message.action && (message.actionState ?? "pending") === "pending" ? (
+          /* Model-written and nothing has happened yet: dashed until a person acts. */
+          <div className="ai-draft" style={{ marginTop: "var(--s-2)" }}>
+            <div className="ai-draft-head">
+              <span className="ai-mark">
+                <span className="ai-dot" aria-hidden />
+                {author?.name ?? "Agent"}
+              </span>
+              <span className="ai-draft-note">not sent</span>
+            </div>
+            <p className="vo-chtext">{message.text}</p>
+            <span className="ai-rule" aria-hidden />
+          </div>
+        ) : (
+          <p className="vo-chtext">{message.text}</p>
+        )}
+
 
         {message.action && onDecide ? (
           <ActionCard action={message.action} state={message.actionState ?? "pending"} onDecide={onDecide} />
