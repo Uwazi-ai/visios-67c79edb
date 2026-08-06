@@ -255,6 +255,9 @@ const commit = (next: SourceId[]) => {
 export const connectSource = (id: SourceId) => {
   if (connected.includes(id)) return;
   commit([...connected, id]);
+  /* A fresh connection proves itself immediately rather than sitting on a
+     green tick nobody verified. */
+  void syncSource(id);
 };
 
 /**
@@ -265,7 +268,9 @@ export const connectSource = (id: SourceId) => {
 export const disconnectSource = (id: SourceId) => {
   if (!connected.includes(id)) return;
   commit(connected.filter((s) => s !== id));
+  clearSyncStatus(id);
 };
+
 
 export const toggleSource = (id: SourceId) =>
   connected.includes(id) ? disconnectSource(id) : connectSource(id);
