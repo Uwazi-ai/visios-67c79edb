@@ -3,6 +3,8 @@ import { Bento, Card, Col, SectionHead, Tag } from "@/components/primitives";
 import { CpmDeviation, Funnel, Leaderboard, SpendSummary } from "@/components/CampaignsParts";
 import { CAMPAIGNS, CREATIVES } from "@/data/campaigns";
 import { useAppState } from "@/lib/AppState";
+import { SourceGate } from "@/components/SourceGate";
+import { CampaignImport } from "@/components/fallbacks/CampaignImport";
 
 /**
  * Campaigns — CPM against each platform's own benchmark, the funnel, and
@@ -21,6 +23,7 @@ const Campaigns = () => {
 
       <Bento>
         <Col span={7}>
+          <SourceGate capability="cpm" fallback={<CampaignImport />}>
           <Card>
             <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
               <div className="vo-between">
@@ -31,17 +34,21 @@ const Campaigns = () => {
               <CpmDeviation rows={rows} />
             </div>
           </Card>
+          </SourceGate>
         </Col>
         <Col span={5}>
-          <Card>
-            <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
-              <h3 className="vo-title">Performance funnel</h3>
-              <Funnel />
-            </div>
-          </Card>
+          <SourceGate capability="funnel" fallback={<CampaignImport />}>
+            <Card>
+              <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
+                <h3 className="vo-title">Performance funnel</h3>
+                <Funnel />
+              </div>
+            </Card>
+          </SourceGate>
         </Col>
       </Bento>
 
+      <SourceGate capability="creative-leaderboard" fallback={<CampaignImport />}>
       <Card>
         <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
           <div className="vo-between">
@@ -51,6 +58,7 @@ const Campaigns = () => {
           <Leaderboard rows={CREATIVES} />
         </div>
       </Card>
+      </SourceGate>
     </div>
   );
 };
