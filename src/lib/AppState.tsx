@@ -100,7 +100,9 @@ const Ctx = createContext<AppStateValue>({
   inScope: () => true,
   scopeOrg: () => ORGS[0],
   orgs: ORGS,
+  setOrgs: noop,
   setOrgColor: noop,
+
   setOrgLogo: noop,
   me: ME,
   setMyColor: noop,
