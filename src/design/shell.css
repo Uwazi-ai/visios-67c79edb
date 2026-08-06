@@ -112,23 +112,59 @@
 .kova .vo-face[data-tinted="true"] { color: var(--a-500); }
 
 /* ---------- buttons ---------- */
-.kova .vo-btn {
+.kova .vo-btn,
+.kova .b-pri, .kova .b-sec, .kova .b-ghost, .kova .b-gate,
+.kova .b-complete, .kova .b-done {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--s-2);
   font: inherit; font-size: var(--t-body); font-weight: 500;
-  padding: var(--s-2) var(--s-3); border-radius: var(--r-md);
+  min-height: 44px; padding: 0 var(--s-4); border-radius: var(--r-md);
   border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer;
 }
-.kova .vo-btn:hover:not(:disabled) { border-color: var(--line-strong); }
-.kova .vo-btn[data-variant="primary"] { background: var(--a-500); border-color: var(--a-500); color: var(--text); }
-[data-theme="light"] .kova .vo-btn[data-variant="primary"] { color: var(--nav-bg); }
-.kova .vo-btn[data-variant="quiet"] { background: transparent; border-color: transparent; color: var(--ink-dim); }
-.kova .vo-btn:disabled { cursor: not-allowed; opacity: 0.55; }
 
-/* A gated action reads as blocked before it is clicked, not after. */
+/* Sizes. 44px is the touch floor; 36px is desktop-only and grows back on mobile. */
+.kova [data-size="lg"] { min-height: 48px; padding: 0 var(--s-5); }
+.kova [data-size="sm"] { min-height: 36px; padding: 0 var(--s-3); font-size: var(--t-small, var(--t-body)); }
+@media (pointer: coarse), (max-width: 640px) {
+  .kova [data-size="sm"] { min-height: 44px; padding: 0 var(--s-4); font-size: var(--t-body); }
+}
+
+.kova .vo-btn:hover:not(:disabled),
+.kova .b-sec:hover:not(:disabled),
+.kova .b-ghost:hover:not(:disabled) { border-color: var(--line-strong); }
+
+/* 01 the main action — --a-500 fill, white text */
+.kova .b-pri,
+.kova .vo-btn[data-variant="primary"] { background: var(--a-500); border-color: var(--a-500); color: #fff; }
+
+/* alternatives */
+.kova .b-sec { background: var(--inset); border-color: var(--line); color: var(--ink); }
+
+/* dismiss, cancel */
+.kova .b-ghost,
+.kova .vo-btn[data-variant="quiet"] { background: transparent; border-color: var(--line); color: var(--ink-dim); }
+.kova .vo-btn[data-variant="quiet"] { border-color: transparent; }
+
+.kova .vo-btn:disabled, .kova .b-pri:disabled, .kova .b-sec:disabled { cursor: not-allowed; opacity: 0.55; }
+
+/* 02 BLOCKED — a gated action reads as blocked before it is clicked, not after. */
+.kova .b-gate,
 .kova .vo-btn[data-blocked="true"] {
   border-style: dashed; border-color: var(--warn-txt); color: var(--warn-txt);
-  background: transparent; opacity: 1;
+  background: transparent; opacity: 1; cursor: not-allowed;
 }
+
+/* 03 CLEARED — model-proposed work that has passed its gate. Rare, earned. */
+.kova .b-complete {
+  background: var(--grad-action); border-color: transparent; color: #fff;
+}
+
+/* 04 DONE — recorded, no longer actionable. */
+.kova .b-done {
+  background: color-mix(in srgb, var(--ok-txt) 16%, transparent);
+  border-color: color-mix(in srgb, var(--ok-txt) 40%, transparent);
+  color: var(--ok-txt); cursor: default;
+}
+
 
 /* ---------- proposal gate ---------- */
 .kova .vo-gate { border: 1px dashed var(--line-strong); border-radius: var(--r-md); padding: var(--s-3); background: transparent; }
