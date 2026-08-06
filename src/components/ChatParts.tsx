@@ -196,7 +196,7 @@ export const MessageRow = ({
           <div className="vo-chmsg-head">
             <span className="vo-chauthor">{author?.name ?? message.author}</span>
             {isAgent ? (
-              <span className="vo-chagent" title={author?.remit}>
+              <span className="ai-mark" title={author?.remit}>
                 AGENT
               </span>
             ) : null}
