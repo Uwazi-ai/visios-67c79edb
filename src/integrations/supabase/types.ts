@@ -1728,6 +1728,7 @@ export type Database = {
           ran_at: string
           right_calls: number
           runs: number
+          tenant_id: string
           user_id: string
         }
         Insert: {
@@ -1738,6 +1739,7 @@ export type Database = {
           ran_at?: string
           right_calls?: number
           runs?: number
+          tenant_id: string
           user_id?: string
         }
         Update: {
@@ -1748,9 +1750,18 @@ export type Database = {
           ran_at?: string
           right_calls?: number
           runs?: number
+          tenant_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_agent_runs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_agents: {
         Row: {
@@ -1767,6 +1778,7 @@ export type Database = {
           last_call: string | null
           name: string
           org: string
+          tenant_id: string
           user_id: string
         }
         Insert: {
@@ -1783,6 +1795,7 @@ export type Database = {
           last_call?: string | null
           name: string
           org?: string
+          tenant_id: string
           user_id?: string
         }
         Update: {
@@ -1799,9 +1812,18 @@ export type Database = {
           last_call?: string | null
           name?: string
           org?: string
+          tenant_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_agents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_board_states: {
         Row: {
@@ -1810,6 +1832,7 @@ export type Database = {
           key: string
           name: string
           position: number
+          tenant_id: string
           user_id: string
           wip_limit: number | null
         }
@@ -1819,6 +1842,7 @@ export type Database = {
           key: string
           name: string
           position?: number
+          tenant_id: string
           user_id?: string
           wip_limit?: number | null
         }
@@ -1828,10 +1852,19 @@ export type Database = {
           key?: string
           name?: string
           position?: number
+          tenant_id?: string
           user_id?: string
           wip_limit?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_board_states_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_chat_messages: {
         Row: {
@@ -1843,6 +1876,7 @@ export type Database = {
           created_at: string
           id: string
           reactions: Json
+          tenant_id: string
           user_id: string
         }
         Insert: {
@@ -1854,6 +1888,7 @@ export type Database = {
           created_at?: string
           id?: string
           reactions?: Json
+          tenant_id: string
           user_id?: string
         }
         Update: {
@@ -1865,9 +1900,18 @@ export type Database = {
           created_at?: string
           id?: string
           reactions?: Json
+          tenant_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_chat_messages_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_connections: {
         Row: {
@@ -1879,6 +1923,7 @@ export type Database = {
           position: number
           scope: string | null
           status: string
+          tenant_id: string
           user_id: string
         }
         Insert: {
@@ -1890,6 +1935,7 @@ export type Database = {
           position?: number
           scope?: string | null
           status?: string
+          tenant_id: string
           user_id?: string
         }
         Update: {
@@ -1901,9 +1947,18 @@ export type Database = {
           position?: number
           scope?: string | null
           status?: string
+          tenant_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_connections_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_contacts: {
         Row: {
@@ -1919,6 +1974,7 @@ export type Database = {
           overlap_signal: Json | null
           role: string | null
           scanned_at: string | null
+          tenant_id: string
           updated_at: string
           user_id: string
         }
@@ -1935,6 +1991,7 @@ export type Database = {
           overlap_signal?: Json | null
           role?: string | null
           scanned_at?: string | null
+          tenant_id: string
           updated_at?: string
           user_id?: string
         }
@@ -1951,10 +2008,19 @@ export type Database = {
           overlap_signal?: Json | null
           role?: string | null
           scanned_at?: string | null
+          tenant_id?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_contacts_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_doc_chunks: {
         Row: {
@@ -1964,6 +2030,7 @@ export type Database = {
           embedding: string | null
           id: string
           ord: number
+          tenant_id: string
           user_id: string
         }
         Insert: {
@@ -1973,6 +2040,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           ord?: number
+          tenant_id: string
           user_id?: string
         }
         Update: {
@@ -1982,6 +2050,7 @@ export type Database = {
           embedding?: string | null
           id?: string
           ord?: number
+          tenant_id?: string
           user_id?: string
         }
         Relationships: [
@@ -1990,6 +2059,13 @@ export type Database = {
             columns: ["document_id"]
             isOneToOne: false
             referencedRelation: "kova_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kova_doc_chunks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -2005,6 +2081,7 @@ export type Database = {
           indexed: boolean
           org: string
           source: string | null
+          tenant_id: string
           title: string
           updated_at: string
           user_id: string
@@ -2019,6 +2096,7 @@ export type Database = {
           indexed?: boolean
           org?: string
           source?: string | null
+          tenant_id: string
           title: string
           updated_at?: string
           user_id?: string
@@ -2033,11 +2111,20 @@ export type Database = {
           indexed?: boolean
           org?: string
           source?: string | null
+          tenant_id?: string
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_documents_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_orgs: {
         Row: {
@@ -2050,6 +2137,7 @@ export type Database = {
           role: string | null
           slug: string
           status: string
+          tenant_id: string
           updated_at: string
           user_id: string
         }
@@ -2063,6 +2151,7 @@ export type Database = {
           role?: string | null
           slug: string
           status?: string
+          tenant_id: string
           updated_at?: string
           user_id?: string
         }
@@ -2076,10 +2165,19 @@ export type Database = {
           role?: string | null
           slug?: string
           status?: string
+          tenant_id?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_orgs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_permissions: {
         Row: {
@@ -2090,6 +2188,7 @@ export type Database = {
           label: string | null
           locked: boolean
           position: number
+          tenant_id: string
           updated_at: string
           user_id: string
         }
@@ -2101,6 +2200,7 @@ export type Database = {
           label?: string | null
           locked?: boolean
           position?: number
+          tenant_id: string
           updated_at?: string
           user_id?: string
         }
@@ -2112,10 +2212,19 @@ export type Database = {
           label?: string | null
           locked?: boolean
           position?: number
+          tenant_id?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_permissions_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_proposals: {
         Row: {
@@ -2129,6 +2238,7 @@ export type Database = {
           ref: string | null
           signals: string[]
           state: string
+          tenant_id: string
           user_id: string
         }
         Insert: {
@@ -2142,6 +2252,7 @@ export type Database = {
           ref?: string | null
           signals?: string[]
           state?: string
+          tenant_id: string
           user_id?: string
         }
         Update: {
@@ -2155,9 +2266,18 @@ export type Database = {
           ref?: string | null
           signals?: string[]
           state?: string
+          tenant_id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_proposals_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_tasks: {
         Row: {
@@ -2171,6 +2291,7 @@ export type Database = {
           project: string | null
           started_at: string | null
           state: string
+          tenant_id: string
           title: string
           updated_at: string
           user_id: string
@@ -2186,6 +2307,7 @@ export type Database = {
           project?: string | null
           started_at?: string | null
           state?: string
+          tenant_id: string
           title: string
           updated_at?: string
           user_id?: string
@@ -2201,11 +2323,20 @@ export type Database = {
           project?: string | null
           started_at?: string | null
           state?: string
+          tenant_id?: string
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "kova_tasks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       kova_tool_calls: {
         Row: {
@@ -2215,6 +2346,7 @@ export type Database = {
           message_id: string | null
           ms: number
           ok: boolean
+          tenant_id: string
           tool: string
           user_id: string
         }
@@ -2225,6 +2357,7 @@ export type Database = {
           message_id?: string | null
           ms?: number
           ok?: boolean
+          tenant_id: string
           tool: string
           user_id?: string
         }
@@ -2235,6 +2368,7 @@ export type Database = {
           message_id?: string | null
           ms?: number
           ok?: boolean
+          tenant_id?: string
           tool?: string
           user_id?: string
         }
@@ -2244,6 +2378,13 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "kova_chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kova_tool_calls_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
             referencedColumns: ["id"]
           },
         ]
@@ -4393,6 +4534,13 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      my_org_memberships: {
+        Args: never
+        Returns: {
+          org_id: string
+          permission: string
+        }[]
       }
       my_tenant_ids: { Args: never; Returns: string[] }
       read_email_batch: {
