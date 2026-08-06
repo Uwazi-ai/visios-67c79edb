@@ -50,7 +50,7 @@ export default function SignIn() {
     window.history.replaceState(null, "", next);
   }, [tab]);
 
-  if (!loading && session) return <Navigate to="/dashboard" replace />;
+  if (!loading && session) return <Navigate to={next ?? "/dashboard"} replace />;
 
   return (
     <div
@@ -93,7 +93,7 @@ export default function SignIn() {
               : "Sign in to your Kova workspace."}
           </p>
         </div>
-        <AuthPanel tab={tab} setTab={setTab} />
+        <AuthPanel tab={tab} setTab={setTab} next={next ?? undefined} />
       </main>
     </div>
   );
