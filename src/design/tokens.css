@@ -103,12 +103,19 @@
   --text: #101014;
   --dim: #5F5F6B;
   --accent-txt: var(--a-700);
+  --ai-txt: var(--p-700);
   --ok-txt: #15803D;
   --warn-txt: #B45309;
   --err-txt: #B91C1C;
   --card-border: 1px solid transparent;
   --shadow: 0 1px 2px rgba(16, 16, 26, .04), 0 10px 28px rgba(16, 16, 26, .06);
+  --brand-gradient: var(--brand-gradient-light);
 }
+
+/* Numerals tabular everywhere — a live dashboard with proportional digits
+   jitters on every update. */
+[data-theme] { font-variant-numeric: tabular-nums; }
+
 
 /* Display type: the tracking is what makes it read, not the family. */
 .kova-display { font-family: var(--display); letter-spacing: -0.02em; }
