@@ -3,6 +3,8 @@ import { Bento, Card, Col, SectionHead, Tag } from "@/components/primitives";
 import { Mirror, MonthGrid, PlatformFilter, QueueHealth } from "@/components/SocialParts";
 import { MONTH, PLATFORMS, POSTS, Platform, REACH, longestWeekdayGap, readMirror } from "@/data/social";
 import { useAppState } from "@/lib/AppState";
+import { SourceGate } from "@/components/SourceGate";
+import { OrganicOnly } from "@/components/fallbacks/OrganicOnly";
 
 /**
  * Social — a month of posts, the gaps named, and organic against paid on
@@ -64,15 +66,17 @@ const Social = () => {
 
       <Bento>
         <Col span={8}>
-          <Card>
-            <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
-              <div className="vo-between">
-                <h3 className="vo-title">Organic vs paid</h3>
-                <Tag tone={verdict.tone}>Mirror · 12 weeks</Tag>
+          <SourceGate capability="organic-vs-paid" fallback={<OrganicOnly rows={REACH} />}>
+            <Card>
+              <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
+                <div className="vo-between">
+                  <h3 className="vo-title">Organic vs paid</h3>
+                  <Tag tone={verdict.tone}>Mirror · 12 weeks</Tag>
+                </div>
+                <Mirror rows={REACH} verdict={verdict} />
               </div>
-              <Mirror rows={REACH} verdict={verdict} />
-            </div>
-          </Card>
+            </Card>
+          </SourceGate>
         </Col>
         <Col span={4}>
           <Card>
