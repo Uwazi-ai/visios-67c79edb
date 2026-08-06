@@ -52,7 +52,7 @@ export function AuthPanel({ tab, setTab, next }: { tab: "signup" | "signin"; set
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin + "/",
+        redirectTo: returnTo,
         scopes: GOOGLE_SCOPES,
         queryParams: { access_type: "offline", prompt: "consent", include_granted_scopes: "true" },
       },
@@ -68,7 +68,7 @@ export function AuthPanel({ tab, setTab, next }: { tab: "signup" | "signin"; set
     setLoading(true);
     const { error } = await supabase.auth.signUp({
       email, password: pw,
-      options: { emailRedirectTo: window.location.origin + "/" },
+      options: { emailRedirectTo: returnTo },
     });
     setLoading(false);
     if (error) setError(error.message);
