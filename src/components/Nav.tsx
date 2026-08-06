@@ -115,6 +115,7 @@ export const Nav = ({
 
   return (
     <nav className="vo-rail" aria-label="Kova">
+      <RailLogo />
       <div className="vo-stack" style={{ gap: "var(--s-2)" }}>
         <div className="vo-ws" ref={wsRef}>
           <button
