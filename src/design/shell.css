@@ -331,9 +331,8 @@
 .kova .vo-vision {
   border-radius: var(--r-inner); padding: var(--s-3);
   background: var(--brand-gradient);
-  color: var(--text); border: 0; text-align: left; cursor: pointer; width: 100%; font: inherit;
+  color: var(--on-fill); border: 0; text-align: left; cursor: pointer; width: 100%; font: inherit;
 }
-[data-theme="light"] .kova .vo-vision { color: var(--nav-bg); }
 .kova .vo-vision-title { font-family: var(--display); letter-spacing: -0.02em; font-weight: 700; font-size: var(--t-title); }
 .kova .vo-vision-sub { font-size: var(--t-meta); opacity: 0.85; margin-top: 2px; }
 
