@@ -177,26 +177,6 @@ const CHAIN = [
   { n: "04", t: "It got reported", d: "Every venture rolls into one morning brief: what moved, what slipped, what needs you." },
 ];
 
-const READS = [
-  "Gmail and Google Calendar",
-  "Meeting transcripts and notes",
-  "Your task and project history",
-  "Contacts and their provenance",
-];
-
-const STATS = [
-  { v: "4", l: "ventures in one rail", d: "Scope switches everything on screen — nothing bleeds between orgs." },
-  { v: "1", l: "morning brief", d: "One read replaces the standing check-in across every company you run." },
-  { v: "0", l: "invented numbers", d: "A metric with no live source is not shown. Connect it or it stays dark." },
-];
-
-const WHO = [
-  { c: "var(--ws-uwazi)", t: "Founders with more than one thing", d: "A studio, an agency and a nonprofit are three contexts, not three logins." },
-  { c: "var(--ws-cc)", t: "Operators wearing every hat", d: "Sales in the morning, delivery at noon, payroll at five — one surface for all of it." },
-  { c: "var(--ws-bin)", t: "Small teams that move fast", d: "Three to eight people who need shared context without a project-management ritual." },
-];
-
-const TEAM = [
   { i: "MK", n: "Myke", r: "Founder" },
   { i: "AV", n: "Vision", r: "Chief of staff, AI" },
   { i: "OP", n: "Ops", r: "Delivery" },
