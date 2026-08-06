@@ -22,6 +22,7 @@ import Social from "@/screens/Social";
 import Campaigns from "@/screens/Campaigns";
 import Agents from "@/screens/Agents";
 import Admin from "@/screens/Admin";
+import Connect from "@/screens/Connect";
 
 
 /**
@@ -49,6 +50,7 @@ const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   campaigns: Campaigns,
   agents: Agents,
   admin: Admin,
+  connect: Connect,
 
 };
 

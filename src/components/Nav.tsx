@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard, Inbox, MessagesSquare, CheckSquare, Calendar, Users, BookOpen,
   CalendarClock, IdCard, TrendingUp, Megaphone, Rocket, Sparkles, Bot, Settings,
-  ChevronRight, ChevronDown, Sun, Moon, Shield,
+  ChevronRight, ChevronDown, Sun, Moon, Shield, Plug,
 } from "lucide-react";
 import { useAppState } from "@/lib/AppState";
 import { useTenant } from "@/contexts/TenantContext";
@@ -36,6 +36,7 @@ export const MARKETING: NavEntry[] = [
 
 export const SYSTEM: NavEntry[] = [
   { id: "vision", label: "Vision", icon: Sparkles },
+  { id: "connect", label: "Connect", icon: Plug },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "settings", label: "Settings", icon: Settings },
 ];

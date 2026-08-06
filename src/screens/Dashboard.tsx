@@ -5,6 +5,7 @@ import { Bento, Col, Desc, Eyebrow, Face, GatedButton, SectionHead } from "@/com
 import { DailyBrief } from "@/components/DailyBrief";
 import { ThroughputCard, VelocityChart } from "@/components/Throughput";
 import { AgentProposalCard } from "@/components/AgentProposals";
+import { SourceGate } from "@/components/SourceGate";
 
 /**
  * Dashboard — reference implementation for every other screen.
@@ -51,9 +52,11 @@ export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void })
 
       <section>
         <SectionHead title="Throughput" />
-        <Bento>
-          <ThroughputCard scope={scope} />
-        </Bento>
+        <SourceGate capability="throughput" onConnect={() => go("connect")}>
+          <Bento>
+            <ThroughputCard scope={scope} />
+          </Bento>
+        </SourceGate>
       </section>
 
       <section>
@@ -69,6 +72,7 @@ export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void })
 
           }
         />
+        <SourceGate capability="proposals" onConnect={() => go("connect")}>
         <Bento>
           {proposals.map((p) => (
             <Col span={6} key={p.id}>
@@ -85,14 +89,17 @@ export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void })
             </Col>
           )}
         </Bento>
+        </SourceGate>
       </section>
 
       {/* Reference, not a step — so no index on the heading. */}
       <section>
         <SectionHead title="Velocity" />
-        <Bento>
-          <VelocityChart scope={scope} />
-        </Bento>
+        <SourceGate capability="velocity" onConnect={() => go("connect")}>
+          <Bento>
+            <VelocityChart scope={scope} />
+          </Bento>
+        </SourceGate>
       </section>
     </div>
   );
