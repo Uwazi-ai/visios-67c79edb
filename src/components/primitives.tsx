@@ -146,6 +146,7 @@ export const Button = ({
 export const GatedButton = ({
   children,
   blockedCount,
+  blockedLabel,
   readyLabel,
   doneLabel,
   done,
@@ -155,6 +156,7 @@ export const GatedButton = ({
 }: {
   children?: ReactNode;
   blockedCount: number;
+  blockedLabel?: string;
   readyLabel?: string;
   doneLabel?: string;
   done?: boolean;
@@ -181,10 +183,11 @@ export const GatedButton = ({
         disabled
         aria-describedby="gate-reason"
       >
-        {`${blockedCount} proposal${blockedCount === 1 ? "" : "s"} pending review`}
+        {blockedLabel ?? `${blockedCount} proposal${blockedCount === 1 ? "" : "s"} pending review`}
       </button>
     );
   }
+
 
   return (
     <button
