@@ -172,8 +172,9 @@ export const DailyBrief = ({
       {/* What was missing. A brief that silently drops a dead source reads
           as complete, which is the failure mode worth designing against. */}
       <p className="vo-meta vo-brief-foot">
-        Not included:{" "}
-        {MISSING_SOURCES.map((s) => `${s.name} — ${s.reason}`).join(" · ")}
+        {blind.length === 0
+          ? "Everything this brief reads from is connected."
+          : `Not included: ${blind.map((s) => s.name).join(", ")} — not connected.`}
       </p>
     </section>
   );
