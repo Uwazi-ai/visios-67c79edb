@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard, Inbox, MessagesSquare, CheckSquare, Calendar, Users, BookOpen,
   CalendarClock, IdCard, TrendingUp, Megaphone, Rocket, Sparkles, Bot, Settings,
-  ChevronRight, ChevronDown, Sun, Moon,
+  ChevronRight, ChevronDown, Sun, Moon, Shield,
 } from "lucide-react";
 import { useAppState } from "@/lib/AppState";
+import { useTenant } from "@/contexts/TenantContext";
 import { Face } from "@/components/primitives";
 import { RailLogo } from "@/components/Logo";
+
 
 export interface NavEntry {
   id: string;
@@ -38,7 +40,11 @@ export const SYSTEM: NavEntry[] = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-export const NAV: NavEntry[] = [...MENU, ...MARKETING, ...SYSTEM];
+/** Kova staff only. Kept out of NAV so nothing else can surface it. */
+export const PLATFORM: NavEntry[] = [{ id: "admin", label: "Platform", icon: Shield }];
+
+export const NAV: NavEntry[] = [...MENU, ...MARKETING, ...SYSTEM, ...PLATFORM];
+
 
 const initialsOf = (name: string) =>
   name
@@ -82,6 +88,8 @@ export const Nav = ({
   onNavigate: (id: string) => void;
 }) => {
   const { orgs, scope, setScope, scopeOrg, theme, toggleTheme, me } = useAppState();
+  const { isPlatformAdmin } = useTenant();
+
   const [open, setOpen] = useState(false);
   const marketingActive = MARKETING.some((m) => m.id === active);
   const [marketingOpen, setMarketingOpen] = useState(marketingActive);
@@ -209,6 +217,20 @@ export const Nav = ({
           ))}
         </div>
       </div>
+
+      {/* Staff only. Hiding it is presentation; the RPCs behind it check
+          is_platform_admin() themselves. */}
+      {isPlatformAdmin && (
+        <div className="vo-stack" style={{ gap: "var(--s-1)" }}>
+          <div className="vo-eyebrow vo-rail-eyebrow">Platform</div>
+          <div className="vo-navgroup">
+            {PLATFORM.map((e) => (
+              <NavItem key={e.id} entry={e} active={active === e.id} onClick={() => onNavigate(e.id)} />
+            ))}
+          </div>
+        </div>
+      )}
+
 
       <div className="vo-rail-foot">
         <button type="button" className="vo-vision" onClick={() => onNavigate("vision")}>

@@ -4592,6 +4592,59 @@ export type Database = {
         }[]
       }
       my_tenant_ids: { Args: never; Returns: string[] }
+      platform_audit_recent: {
+        Args: { _limit?: number }
+        Returns: {
+          action: string
+          actor_email: string
+          created_at: string
+          id: string
+          reason: string
+          target: string
+          tenant_name: string
+        }[]
+      }
+      platform_tenant_members: {
+        Args: { _tenant_id: string }
+        Returns: {
+          display_name: string
+          email: string
+          joined_at: string
+          role: string
+          user_id: string
+        }[]
+      }
+      platform_tenant_overview: {
+        Args: never
+        Returns: {
+          ai_pool_limit: number
+          contacts_count: number
+          created_at: string
+          docs_count: number
+          id: string
+          last_activity: string
+          name: string
+          orgs_count: number
+          plan: string
+          seats: number
+          seats_used: number
+          slug: string
+          status: string
+          tasks_count: number
+          trial_ends_at: string
+        }[]
+      }
+      platform_update_tenant: {
+        Args: {
+          _ai_pool_limit?: number
+          _plan?: string
+          _reason?: string
+          _seats?: number
+          _status?: string
+          _tenant_id: string
+        }
+        Returns: undefined
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
