@@ -130,8 +130,8 @@ const CSS = `
 @media (max-width: 900px) { .klp-team { grid-template-columns: repeat(2, 1fr); } }
 .klp-person { margin: 0; }
 .klp-shot {
-  aspect-ratio: 4 / 5; width: 100%; border-radius: var(--r-md); overflow: hidden;
-  border: 1px solid var(--line); background: var(--bg-2);
+  aspect-ratio: 4 / 5; width: 100%; border-radius: var(--r-card); overflow: hidden;
+  border: 1px solid var(--line); background: var(--inset);
   display: flex; align-items: center; justify-content: center;
 }
 .klp-shot img {
@@ -140,16 +140,16 @@ const CSS = `
 }
 .klp-person:hover .klp-shot img { filter: grayscale(0); }
 .klp-slot {
-  font-family: var(--mono, monospace); font-size: 11px; letter-spacing: .08em;
+  font-family: var(--mono-font, ui-monospace, monospace); font-size: 11px; letter-spacing: .08em;
   color: var(--dim); text-align: center; padding: 0 10px;
 }
 .klp-quote { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--dim); }
 .klp-quote-empty {
   margin-top: 8px; font-size: 12px; letter-spacing: .04em;
-  border: 1px dashed var(--line); border-radius: var(--r-sm); padding: 8px 10px;
+  border: 1px dashed var(--line); border-radius: var(--r-inner); padding: 8px 10px;
 }
 .klp-cost {
-  margin-top: 24px; border: 1px dashed var(--line); border-radius: var(--r-md);
+  margin-top: 24px; border: 1px dashed var(--line); border-radius: var(--r-card);
   padding: 18px 20px; font-size: 14px; line-height: 1.65; color: var(--dim); max-width: 780px;
 }
 .klp-cost strong { color: var(--text); }
