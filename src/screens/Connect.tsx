@@ -4,21 +4,69 @@ import {
   surfacesFor,
   toggleSource,
   useConnectedSources,
+  type SourceId,
 } from "@/lib/sources";
+import {
+  absoluteTime,
+  hasProbe,
+  relativeTime,
+  syncAll,
+  syncSource,
+  useSyncStatuses,
+  type SyncStatus,
+} from "@/lib/syncStatus";
 import { Button, Card, Desc, Eyebrow, SectionHead, Tag, Title } from "@/components/primitives";
+
+/** One line of truth per source: what state it is in, and when it last worked. */
+const SyncLine = ({ id, status }: { id: SourceId; status: SyncStatus | undefined }) => {
+  if (!hasProbe(id)) {
+    return (
+      <p className="vo-meta vo-sync-line" data-state="unverified">
+        <span className="vo-sync-dot" data-state="unverified" />
+        Connected, but Kova cannot verify this source yet — no reads have been made.
+      </p>
+    );
+  }
+
+  const s: SyncStatus = status ?? { state: "idle", lastSyncAt: null, rows: null };
+
+  const text =
+    s.state === "syncing"
+      ? "Syncing now…"
+      : s.state === "error"
+        ? `Error — ${s.error ?? "read failed"}. Last good sync ${relativeTime(s.lastSyncAt)}.`
+        : s.state === "ok"
+          ? `Synced ${relativeTime(s.lastSyncAt)}${s.rows !== null ? ` · ${s.rows} rows` : ""}`
+          : "Connected, not synced yet this session.";
+
+  return (
+    <p
+      className="vo-meta vo-sync-line"
+      data-state={s.state}
+      title={s.lastSyncAt ? `Last successful sync: ${absoluteTime(s.lastSyncAt)}` : undefined}
+    >
+      <span className="vo-sync-dot" data-state={s.state} />
+      {text}
+    </p>
+  );
+};
 
 /**
  * Connect — a checklist, not a wizard.
  *
  * Every card says what it turns on, so a tenant can stop the moment they
- * have what they came for instead of being marched through ten steps.
- * Google Workspace is first because it unlocks more surfaces than anything
- * else: one connection and the product is already telling the truth.
+ * have what they came for instead of being marched through ten steps, and
+ * what it last did, so a missing number can be traced to the source that
+ * failed rather than guessed at.
  */
 export const Connect = () => {
   const active = useConnectedSources();
+  const statuses = useSyncStatuses();
   const { live, total } = featureCount(active);
   const pct = Math.round((live / total) * 100);
+  const failing = active.filter((id) => statuses[id]?.state === "error");
+  const syncing = active.some((id) => statuses[id]?.state === "syncing");
+
 
   return (
     <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
