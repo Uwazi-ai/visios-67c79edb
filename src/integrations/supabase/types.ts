@@ -493,6 +493,54 @@ export type Database = {
           },
         ]
       }
+      connections: {
+        Row: {
+          created_at: string
+          id: string
+          last_error: string | null
+          last_sync_at: string | null
+          org_id: string
+          provider: string
+          scopes: string[]
+          status: Database["public"]["Enums"]["connection_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          org_id: string
+          provider: string
+          scopes?: string[]
+          status?: Database["public"]["Enums"]["connection_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          org_id?: string
+          provider?: string
+          scopes?: string[]
+          status?: Database["public"]["Enums"]["connection_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connections_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "connections_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_booking_link_slots: {
         Row: {
           created_at: string
@@ -2893,11 +2941,13 @@ export type Database = {
           exempt_reason: string | null
           id: string
           is_active: boolean
+          is_demo: boolean
           is_exempt: boolean
           logo_url: string | null
           metadata: Json
           name: string
           org_type: string | null
+          owner_id: string | null
           pipeline_stages: Json
           priorities: Json
           relationship_label: string | null
@@ -2927,11 +2977,13 @@ export type Database = {
           exempt_reason?: string | null
           id?: string
           is_active?: boolean
+          is_demo?: boolean
           is_exempt?: boolean
           logo_url?: string | null
           metadata?: Json
           name: string
           org_type?: string | null
+          owner_id?: string | null
           pipeline_stages?: Json
           priorities?: Json
           relationship_label?: string | null
@@ -2961,11 +3013,13 @@ export type Database = {
           exempt_reason?: string | null
           id?: string
           is_active?: boolean
+          is_demo?: boolean
           is_exempt?: boolean
           logo_url?: string | null
           metadata?: Json
           name?: string
           org_type?: string | null
+          owner_id?: string | null
           pipeline_stages?: Json
           priorities?: Json
           relationship_label?: string | null
@@ -3015,6 +3069,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          active_org_id: string | null
           ai_prefs: Json
           avatar_url: string | null
           card_theme: string
@@ -3048,6 +3103,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          active_org_id?: string | null
           ai_prefs?: Json
           avatar_url?: string | null
           card_theme?: string
@@ -3081,6 +3137,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          active_org_id?: string | null
           ai_prefs?: Json
           avatar_url?: string | null
           card_theme?: string
@@ -3114,6 +3171,20 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_active_org_id_fkey"
+            columns: ["active_org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_active_org_id_fkey"
+            columns: ["active_org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_primary_org_id_fkey"
             columns: ["primary_org_id"]
@@ -3177,6 +3248,69 @@ export type Database = {
           },
           {
             foreignKeyName: "projects_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          agent_key: string
+          confidence: number | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          kind: string
+          org_id: string
+          payload: Json
+          rationale: string | null
+          source_ref: string | null
+          status: Database["public"]["Enums"]["proposal_status"]
+          title: string
+        }
+        Insert: {
+          agent_key: string
+          confidence?: number | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          kind: string
+          org_id: string
+          payload?: Json
+          rationale?: string | null
+          source_ref?: string | null
+          status?: Database["public"]["Enums"]["proposal_status"]
+          title: string
+        }
+        Update: {
+          agent_key?: string
+          confidence?: number | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          kind?: string
+          org_id?: string
+          payload?: Json
+          rationale?: string | null
+          source_ref?: string | null
+          status?: Database["public"]["Enums"]["proposal_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs_public"
@@ -4450,6 +4584,7 @@ export type Database = {
         Returns: number
       }
       ensure_org_usage: { Args: { _org_id: string }; Returns: undefined }
+      get_dashboard_summary: { Args: { p_org_id?: string }; Returns: Json }
       get_my_profile_private: {
         Args: never
         Returns: {
@@ -4480,11 +4615,13 @@ export type Database = {
           exempt_reason: string | null
           id: string
           is_active: boolean
+          is_demo: boolean
           is_exempt: boolean
           logo_url: string | null
           metadata: Json
           name: string
           org_type: string | null
+          owner_id: string | null
           pipeline_stages: Json
           priorities: Json
           relationship_label: string | null
@@ -4533,10 +4670,9 @@ export type Database = {
       }
       increment_vision_usage: { Args: { _org_id: string }; Returns: undefined }
       is_exempt_user: { Args: never; Returns: boolean }
-      is_org_member: {
-        Args: { _org_id: string; _user_id: string }
-        Returns: boolean
-      }
+      is_org_member:
+        | { Args: { _org_id: string; _user_id: string }; Returns: boolean }
+        | { Args: { p_org_id: string }; Returns: boolean }
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
       is_platform_admin: { Args: never; Returns: boolean }
       is_super_admin:
@@ -4570,11 +4706,13 @@ export type Database = {
           exempt_reason: string | null
           id: string
           is_active: boolean
+          is_demo: boolean
           is_exempt: boolean
           logo_url: string | null
           metadata: Json
           name: string
           org_type: string | null
+          owner_id: string | null
           pipeline_stages: Json
           priorities: Json
           relationship_label: string | null
@@ -4618,6 +4756,7 @@ export type Database = {
           slug: string
         }[]
       }
+      my_org_ids: { Args: never; Returns: string[] }
       my_org_memberships: {
         Args: never
         Returns: {
@@ -4626,6 +4765,7 @@ export type Database = {
         }[]
       }
       my_tenant_ids: { Args: never; Returns: string[] }
+      org_member_can_write: { Args: { p_org_id: string }; Returns: boolean }
       platform_audit_recent: {
         Args: { _limit?: number }
         Returns: {
@@ -4706,6 +4846,8 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
+      connection_status: "connected" | "disconnected" | "error" | "expired"
+      proposal_status: "pending" | "committed" | "dismissed" | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4834,6 +4976,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
+      connection_status: ["connected", "disconnected", "error", "expired"],
+      proposal_status: ["pending", "committed", "dismissed", "expired"],
     },
   },
 } as const
