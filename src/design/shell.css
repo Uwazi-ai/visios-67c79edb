@@ -1350,10 +1350,10 @@ button.vo-datamode { cursor: pointer; }
   background: var(--accent-txt);
   animation: vo-sync-pulse 1.1s ease-in-out infinite;
 }
-.kova .vo-sync-dot[data-state="error"] { background: var(--risk-txt); }
+.kova .vo-sync-dot[data-state="error"] { background: var(--err-txt); }
 .kova .vo-sync-dot[data-state="idle"],
 .kova .vo-sync-dot[data-state="unverified"] { background: var(--warn-txt); }
-.kova .vo-sync-line[data-state="error"] { color: var(--risk-txt); }
+.kova .vo-sync-line[data-state="error"] { color: var(--err-txt); }
 
 @keyframes vo-sync-pulse {
   0%, 100% { opacity: 1; }
