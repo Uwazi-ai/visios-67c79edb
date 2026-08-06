@@ -22,6 +22,8 @@ const CSS = `
 .klp .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
 .klp section { padding: clamp(64px, 9vw, 116px) 0; scroll-margin-top: 76px; }
 .klp h1, .klp h2, .klp h3 { font-family: var(--display); margin: 0; font-weight: 600; }
+.klp h1 .hb { display: block; height: 0; }
+@media (max-width: 560px) { .klp h1 .hb { display: inline; } }
 .klp h1 {
   font-size: clamp(38px, 7.2vw, 68px);
   letter-spacing: -0.03em;
@@ -276,7 +278,9 @@ export default function Landing() {
       <section className="klp-hero">
         <div className="wrap inner">
           <div className="eyebrow">The operating layer for entrepreneurs</div>
-          <h1 style={{ marginTop: 18 }}>Every hat, one place.</h1>
+          <h1 style={{ marginTop: 18 }}>
+            Every hat,<span className="hb"> </span>one place.
+          </h1>
           <p className="sub">
             Kova turns what happened into what&apos;s next — meetings into tasks, tasks into time,
             and every venture into one morning brief.
