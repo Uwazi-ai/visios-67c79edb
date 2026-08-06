@@ -118,7 +118,7 @@ const NAV = ["Dashboard", "Inbox", "Tasks", "Calendar", "Knowledge"];
 
 const BARS = [38, 52, 30, 61, 44, 70, 35, 58, 47, 66, 29, 54, 40, 63, 33, 49, 57, 42, 68, 36];
 
-const BrowserFrame = ({ url, children }: { url: string; children: React.ReactNode }) => (
+export const BrowserFrame = ({ url, children }: { url: string; children: React.ReactNode }) => (
   <div className="kpb-frame">
     <div className="kpb-bar">
       <span className="kpb-dot" style={{ background: "var(--err)" }} />
