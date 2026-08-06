@@ -130,7 +130,7 @@
 
 .kova .vo-btn:hover:not(:disabled),
 .kova .b-sec:hover:not(:disabled),
-.kova .b-ghost:hover:not(:disabled) { border-color: var(--a-500); }
+.kova .b-ghost:hover:not(:disabled) { border-color: var(--line-strong); }
 
 /* 01 the main action — --a-500 fill, white text */
 .kova .b-pri,
