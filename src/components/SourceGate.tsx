@@ -1,11 +1,14 @@
 import { ReactNode } from "react";
 import { useCapability } from "@/lib/sources";
+import { fallbackFor } from "@/lib/fallbacks";
 import { Button, Desc, Eyebrow, Title } from "@/components/primitives";
 
 /**
  * SourceGate — resolves a widget's capability before the widget renders.
  *
- * empty    the required sources are missing. We say what this would show
+ * empty    the required sources are missing. If the field declares a
+ *          fallback — manual, import, degrade, substitute — that renders
+ *          instead, clearly marked. Otherwise we say what this would show
  *          and offer the way to turn it on. We never render the widget,
  *          because a chart of zeros reads as an answer.
  * partial  the widget is true, but thinner than it could be. It renders,
@@ -16,10 +19,13 @@ import { Button, Desc, Eyebrow, Title } from "@/components/primitives";
 export const SourceGate = ({
   capability,
   onConnect,
+  fallback,
   children,
 }: {
   capability: string;
   onConnect?: () => void;
+  /** Rendered in place of the empty card when the field declares one. */
+  fallback?: ReactNode;
   children: ReactNode;
 }) => {
   const { state, capability: cap, missingRequired, missingAnyOf, missingOptional } =
@@ -31,7 +37,15 @@ export const SourceGate = ({
       missingRequired.length > 0
         ? missingRequired.map((s) => s.name).join(" and ")
         : missingAnyOf.map((s) => s.name).join(" or ");
+
+    /* A declared fallback outranks the empty card. Hiding is the safe
+       default and often the wrong one — if somebody would act on the
+       number, we offer them a way to have it. */
+    const fb = fallbackFor(capability);
+    if (fallback && fb && fb.kind !== "hide") return <>{fallback}</>;
+
     return (
+
       <div className="vo-card vo-gate-empty">
         <Eyebrow>Not connected</Eyebrow>
         <Title>{cap.title}</Title>
