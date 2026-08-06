@@ -128,11 +128,32 @@ const CSS = `
 /* team */
 .klp-team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 32px; }
 @media (max-width: 900px) { .klp-team { grid-template-columns: repeat(2, 1fr); } }
-.klp-avatar {
-  width: 44px; height: 44px; border-radius: var(--r-pill);
-  background: var(--brand-gradient); display: flex; align-items: center; justify-content: center;
-  color: var(--on-fill); font-family: var(--display); font-size: 15px;
+.klp-person { margin: 0; }
+.klp-shot {
+  aspect-ratio: 4 / 5; width: 100%; border-radius: var(--r-card); overflow: hidden;
+  border: 1px solid var(--line); background: var(--inset);
+  display: flex; align-items: center; justify-content: center;
 }
+.klp-shot img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(1); transition: filter .28s ease;
+}
+.klp-person:hover .klp-shot img { filter: grayscale(0); }
+.klp-slot {
+  font-family: var(--mono-font, ui-monospace, monospace); font-size: 11px; letter-spacing: .08em;
+  color: var(--dim); text-align: center; padding: 0 10px;
+}
+.klp-quote { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--dim); }
+.klp-quote-empty {
+  margin-top: 8px; font-size: 12px; letter-spacing: .04em;
+  border: 1px dashed var(--line); border-radius: var(--r-inner); padding: 8px 10px;
+}
+.klp-cost {
+  margin-top: 24px; border: 1px dashed var(--line); border-radius: var(--r-card);
+  padding: 18px 20px; font-size: 14px; line-height: 1.65; color: var(--dim); max-width: 780px;
+}
+.klp-cost strong { color: var(--text); }
+
 
 /* pricing */
 .klp-price { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 32px; align-items: start; }
@@ -140,7 +161,7 @@ const CSS = `
 .klp-price .amt { font-family: var(--display); font-size: 34px; letter-spacing: -.03em; }
 .klp-price .feat { display: flex; gap: 8px; font-size: 14px; color: var(--dim); padding: 6px 0; }
 .klp-price .feat svg { flex: none; margin-top: 3px; color: var(--ok-txt); }
-.klp-price .hi { border: 1px solid var(--a-500); }
+.klp-price .hi { border: 1px solid var(--p-500); }
 .klp-badge {
   display: inline-block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
   color: var(--accent-txt); margin-bottom: 8px;
@@ -177,39 +198,82 @@ const CHAIN = [
   { n: "04", t: "It got reported", d: "Every venture rolls into one morning brief: what moved, what slipped, what needs you." },
 ];
 
+/* No stock portraits and no invented quotes: slots stay labelled until
+   there are real photos and real quotes with written permission. */
 const TEAM = [
-  { i: "MK", n: "Myke", r: "Founder" },
-
-  { i: "AV", n: "Vision", r: "Chief of staff, AI" },
-  { i: "OP", n: "Ops", r: "Delivery" },
-  { i: "DS", n: "Design", r: "Product" },
+  {
+    n: "Myke Shaw",
+    r: "Founder",
+    q: "I built the first version because I kept losing client work in the gap between a meeting and my task list.",
+    photo: null as string | null,
+  },
+  { n: "", r: "", q: "", photo: null as string | null },
+  { n: "", r: "", q: "", photo: null as string | null },
+  { n: "", r: "", q: "", photo: null as string | null },
 ];
 
 const PRICING = [
   {
-    name: "Solo", price: "$29", note: "per month",
-    feats: ["One workspace", "Unlimited tasks and notes", "Vision briefs, 100 a month", "Google Workspace sync"],
+    name: "Free", price: "$0", note: "",
+    feats: [
+      "One workspace",
+      "Pipeline, digital card, booking link",
+      "50 assistant messages a month",
+      "No card required",
+    ],
     cta: "Start free", hi: false,
   },
   {
-    name: "Team", price: "$79", note: "per month", badge: "Most chosen",
-    feats: ["Three seats", "Unlimited workspaces", "Team chat and meetings", "Agents and unlimited Vision"],
+    name: "Starter", price: "$29", note: "/seat/month", badge: "Most small teams",
+    feats: [
+      "Everything in Free",
+      "Meetings into tasks, with time attached",
+      "Daily brief",
+      "Slack, Gmail and Calendar connected",
+      "Up to 3 seats",
+    ],
     cta: "Start free", hi: true,
   },
   {
-    name: "Growth", price: "$179", note: "per month",
-    feats: ["Eight seats", "Social and campaigns", "Admin controls", "Custom Vision persona"],
+    name: "Growth", price: "$79", note: "/seat/month",
+    feats: [
+      "Everything in Starter",
+      "Several ventures, one login",
+      "Assignees, timelines, dependencies",
+      "Agents and campaign analytics",
+      "Up to 25 seats",
+    ],
     cta: "Start free", hi: false,
   },
 ];
 
 const FAQ = [
-  { q: "Do I need to connect anything to start?", a: "No. Kova works unconnected for tasks, notes and manual entry. Metrics that need a live source stay dark until you connect it — we would rather show nothing than a number we invented." },
-  { q: "How do multiple ventures work?", a: "Every record carries a venture. The rail switches scope, and each venture keeps one colour everywhere — chips, charts, the org face. Cross-venture views exist, but nothing leaks by accident." },
-  { q: "What does Vision actually do?", a: "It reads the record you already have and proposes: tasks from a meeting, a reply draft, a schedule for the day. Proposals arrive dashed and dimmed. A person commits them." },
-  { q: "Is my data used to train models?", a: "No. Your workspace content is used to answer your prompts and nothing else." },
-  { q: "Can I leave?", a: "Export your tasks, contacts and notes at any time. No lock-in clause, no export fee." },
+  {
+    q: "Do I have to move my team off Slack?",
+    a: "No, and we'd rather you didn't. Your team is there and Slack is better at being Slack. Kova reads across every workspace you're in — including client workspaces where you're a guest — and ranks what's waiting on you. Replying happens in Slack.",
+  },
+  {
+    q: "Isn't this just Notion with extra steps?",
+    a: "Notion is where you write things down. Kova is what happens next. Nothing in Notion notices a meeting produced four actions, estimates them, and finds room for them this week.",
+  },
+  {
+    q: "I already use Asana and I like it.",
+    a: "Keep it. Kova reads your calendar and your meetings, and the tasks it creates can live where you already work. The handoff is the product, not the task list.",
+  },
+  {
+    q: "Why would I trust AI with my business?",
+    a: "You wouldn't, and Kova doesn't ask you to. Every action it extracts is a proposal shown with the sentence it came from. It can't send, post, spend or delete — those permissions are locked off and can't be enabled.",
+  },
+  {
+    q: "All-in-one tools are usually worse than best-in-class.",
+    a: "Usually true, which is why Kova doesn't try to beat Slack at chat. It's a layer. Use it for the parts nothing else does and keep what's working.",
+  },
+  {
+    q: "Is my data separate from other customers'?",
+    a: "Every table is isolated per customer at the database level, and any access by Kova staff is logged with a stated reason you can see in your own settings. We don't have SOC 2 yet — if you need it, we're not the right fit today.",
+  },
 ];
+
 
 export default function Landing() {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -309,16 +373,38 @@ export default function Landing() {
           <div className="eyebrow">Team</div>
           <h2 style={{ marginTop: 12 }}>Small on purpose.</h2>
           <p className="dim" style={{ marginTop: 14 }}>
-            Kova is built by operators who run the ventures it was made for — plus one member
-            who never sleeps.
+            Real people, real words. Slots stay empty until there is a real photo and a
+            quote we have permission to print.
           </p>
           <div className="klp-team">
-            {TEAM.map((m) => (
-              <div className="card" key={m.n}>
-                <div className="klp-avatar">{m.i}</div>
-                <h3 style={{ marginTop: 12 }}>{m.n}</h3>
-                <div className="dim" style={{ fontSize: 14, marginTop: 4 }}>{m.r}</div>
-              </div>
+            {TEAM.map((m, i) => (
+              <figure className="klp-person" key={i}>
+                <div className="klp-shot">
+                  {m.photo ? (
+                    <img src={m.photo} alt={m.n} />
+                  ) : (
+                    <span className="klp-slot">PHOTO · 4:5 · 1200×1500 min</span>
+                  )}
+                </div>
+                {m.n ? (
+                  <figcaption>
+                    <h3 style={{ marginTop: 12, fontSize: 17 }}>{m.n}</h3>
+                    <div className="dim" style={{ fontSize: 13, marginTop: 2 }}>{m.r}</div>
+                    {m.q && (
+                      <blockquote className="klp-quote">“{m.q}”</blockquote>
+                    )}
+                  </figcaption>
+                ) : (
+                  <figcaption>
+                    <div className="dim" style={{ fontSize: 13, marginTop: 12 }}>
+                      Name · Role — pending
+                    </div>
+                    <div className="klp-quote klp-quote-empty">
+                      Quote pending written permission
+                    </div>
+                  </figcaption>
+                )}
+              </figure>
             ))}
           </div>
         </div>
@@ -335,7 +421,7 @@ export default function Landing() {
                 {p.badge && <div className="klp-badge">{p.badge}</div>}
                 <h3>{p.name}</h3>
                 <div className="amt" style={{ marginTop: 10 }}>{p.price}</div>
-                <div className="dim" style={{ fontSize: 13 }}>{p.note}</div>
+                <div className="dim" style={{ fontSize: 13, minHeight: 18 }}>{p.note}</div>
                 <div style={{ margin: "16px 0" }}>
                   {p.feats.map((f) => (
                     <div className="feat" key={f}>
@@ -350,8 +436,13 @@ export default function Landing() {
               </div>
             ))}
           </div>
-          <div className="dim" style={{ fontSize: 13, marginTop: 14 }}>
-            Free for one workspace. No card required. Enterprise pricing on request.
+          <div className="klp-cost">
+            <strong>An honest note about cost.</strong> If you&apos;re paying for Asana, Notion,
+            Calendly, a CRM, meeting notes and a digital card, Kova replaces about $104 a seat a
+            month of that. If you&apos;re on free tiers of all of them, Kova won&apos;t save you
+            money — it&apos;ll save you the switching between them. There&apos;s a calculator
+            inside the product that will tell you which you are, including when the answer is
+            &apos;don&apos;t switch yet.&apos;
           </div>
         </div>
       </section>
@@ -386,10 +477,11 @@ export default function Landing() {
       {/* CLOSING CTA */}
       <section className="klp-close">
         <div className="wrap">
-          <h2>Put every hat in one place.</h2>
+          <h2>Stop carrying work between tools.</h2>
           <p className="dim" style={{ margin: "16px auto 0" }}>
-            One workspace, free, for as long as you like.
+            Start with one workspace and your calendar. Add the rest when it earns its place.
           </p>
+
           <div className="cta">
             <Link className="btn btn-pri" to="/login?tab=signup">Start free</Link>
             <Link className="btn btn-sec" to="/login">Sign in</Link>
