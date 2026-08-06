@@ -456,10 +456,11 @@ export default function Landing() {
       {/* CLOSING CTA */}
       <section className="klp-close">
         <div className="wrap">
-          <h2>Put every hat in one place.</h2>
+          <h2>Stop carrying work between tools.</h2>
           <p className="dim" style={{ margin: "16px auto 0" }}>
-            One workspace, free, for as long as you like.
+            Start with one workspace and your calendar. Add the rest when it earns its place.
           </p>
+
           <div className="cta">
             <Link className="btn btn-pri" to="/login?tab=signup">Start free</Link>
             <Link className="btn btn-sec" to="/login">Sign in</Link>
