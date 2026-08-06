@@ -127,13 +127,24 @@ export const Connect = () => {
         {SOURCES.map((s) => {
           const on = active.includes(s.id);
           const surfaces = surfacesFor(s.id);
+          const status = statuses[s.id];
           return (
             <div key={s.id} className="vo-card vo-source-card" data-on={on ? "true" : undefined}>
               <div className="vo-between" style={{ flexWrap: "wrap", gap: "var(--s-3)" }}>
                 <div className="vo-stack" style={{ gap: 4, minWidth: 0 }}>
                   <div className="vo-row" style={{ gap: "var(--s-2)" }}>
                     <Title>{s.name}</Title>
-                    {on ? <Tag tone="ok">Connected</Tag> : <Tag>Not connected</Tag>}
+                    {!on ? (
+                      <Tag>Not connected</Tag>
+                    ) : status?.state === "error" ? (
+                      <Tag tone="risk">Error</Tag>
+                    ) : status?.state === "syncing" ? (
+                      <Tag tone="accent">Syncing</Tag>
+                    ) : status?.state === "ok" ? (
+                      <Tag tone="ok">Connected</Tag>
+                    ) : (
+                      <Tag tone="warn">Connected · not synced</Tag>
+                    )}
                     {surfaces.length > 0 && (
                       <span className="vo-meta">
                         Required by {surfaces.length} {surfaces.length === 1 ? "surface" : "surfaces"}
@@ -142,10 +153,27 @@ export const Connect = () => {
                   </div>
                   <Desc>{s.reads}</Desc>
                 </div>
-                <Button variant={on ? undefined : "primary"} size="sm" onClick={() => toggleSource(s.id)}>
-                  {on ? "Disconnect" : "Connect"}
-                </Button>
+                <div className="vo-row" style={{ gap: "var(--s-2)" }}>
+                  {on && hasProbe(s.id) && (
+                    <Button
+                      size="sm"
+                      onClick={() => void syncSource(s.id)}
+                      disabled={status?.state === "syncing"}
+                    >
+                      {status?.state === "syncing" ? "Syncing…" : "Sync now"}
+                    </Button>
+                  )}
+                  <Button variant={on ? undefined : "primary"} size="sm" onClick={() => toggleSource(s.id)}>
+                    {on ? "Disconnect" : "Connect"}
+                  </Button>
+                </div>
               </div>
+
+              {on && (
+                <div style={{ marginTop: "var(--s-2)" }}>
+                  <SyncLine id={s.id} status={status} />
+                </div>
+              )}
 
               <div className="vo-gate-chips" style={{ marginTop: "var(--s-2)" }}>
                 {s.turnsOn.map((t) => (
@@ -166,6 +194,7 @@ export const Connect = () => {
       </div>
     </div>
   );
+
 };
 
 export default Connect;
