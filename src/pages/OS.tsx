@@ -21,6 +21,8 @@ import Raise from "@/screens/Raise";
 import Social from "@/screens/Social";
 import Campaigns from "@/screens/Campaigns";
 import Agents from "@/screens/Agents";
+import Admin from "@/screens/Admin";
+
 
 /**
  * Screen registry. Port a screen by writing it under src/screens and adding
