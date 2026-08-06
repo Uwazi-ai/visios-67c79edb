@@ -128,11 +128,32 @@ const CSS = `
 /* team */
 .klp-team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 32px; }
 @media (max-width: 900px) { .klp-team { grid-template-columns: repeat(2, 1fr); } }
-.klp-avatar {
-  width: 44px; height: 44px; border-radius: var(--r-pill);
-  background: var(--brand-gradient); display: flex; align-items: center; justify-content: center;
-  color: var(--on-fill); font-family: var(--display); font-size: 15px;
+.klp-person { margin: 0; }
+.klp-shot {
+  aspect-ratio: 4 / 5; width: 100%; border-radius: var(--r-md); overflow: hidden;
+  border: 1px solid var(--line); background: var(--bg-2);
+  display: flex; align-items: center; justify-content: center;
 }
+.klp-shot img {
+  width: 100%; height: 100%; object-fit: cover;
+  filter: grayscale(1); transition: filter .28s ease;
+}
+.klp-person:hover .klp-shot img { filter: grayscale(0); }
+.klp-slot {
+  font-family: var(--mono, monospace); font-size: 11px; letter-spacing: .08em;
+  color: var(--dim); text-align: center; padding: 0 10px;
+}
+.klp-quote { margin: 10px 0 0; font-size: 14px; line-height: 1.5; color: var(--dim); }
+.klp-quote-empty {
+  margin-top: 8px; font-size: 12px; letter-spacing: .04em;
+  border: 1px dashed var(--line); border-radius: var(--r-sm); padding: 8px 10px;
+}
+.klp-cost {
+  margin-top: 24px; border: 1px dashed var(--line); border-radius: var(--r-md);
+  padding: 18px 20px; font-size: 14px; line-height: 1.65; color: var(--dim); max-width: 780px;
+}
+.klp-cost strong { color: var(--text); }
+
 
 /* pricing */
 .klp-price { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 32px; align-items: start; }
