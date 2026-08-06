@@ -20,11 +20,9 @@ export default function UpdatesTab() {
   const [pushing, setPushing] = useState(false);
 
   const load = async () => {
-    const { data } = await supabase
-      .from("app_versions")
-      .select("id, version, notes, released_at, released_by")
-      .order("released_at", { ascending: false })
-      .limit(10);
+    // Release notes are super-admin only; served by a gated RPC rather than a
+    // direct table read (the table's notes column is not readable by clients).
+    const { data } = await supabase.rpc("admin_app_version_history", { _limit: 10 });
     const list = (data ?? []) as AppVersion[];
     setHistory(list);
     setLatest(list[0] ?? null);

@@ -1269,6 +1269,7 @@ export type Database = {
           id: string
           opportunity_id: string | null
           status: string
+          tenant_id: string
           title: string
           updated_at: string
         }
@@ -1280,6 +1281,7 @@ export type Database = {
           id?: string
           opportunity_id?: string | null
           status?: string
+          tenant_id?: string
           title: string
           updated_at?: string
         }
@@ -1291,6 +1293,7 @@ export type Database = {
           id?: string
           opportunity_id?: string | null
           status?: string
+          tenant_id?: string
           title?: string
           updated_at?: string
         }
@@ -1385,6 +1388,7 @@ export type Database = {
           project_focus: string | null
           sections_generated: string[] | null
           status: string | null
+          tenant_id: string
           tone: string | null
           updated_at: string | null
           version: number | null
@@ -1401,6 +1405,7 @@ export type Database = {
           project_focus?: string | null
           sections_generated?: string[] | null
           status?: string | null
+          tenant_id?: string
           tone?: string | null
           updated_at?: string | null
           version?: number | null
@@ -1417,6 +1422,7 @@ export type Database = {
           project_focus?: string | null
           sections_generated?: string[] | null
           status?: string | null
+          tenant_id?: string
           tone?: string | null
           updated_at?: string | null
           version?: number | null
@@ -3211,6 +3217,7 @@ export type Database = {
           id: string
           pillars: Json
           require_approval: boolean
+          tenant_id: string
           updated_at: string
           voice_notes: string | null
         }
@@ -3219,6 +3226,7 @@ export type Database = {
           id?: string
           pillars?: Json
           require_approval?: boolean
+          tenant_id?: string
           updated_at?: string
           voice_notes?: string | null
         }
@@ -3227,6 +3235,7 @@ export type Database = {
           id?: string
           pillars?: Json
           require_approval?: boolean
+          tenant_id?: string
           updated_at?: string
           voice_notes?: string | null
         }
@@ -3243,6 +3252,7 @@ export type Database = {
           id: string
           platform: string
           raw_input: string | null
+          tenant_id: string
         }
         Insert: {
           analysis?: Json
@@ -3254,6 +3264,7 @@ export type Database = {
           id?: string
           platform: string
           raw_input?: string | null
+          tenant_id?: string
         }
         Update: {
           analysis?: Json
@@ -3265,6 +3276,7 @@ export type Database = {
           id?: string
           platform?: string
           raw_input?: string | null
+          tenant_id?: string
         }
         Relationships: []
       }
@@ -3279,6 +3291,7 @@ export type Database = {
           metadata: Json
           name: string
           start_date: string | null
+          tenant_id: string
         }
         Insert: {
           brand: string
@@ -3290,6 +3303,7 @@ export type Database = {
           metadata?: Json
           name: string
           start_date?: string | null
+          tenant_id?: string
         }
         Update: {
           brand?: string
@@ -3301,6 +3315,7 @@ export type Database = {
           metadata?: Json
           name?: string
           start_date?: string | null
+          tenant_id?: string
         }
         Relationships: []
       }
@@ -3315,6 +3330,7 @@ export type Database = {
           post_id: string | null
           reply_text: string | null
           status: string
+          tenant_id: string
         }
         Insert: {
           author?: string | null
@@ -3326,6 +3342,7 @@ export type Database = {
           post_id?: string | null
           reply_text?: string | null
           status?: string
+          tenant_id?: string
         }
         Update: {
           author?: string | null
@@ -3337,6 +3354,7 @@ export type Database = {
           post_id?: string | null
           reply_text?: string | null
           status?: string
+          tenant_id?: string
         }
         Relationships: [
           {
@@ -3480,6 +3498,7 @@ export type Database = {
           scheduled_at: string | null
           script_outline: Json | null
           status: string
+          tenant_id: string
           updated_at: string
         }
         Insert: {
@@ -3502,6 +3521,7 @@ export type Database = {
           scheduled_at?: string | null
           script_outline?: Json | null
           status?: string
+          tenant_id?: string
           updated_at?: string
         }
         Update: {
@@ -3524,6 +3544,7 @@ export type Database = {
           scheduled_at?: string | null
           script_outline?: Json | null
           status?: string
+          tenant_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -3537,6 +3558,7 @@ export type Database = {
           name: string
           permissions: Json
           role: string
+          tenant_id: string
           user_id: string | null
         }
         Insert: {
@@ -3547,6 +3569,7 @@ export type Database = {
           name: string
           permissions?: Json
           role: string
+          tenant_id?: string
           user_id?: string | null
         }
         Update: {
@@ -3557,6 +3580,7 @@ export type Database = {
           name?: string
           permissions?: Json
           role?: string
+          tenant_id?: string
           user_id?: string | null
         }
         Relationships: []
@@ -4404,6 +4428,16 @@ export type Database = {
       }
     }
     Functions: {
+      admin_app_version_history: {
+        Args: { _limit?: number }
+        Returns: {
+          id: string
+          notes: string
+          released_at: string
+          released_by: string
+          version: number
+        }[]
+      }
       current_tenant_id: { Args: never; Returns: string }
       default_tenant_id: { Args: never; Returns: string }
       delete_email: {

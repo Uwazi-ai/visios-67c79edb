@@ -10,7 +10,9 @@ import { useAuth } from "@/contexts/AuthContext";
 export function AppUpdateListener() {
   const { user } = useAuth();
   const baselineRef = useRef<number | null>(null);
-  const [pending, setPending] = useState<{ version: number; notes: string | null } | null>(null);
+  // Only the version number is readable by ordinary users — release notes stay
+  // with the platform admin, so the banner announces the update without them.
+  const [pending, setPending] = useState<{ version: number } | null>(null);
   const [dismissed, setDismissed] = useState<number | null>(null);
 
   useEffect(() => {
@@ -35,10 +37,10 @@ export function AppUpdateListener() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "app_versions" },
         (payload) => {
-          const v = payload.new as { version: number; notes: string | null };
+          const v = payload.new as { version: number };
           const baseline = baselineRef.current ?? 0;
           if (v.version > baseline && v.version !== dismissed) {
-            setPending({ version: v.version, notes: v.notes });
+            setPending({ version: v.version });
           }
         },
       )
@@ -68,14 +70,9 @@ export function AppUpdateListener() {
         <div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 600 }}>
           A new update is available
         </div>
-        {pending.notes && (
-          <div
-            className="t-mono"
-            style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}
-          >
-            {pending.notes}
-          </div>
-        )}
+        <div className="t-mono" style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>
+          v{pending.version}
+        </div>
       </div>
       <button
         className="btn-primary"
