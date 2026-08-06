@@ -2,6 +2,8 @@ import { useState } from "react";
 import "@/design/tokens.css";
 import "@/design/shell.css";
 import { AppStateProvider, useAppState } from "@/lib/AppState";
+import { WorkspaceScopeProvider } from "@/lib/WorkspaceScope";
+
 import { Nav, NAV } from "@/components/Nav";
 import { KovaDataProvider } from "@/data/live/KovaData";
 import DataStatus from "@/components/DataStatus";
@@ -105,10 +107,13 @@ const Shell = () => {
 
 const OS = () => (
   <AppStateProvider>
-    <KovaDataProvider>
-      <Shell />
-    </KovaDataProvider>
+    <WorkspaceScopeProvider>
+      <KovaDataProvider>
+        <Shell />
+      </KovaDataProvider>
+    </WorkspaceScopeProvider>
   </AppStateProvider>
 );
+
 
 export default OS;
