@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, ChevronDown, Moon, Sun } from "lucide-react";
 import { ProblemSection, PROBLEM_CSS } from "@/components/landing/Problem";
+import { HonestySection, ScaleSection, WhoSection, SECTIONS_CSS } from "@/components/landing/Sections";
 
 /* ──────────────────────────────────────────────────────────────
    Kova marketing landing.
@@ -250,7 +251,7 @@ export default function Landing() {
 
   return (
     <div className="klp">
-      <style>{CSS + PROBLEM_CSS}</style>
+      <style>{CSS + PROBLEM_CSS + SECTIONS_CSS}</style>
 
       <header className="klp-nav">
         <div className="wrap row">
