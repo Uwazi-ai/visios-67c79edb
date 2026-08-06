@@ -151,7 +151,15 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
       inScope,
       scopeOrg: () => orgs.find((o) => o.id === scope) ?? orgs[0],
       orgs,
+      /* Membership can shrink the list under you — a scope you no longer
+         belong to must not stay selected. */
+      setOrgs: (list) => {
+        if (!list.length) return;
+        setOrgs(list);
+        setScopeState((s) => (list.some((o) => o.id === s) ? s : "all"));
+      },
       setOrgColor: (id, color) =>
+
         setOrgs((list) => list.map((o) => (o.id === id ? { ...o, color } : o))),
       setOrgLogo: (id, logo) =>
         setOrgs((list) => list.map((o) => (o.id === id ? { ...o, logo } : o))),
