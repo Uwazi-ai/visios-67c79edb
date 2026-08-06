@@ -177,39 +177,82 @@ const CHAIN = [
   { n: "04", t: "It got reported", d: "Every venture rolls into one morning brief: what moved, what slipped, what needs you." },
 ];
 
+/* No stock portraits and no invented quotes: slots stay labelled until
+   there are real photos and real quotes with written permission. */
 const TEAM = [
-  { i: "MK", n: "Myke", r: "Founder" },
-
-  { i: "AV", n: "Vision", r: "Chief of staff, AI" },
-  { i: "OP", n: "Ops", r: "Delivery" },
-  { i: "DS", n: "Design", r: "Product" },
+  {
+    n: "Myke Shaw",
+    r: "Founder",
+    q: "I built the first version because I kept losing client work in the gap between a meeting and my task list.",
+    photo: null as string | null,
+  },
+  { n: "", r: "", q: "", photo: null as string | null },
+  { n: "", r: "", q: "", photo: null as string | null },
+  { n: "", r: "", q: "", photo: null as string | null },
 ];
 
 const PRICING = [
   {
-    name: "Solo", price: "$29", note: "per month",
-    feats: ["One workspace", "Unlimited tasks and notes", "Vision briefs, 100 a month", "Google Workspace sync"],
+    name: "Free", price: "$0", note: "",
+    feats: [
+      "One workspace",
+      "Pipeline, digital card, booking link",
+      "50 assistant messages a month",
+      "No card required",
+    ],
     cta: "Start free", hi: false,
   },
   {
-    name: "Team", price: "$79", note: "per month", badge: "Most chosen",
-    feats: ["Three seats", "Unlimited workspaces", "Team chat and meetings", "Agents and unlimited Vision"],
+    name: "Starter", price: "$29", note: "/seat/month", badge: "Most small teams",
+    feats: [
+      "Everything in Free",
+      "Meetings into tasks, with time attached",
+      "Daily brief",
+      "Slack, Gmail and Calendar connected",
+      "Up to 3 seats",
+    ],
     cta: "Start free", hi: true,
   },
   {
-    name: "Growth", price: "$179", note: "per month",
-    feats: ["Eight seats", "Social and campaigns", "Admin controls", "Custom Vision persona"],
+    name: "Growth", price: "$79", note: "/seat/month",
+    feats: [
+      "Everything in Starter",
+      "Several ventures, one login",
+      "Assignees, timelines, dependencies",
+      "Agents and campaign analytics",
+      "Up to 25 seats",
+    ],
     cta: "Start free", hi: false,
   },
 ];
 
 const FAQ = [
-  { q: "Do I need to connect anything to start?", a: "No. Kova works unconnected for tasks, notes and manual entry. Metrics that need a live source stay dark until you connect it — we would rather show nothing than a number we invented." },
-  { q: "How do multiple ventures work?", a: "Every record carries a venture. The rail switches scope, and each venture keeps one colour everywhere — chips, charts, the org face. Cross-venture views exist, but nothing leaks by accident." },
-  { q: "What does Vision actually do?", a: "It reads the record you already have and proposes: tasks from a meeting, a reply draft, a schedule for the day. Proposals arrive dashed and dimmed. A person commits them." },
-  { q: "Is my data used to train models?", a: "No. Your workspace content is used to answer your prompts and nothing else." },
-  { q: "Can I leave?", a: "Export your tasks, contacts and notes at any time. No lock-in clause, no export fee." },
+  {
+    q: "Do I have to move my team off Slack?",
+    a: "No, and we'd rather you didn't. Your team is there and Slack is better at being Slack. Kova reads across every workspace you're in — including client workspaces where you're a guest — and ranks what's waiting on you. Replying happens in Slack.",
+  },
+  {
+    q: "Isn't this just Notion with extra steps?",
+    a: "Notion is where you write things down. Kova is what happens next. Nothing in Notion notices a meeting produced four actions, estimates them, and finds room for them this week.",
+  },
+  {
+    q: "I already use Asana and I like it.",
+    a: "Keep it. Kova reads your calendar and your meetings, and the tasks it creates can live where you already work. The handoff is the product, not the task list.",
+  },
+  {
+    q: "Why would I trust AI with my business?",
+    a: "You wouldn't, and Kova doesn't ask you to. Every action it extracts is a proposal shown with the sentence it came from. It can't send, post, spend or delete — those permissions are locked off and can't be enabled.",
+  },
+  {
+    q: "All-in-one tools are usually worse than best-in-class.",
+    a: "Usually true, which is why Kova doesn't try to beat Slack at chat. It's a layer. Use it for the parts nothing else does and keep what's working.",
+  },
+  {
+    q: "Is my data separate from other customers'?",
+    a: "Every table is isolated per customer at the database level, and any access by Kova staff is logged with a stated reason you can see in your own settings. We don't have SOC 2 yet — if you need it, we're not the right fit today.",
+  },
 ];
+
 
 export default function Landing() {
   const [theme, setTheme] = useState<Theme>(() => {
