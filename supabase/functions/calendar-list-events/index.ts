@@ -6,7 +6,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     const user = await getAuthedUserFromReq(req);
-    if (!user) return jsonResponse({ error: "Unauthorized" }, 401);
+    // No valid user session (e.g. anon key only) — degrade instead of 401.
+    if (!user) return jsonResponse({ error: "AUTH_REQUIRED", fallback: true, events: [] });
     const { timeMin, timeMax } = await req.json();
     if (!timeMin || !timeMax) return jsonResponse({ error: "timeMin, timeMax required" }, 400);
 

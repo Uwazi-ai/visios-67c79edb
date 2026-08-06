@@ -50,6 +50,11 @@ export const ScheduleToday = () => {
         start.setHours(0, 0, 0, 0);
         const end = new Date(start);
         end.setDate(end.getDate() + 1);
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) {
+          if (!cancelled) setRows([]);
+          return;
+        }
         const { data, error } = await supabase.functions.invoke("calendar-list-events", {
           body: { timeMin: start.toISOString(), timeMax: end.toISOString() },
         });
