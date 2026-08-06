@@ -52,6 +52,13 @@ const BookingPublic = () => {
     (async () => {
       setLoading(true);
       setError(null);
+      // Guard against unresolved route params (e.g. visiting the literal
+      // "/book/:username/:slug" path) which would 404 on the edge function.
+      if (!username || !slug || username.startsWith(":") || slug.startsWith(":")) {
+        setError("This booking link is incomplete. Ask the host for their full link.");
+        setLoading(false);
+        return;
+      }
       try {
         const { data, error } = await supabase.functions.invoke("booking-lookup", { body: { username, slug } });
         if (error) throw error;
