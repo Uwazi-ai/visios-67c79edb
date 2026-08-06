@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useAppState } from "@/lib/AppState";
 import { Face } from "@/components/primitives";
+import { RailLogo } from "@/components/Logo";
 
 export interface NavEntry {
   id: string;
