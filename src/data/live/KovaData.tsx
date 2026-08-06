@@ -25,7 +25,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ORGS as SAMPLE_ORGS, type Org } from "@/lib/AppState";
+import { ORGS as SAMPLE_ORGS, useAppState, type Org } from "@/lib/AppState";
 import { LEDGER as SAMPLE_LEDGER, type LedgerRow } from "@/data/ledger";
 import { PROPOSALS as SAMPLE_PROPOSALS, type Proposal } from "@/data/mock";
 import { TASKS as SAMPLE_TASKS, PROJECTS as SAMPLE_PROJECTS, type Task, type Project } from "@/data/tasks";
