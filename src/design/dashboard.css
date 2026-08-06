@@ -1,0 +1,281 @@
+/* Dashboard — Sprint 01.
+   Scoped styles only. Every colour is a token; the single exception is an
+   organisation's identity colour, which comes from the organizations row and
+   is applied as a 3px left edge or a dot, never as a fill. */
+
+.dsh {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+/* ---- scope bar ---- */
+.dsh-scopebar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  background: var(--bg-0, var(--surface-0));
+  backdrop-filter: blur(8px);
+}
+
+.dsh-switch {
+  position: relative;
+}
+
+.dsh-switch-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 280px;
+  max-height: 60vh;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card, 12px);
+  background: var(--surface-1);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+  z-index: 40;
+}
+
+.dsh-switch-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-1);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+}
+.dsh-switch-item:hover { background: var(--surface-2); }
+.dsh-switch-item[aria-checked="true"] { background: var(--surface-2); }
+.dsh-switch-item[data-locked="true"] { color: var(--text-2); cursor: not-allowed; }
+
+.dsh-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* ---- greeting ---- */
+.dsh-greet h1 {
+  font-family: var(--display-font, inherit);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text-1);
+}
+.dsh-greet p {
+  margin: 6px 0 0;
+  color: var(--text-2);
+  font-size: 14px;
+}
+
+/* ---- commit queue ---- */
+.dsh-queue {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+
+.dsh-prop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 14px 18px;
+  border: 2px dashed var(--p-500);
+  border-radius: var(--r-card, 12px);
+  background: transparent;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.dsh-prop[data-leaving="true"] {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.dsh-prop-edge {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 3px;
+}
+.dsh-prop-title {
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--text-1);
+  margin: 0;
+}
+.dsh-prop-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  font-family: var(--mono-font, monospace);
+}
+.dsh-prop-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* ---- module grid ---- */
+.dsh-grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+}
+
+.dsh-mod {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-card, 12px);
+  background: var(--surface-1);
+  min-height: 168px;
+}
+.dsh-mod h3 {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  font-family: var(--mono-font, monospace);
+}
+.dsh-mod p { margin: 0; color: var(--text-2); font-size: 13px; line-height: 1.5; }
+.dsh-figure {
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-1);
+  line-height: 1;
+}
+.dsh-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-1);
+}
+.dsh-row time {
+  font-family: var(--mono-font, monospace);
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- skeletons: same box as the resolved module, so nothing shifts ---- */
+.dsh-skel {
+  border-radius: 8px;
+  background: var(--surface-2);
+  animation: dsh-pulse 1.4s ease-in-out infinite;
+}
+@keyframes dsh-pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.9; } }
+@media (prefers-reduced-motion: reduce) {
+  .dsh-skel { animation: none; }
+  .dsh-prop { transition: none; }
+}
+
+/* ---- drawer ---- */
+.dsh-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 90;
+}
+.dsh-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(520px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border-left: 1px solid var(--line);
+  z-index: 100;
+}
+.dsh-drawer-head,
+.dsh-drawer-foot {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.dsh-drawer-foot {
+  border-bottom: 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+.dsh-drawer-body {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.dsh-pre {
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-family: var(--mono-font, monospace);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ---- undo toast ---- */
+.dsh-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-1);
+  font-size: 13px;
+  z-index: 120;
+}
+
+/* ---- error strip ---- */
+.dsh-err {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--st-warn-line, var(--line));
+  border-radius: 10px;
+  color: var(--st-warn, var(--text-1));
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .dsh-queue,
+  .dsh-grid3 { grid-template-columns: minmax(0, 1fr); }
+  .dsh-drawer { width: 100vw; }
+}
