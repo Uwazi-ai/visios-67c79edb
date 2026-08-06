@@ -3,6 +3,8 @@ import { Bento, Card, Col, Desc, Eyebrow, SectionHead, Tag } from "@/components/
 import { CapGauge, Ladder, OppRow, RunwayCard } from "@/components/RaiseParts";
 import { OPPS, STAGES, money, rollUp } from "@/data/raise";
 import { useAppState } from "@/lib/AppState";
+import { SourceGate } from "@/components/SourceGate";
+import { ManualRunway } from "@/components/fallbacks/ManualRunway";
 
 /**
  * Raise — money in play, a hard cap you can count, and runway in months
@@ -80,9 +82,11 @@ const Raise = () => {
           <Card>
             <CapGauge used={scoped.length} />
           </Card>
-          <Card>
-            <RunwayCard />
-          </Card>
+          <SourceGate capability="runway" fallback={<ManualRunway />}>
+            <Card>
+              <RunwayCard />
+            </Card>
+          </SourceGate>
         </Col>
       </Bento>
     </div>
