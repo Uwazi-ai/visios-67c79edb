@@ -114,6 +114,12 @@ export const DailyBrief = ({
   const events = byScope(EVENTS, scope);
   const pending = proposals.filter((p) => p.status === "pending");
 
+  /* What the brief could not see. Read from the same capability map the
+     widgets use, so it can never drift from what is actually connected. */
+  const { missingRequired, missingOptional } = useCapability("brief");
+  const blind = [...missingRequired, ...missingOptional];
+
+
   const lead = pickLead(proposals, email, due, events);
   const longest = [...email].sort((a, b) => b.waitingDays - a.waitingDays)[0];
   const dueToday = due.filter((t) => t.dueToday);
