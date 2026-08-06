@@ -297,6 +297,8 @@ export default function Landing() {
       ? "/brand/kova-wordmark-gradient-dark.png"
       : "/brand/kova-wordmark-gradient-light.png";
 
+  if (!authLoading && session) return <Navigate to="/os" replace />;
+
   return (
     <div className="klp">
       <style>{CSS + PROBLEM_CSS + SECTIONS_CSS}</style>
