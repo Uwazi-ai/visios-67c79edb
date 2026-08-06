@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Check, ChevronDown, Moon, Sun } from "lucide-react";
+import { ProblemSection, PROBLEM_CSS } from "@/components/landing/Problem";
 
 /* ──────────────────────────────────────────────────────────────
    Kova marketing landing.
@@ -249,7 +250,7 @@ export default function Landing() {
 
   return (
     <div className="klp">
-      <style>{CSS}</style>
+      <style>{CSS + PROBLEM_CSS}</style>
 
       <header className="klp-nav">
         <div className="wrap row">
@@ -292,6 +293,8 @@ export default function Landing() {
           <div className="micro">Free for one workspace. No card required.</div>
         </div>
       </section>
+
+      <ProblemSection />
 
       {/* THE CHAIN */}
       <section id="chain">
