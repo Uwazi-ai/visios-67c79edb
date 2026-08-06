@@ -22,16 +22,25 @@ export const SourceGate = ({
   onConnect?: () => void;
   children: ReactNode;
 }) => {
-  const { state, capability: cap, missingRequired, missingOptional } = useCapability(capability);
+  const { state, capability: cap, missingRequired, missingAnyOf, missingOptional } =
+    useCapability(capability);
 
   if (state === "empty") {
+    const blocking = [...missingRequired, ...missingAnyOf];
+    const label =
+      missingRequired.length > 0
+        ? missingRequired.map((s) => s.name).join(" and ")
+        : missingAnyOf.map((s) => s.name).join(" or ");
     return (
       <div className="vo-card vo-gate-empty">
         <Eyebrow>Not connected</Eyebrow>
         <Title>{cap.title}</Title>
         <Desc>{cap.does}</Desc>
+        {missingAnyOf.length > 0 && (
+          <p className="vo-meta">Any one of these turns this on.</p>
+        )}
         <div className="vo-gate-chips">
-          {missingRequired.map((s) => (
+          {blocking.map((s) => (
             <span key={s.id} className="vo-chip" data-draft="true">
               {s.name}
             </span>
@@ -39,12 +48,13 @@ export const SourceGate = ({
         </div>
         {onConnect && (
           <Button variant="primary" size="sm" onClick={onConnect}>
-            Connect {missingRequired.map((s) => s.name).join(" and ")}
+            Connect {label}
           </Button>
         )}
       </div>
     );
   }
+
 
   return (
     <div className="vo-stack" style={{ gap: "var(--s-2)" }}>
