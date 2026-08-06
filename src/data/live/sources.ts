@@ -65,8 +65,16 @@ export async function fetchOrgs(): Promise<Org[]> {
     "kova_orgs",
     supabase.from("kova_orgs").select(sel("slug, name, role, color, logo_url, status, position")).order("position"),
   );
+
+  // Tenancy gives you the tenant's orgs; membership decides which of them you
+  // may see. A person can belong to a tenant and still only work in two of its
+  // five ventures, so the filter is membership, not tenant.
+  const { data: mine } = await supabase.rpc("my_kova_org_slugs");
+  const allowed = new Set(((mine ?? []) as { slug: string }[]).map((m) => m.slug));
+
   const live = raw
     .filter((r) => r.status !== "archived")
+    .filter((r) => allowed.size === 0 || allowed.has(r.slug))
     .map<Org>((r) => ({
       id: r.slug,
       name: r.name,
@@ -79,6 +87,7 @@ export async function fetchOrgs(): Promise<Org[]> {
     ? [{ id: "all", name: "All organizations", role: "Everything, unfiltered", color: "var(--ws-all)" }, ...live]
     : [];
 }
+
 
 /* ------------------------------------------------------------------ */
 /* throughput ledger — the one query                                    */

@@ -75,7 +75,11 @@ interface AppStateValue {
   scopeOrg: () => Org;
 
   orgs: Org[];
+  /** Replace the org list with the ones this person is actually a member of.
+   *  Tenancy decides which orgs exist; org_members decides which you see. */
+  setOrgs: (list: Org[]) => void;
   setOrgColor: (id: string, color: string) => void;
+
   /** undefined clears the logo — an upload with no way back is a one-way door. */
   setOrgLogo: (id: string, logo?: string) => void;
 
@@ -96,7 +100,9 @@ const Ctx = createContext<AppStateValue>({
   inScope: () => true,
   scopeOrg: () => ORGS[0],
   orgs: ORGS,
+  setOrgs: noop,
   setOrgColor: noop,
+
   setOrgLogo: noop,
   me: ME,
   setMyColor: noop,
@@ -145,7 +151,15 @@ export const AppStateProvider = ({ children }: { children: ReactNode }) => {
       inScope,
       scopeOrg: () => orgs.find((o) => o.id === scope) ?? orgs[0],
       orgs,
+      /* Membership can shrink the list under you — a scope you no longer
+         belong to must not stay selected. */
+      setOrgs: (list) => {
+        if (!list.length) return;
+        setOrgs(list);
+        setScopeState((s) => (list.some((o) => o.id === s) ? s : "all"));
+      },
       setOrgColor: (id, color) =>
+
         setOrgs((list) => list.map((o) => (o.id === id ? { ...o, color } : o))),
       setOrgLogo: (id, logo) =>
         setOrgs((list) => list.map((o) => (o.id === id ? { ...o, logo } : o))),
