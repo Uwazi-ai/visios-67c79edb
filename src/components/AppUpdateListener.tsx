@@ -37,10 +37,10 @@ export function AppUpdateListener() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "app_versions" },
         (payload) => {
-          const v = payload.new as { version: number; notes: string | null };
+          const v = payload.new as { version: number };
           const baseline = baselineRef.current ?? 0;
           if (v.version > baseline && v.version !== dismissed) {
-            setPending({ version: v.version, notes: v.notes });
+            setPending({ version: v.version });
           }
         },
       )
