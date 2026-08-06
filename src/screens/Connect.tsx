@@ -126,9 +126,10 @@ export const Connect = () => {
       </Card>
 
       <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
-        {SOURCES.map((s) => {
+        {SOURCES.filter((s) => !s.platformOnly).map((s) => {
           const on = active.includes(s.id);
           const surfaces = surfacesFor(s.id);
+          const fields = fieldsFor(s.id);
           const status = statuses[s.id];
           return (
             <div key={s.id} className="vo-card vo-source-card" data-on={on ? "true" : undefined}>
@@ -147,12 +148,14 @@ export const Connect = () => {
                     ) : (
                       <Tag tone="warn">Connected · not synced</Tag>
                     )}
-                    {surfaces.length > 0 && (
+                    {fields.length > 0 && (
                       <span className="vo-meta">
-                        Required by {surfaces.length} {surfaces.length === 1 ? "surface" : "surfaces"}
+                        {fields.length} {fields.length === 1 ? "field" : "fields"} ·{" "}
+                        {surfaces.join(", ")}
                       </span>
                     )}
                   </div>
+
                   <Desc>{s.reads}</Desc>
                 </div>
                 <div className="vo-row" style={{ gap: "var(--s-2)" }}>
