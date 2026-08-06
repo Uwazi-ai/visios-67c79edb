@@ -1,11 +1,13 @@
 import {
   SOURCES,
   featureCount,
+  fieldsFor,
   surfacesFor,
   toggleSource,
   useConnectedSources,
   type SourceId,
 } from "@/lib/sources";
+
 import {
   absoluteTime,
   hasProbe,
