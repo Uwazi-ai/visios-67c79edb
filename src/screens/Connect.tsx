@@ -94,8 +94,21 @@ export const Connect = () => {
             Kova holds no data of its own. Each source you connect turns real surfaces on; the
             rest stay dark and say so rather than showing you a zero.
           </Desc>
+          <div className="vo-between" style={{ flexWrap: "wrap", gap: "var(--s-2)" }}>
+            <span className="vo-meta">
+              {failing.length > 0
+                ? `${failing.length} source${failing.length === 1 ? "" : "s"} failing: ${failing.join(", ")}`
+                : syncing
+                  ? "Syncing…"
+                  : "No source is reporting an error."}
+            </span>
+            <Button size="sm" onClick={() => void syncAll(active)} disabled={syncing}>
+              {syncing ? "Syncing…" : "Sync all"}
+            </Button>
+          </div>
         </div>
       </Card>
+
 
       {/* Permissions, stated before the first click rather than buried. */}
       <Card ungated>
