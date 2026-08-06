@@ -1,5 +1,5 @@
 import { Proposal, ProposalStatus } from "@/data/mock";
-import { Button, Desc, Eyebrow, Tag, Title } from "@/components/primitives";
+import { Button, Desc, Tag, Title } from "@/components/primitives";
 
 /**
  * Agent proposals.
