@@ -48,6 +48,8 @@ const SCREENS: Record<string, (props: ScreenProps) => JSX.Element> = {
   social: Social,
   campaigns: Campaigns,
   agents: Agents,
+  admin: Admin,
+
 };
 
 
