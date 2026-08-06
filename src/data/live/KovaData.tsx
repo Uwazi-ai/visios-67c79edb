@@ -290,6 +290,13 @@ export const KovaDataProvider = ({ children }: { children: ReactNode }) => {
     return { mode, loading, sources, down, refresh, ...data, orgs: data.orgs.length ? data.orgs : SAMPLE_ORGS };
   }, [mode, loading, sources, data, refresh]);
 
+  /* The switcher reads from AppState, so the membership-filtered list has to
+     land there — otherwise a person sees ventures they are not a member of. */
+  const { setOrgs } = useAppState();
+  useEffect(() => {
+    if (mode === "live" && data.orgs.length) setOrgs(data.orgs);
+  }, [mode, data.orgs, setOrgs]);
+
   /* Three screens keep their write state in module stores — approvals,
      completions, agent action decisions. Push the read rows in rather than
      rewiring those screens: a decision already taken survives the push. */
@@ -298,6 +305,7 @@ export const KovaDataProvider = ({ children }: { children: ReactNode }) => {
     hydrateTasks(value.tasks);
     hydrateChat({ channels: value.channels, messages: value.messages, authors: value.authors });
   }, [value.proposals, value.tasks, value.channels, value.messages, value.authors]);
+
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 };
