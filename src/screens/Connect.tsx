@@ -88,7 +88,7 @@ export const Connect = () => {
             aria-valuenow={live}
             aria-valuemin={0}
             aria-valuemax={total}
-            aria-label={`${live} of ${total} features live`}
+            aria-label={`${live} of ${total} fields live`}
           >
             <div className="vo-progress-fill" style={{ width: `${pct}%` }} />
           </div>
