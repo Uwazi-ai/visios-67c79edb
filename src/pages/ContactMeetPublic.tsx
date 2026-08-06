@@ -38,6 +38,11 @@ const ContactMeetPublic = () => {
 
   useEffect(() => {
     (async () => {
+      if (!token || token.startsWith(":")) {
+        setError("This page needs a real booking link, e.g. /meet/abc123.");
+        setLoading(false);
+        return;
+      }
       try {
         const { data: res, error: e } = await supabase.functions.invoke("contact-link-lookup", { body: { token } });
         if (e) throw e;
