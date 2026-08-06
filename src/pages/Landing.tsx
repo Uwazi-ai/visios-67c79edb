@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Check, ChevronDown, Moon, Sun } from "lucide-react";
 import { ProblemSection, PROBLEM_CSS } from "@/components/landing/Problem";
 import { HonestySection, ScaleSection, WhoSection, SECTIONS_CSS } from "@/components/landing/Sections";
@@ -276,6 +277,7 @@ const FAQ = [
 
 
 export default function Landing() {
+  const { session, loading: authLoading } = useAuth();
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof document === "undefined") return "dark";
     const stored = localStorage.getItem(THEME_KEY) as Theme | null;
@@ -294,6 +296,8 @@ export default function Landing() {
     theme === "dark"
       ? "/brand/kova-wordmark-gradient-dark.png"
       : "/brand/kova-wordmark-gradient-light.png";
+
+  if (!authLoading && session) return <Navigate to="/os" replace />;
 
   return (
     <div className="klp">

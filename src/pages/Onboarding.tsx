@@ -54,7 +54,7 @@ export default function OnboardingPage() {
     );
   }
 
-  const finish = async (destination: "/" | "/chat") => {
+  const finish = async (destination: "/os") => {
     if (!user) return;
     await supabase
       .from("profiles")
@@ -109,8 +109,8 @@ export default function OnboardingPage() {
           )}
           {step === 4 && (
             <Step4Vision
-              onStartVision={() => finish("/")}
-              onExplore={() => finish("/chat")}
+              onStartVision={() => finish("/os")}
+              onExplore={() => finish("/os")}
             />
           )}
         </div>
