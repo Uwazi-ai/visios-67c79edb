@@ -1269,3 +1269,41 @@ button.vo-datamode { cursor: pointer; }
 .vo-datamode[data-state="sample"] { color: var(--warn-txt); border-color: color-mix(in srgb, var(--warn-txt) 45%, transparent); }
 .vo-datamode[data-state="degraded"] { color: var(--warn-txt); }
 .vo-datamode[data-state="loading"] { opacity: 0.6; }
+
+/* ============================================================
+   AI MARKING — blue is the product, magenta is the thinking.
+   Magenta appears only where a model produced what you are reading:
+   Vision, agent name tags, the rule under a model-written claim,
+   unsent AI drafts, and a cleared completion button. Nowhere else.
+   ============================================================ */
+
+/* The agent name tag. Border only — a fill at --p-500 would not clear
+   contrast, and a tag is a label, not a control. */
+.kova .ai-mark {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1px solid var(--ai-txt); color: var(--ai-txt);
+  text-transform: uppercase; font-size: 10.5px; letter-spacing: .08em; font-weight: 700;
+  padding: 1px 8px; border-radius: 999px; background: transparent; white-space: nowrap;
+}
+
+/* Sits under a model-written claim. Magenta into blue: thinking handed
+   back to the product. */
+.kova .ai-rule {
+  display: block; width: 38px; height: 2px; border-radius: 1px; border: 0;
+  background: linear-gradient(90deg, var(--p-500), var(--a-500));
+}
+
+.kova .ai-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--p-500); flex: none;
+}
+
+/* An AI draft is a container state, not a badge: dashed until a person
+   sends it, and labelled with the fact that nothing has left. */
+.kova .ai-draft {
+  border: 1px dashed var(--ai-txt); border-radius: var(--r-md);
+  padding: var(--s-3); background: transparent;
+  display: flex; flex-direction: column; gap: var(--s-2);
+}
+.kova .ai-draft-head { display: flex; align-items: center; gap: var(--s-2); }
+.kova .ai-draft-note { font-size: var(--t-meta); color: var(--ai-txt); text-transform: lowercase; }
