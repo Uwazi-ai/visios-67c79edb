@@ -265,6 +265,18 @@ export const KovaDataProvider = ({ children }: { children: ReactNode }) => {
         states.push({ key, label, ok: true, rows: count });
       });
 
+      /* The Supabase source's sync status is not a separate probe — it is
+         this read. Record it so the Connect screen and the dashboard agree. */
+      const failed = states.filter((s) => !s.ok);
+      if (failed.length > 0) {
+        markSyncError(
+          "supabase",
+          failed.map((s) => `${s.label}: ${s.error ?? "failed"}`).join("; "),
+        );
+      } else {
+        markSynced("supabase", states.reduce((n, s) => n + s.rows, 0));
+      }
+
       // A signed-in workspace with nothing in it yet is still a demo. Show
       // the fixtures, but keep the amber badge on so nobody quotes them.
       const anyRows = states.some((s) => s.ok && s.rows > 0);
@@ -272,6 +284,7 @@ export const KovaDataProvider = ({ children }: { children: ReactNode }) => {
       setData(next);
       setSources(states);
       setLoading(false);
+
     })();
 
     return () => {
