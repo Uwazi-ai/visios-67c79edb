@@ -1,5 +1,6 @@
-import { EMAIL, DUE, EVENTS, MISSING_SOURCES, Proposal, byScope } from "@/data/mock";
+import { EMAIL, DUE, EVENTS, Proposal, byScope } from "@/data/mock";
 import { Eyebrow, Tag } from "@/components/primitives";
+import { useCapability } from "@/lib/sources";
 
 /**
  * Daily brief — the first thing on the page, full width.
