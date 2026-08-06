@@ -30,6 +30,12 @@ export const DraftBox = ({
       <div className="vo-between">
         <div className="vo-row" style={{ gap: "var(--s-2)" }}>
           {sent ? <CheckCircle2 size={15} aria-hidden /> : <Mail size={15} aria-hidden />}
+          {sent || discarded ? null : (
+            <span className="ai-mark">
+              <span className="ai-dot" aria-hidden />
+              Vision
+            </span>
+          )}
           <Eyebrow>
             {sent
               ? "Sent by you — 9:42 AM"
@@ -38,6 +44,7 @@ export const DraftBox = ({
                 : "Draft by Kova — not sent"}
           </Eyebrow>
         </div>
+
         <Tag tone={sent ? "ok" : undefined}>{sent ? "sent" : discarded ? "discarded" : "waiting on you"}</Tag>
       </div>
 

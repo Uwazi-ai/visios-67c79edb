@@ -1,5 +1,5 @@
 import { Proposal, ProposalStatus } from "@/data/mock";
-import { Button, Desc, Eyebrow, Tag, Title } from "@/components/primitives";
+import { Button, Desc, Tag, Title } from "@/components/primitives";
 
 /**
  * Agent proposals.
@@ -33,7 +33,10 @@ export const AgentProposalCard = ({
   return (
     <article className="vo-prop" data-status={proposal.status}>
       <div className="vo-between">
-        <Eyebrow>{proposal.agent}</Eyebrow>
+        <span className="ai-mark">
+          <span className="ai-dot" aria-hidden />
+          {proposal.agent}
+        </span>
         <Tag
           tone={
             proposal.status === "approved" ? "ok" : proposal.status === "pending" ? "warn" : undefined
@@ -43,8 +46,11 @@ export const AgentProposalCard = ({
         </Tag>
       </div>
 
+      {/* The claim is model-written, so it carries the rule. */}
       <Title>{proposal.claim}</Title>
+      <span className="ai-rule" aria-hidden />
       <Desc>{proposal.rationale}</Desc>
+
 
       <div className="vo-prop-conf">
         <div className="vo-between">

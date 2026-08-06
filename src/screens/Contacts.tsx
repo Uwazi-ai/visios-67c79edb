@@ -140,10 +140,19 @@ const Contacts = ({ navigate }: { navigate: (id: string) => void }) => {
                 more than the signals support.
               </Desc>
 
-              <div className="vo-draft" data-stated={v.stated ? "true" : "false"}>
+              <div className="ai-draft" data-stated={v.stated ? "true" : "false"}>
+                <div className="ai-draft-head">
+                  <span className="ai-mark">
+                    <span className="ai-dot" aria-hidden />
+                    Vision
+                  </span>
+                  <span className="ai-draft-note">not sent</span>
+                </div>
                 <p className="vo-draft-open">{contact.draftOpener}</p>
+                <span className="ai-rule" aria-hidden />
                 <p className="vo-draft-body">{contact.draftBody}</p>
               </div>
+
 
               <div className="vo-row" style={{ gap: "var(--s-2)", flexWrap: "wrap" }}>
                 <Button
