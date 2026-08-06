@@ -4,21 +4,69 @@ import {
   surfacesFor,
   toggleSource,
   useConnectedSources,
+  type SourceId,
 } from "@/lib/sources";
+import {
+  absoluteTime,
+  hasProbe,
+  relativeTime,
+  syncAll,
+  syncSource,
+  useSyncStatuses,
+  type SyncStatus,
+} from "@/lib/syncStatus";
 import { Button, Card, Desc, Eyebrow, SectionHead, Tag, Title } from "@/components/primitives";
+
+/** One line of truth per source: what state it is in, and when it last worked. */
+const SyncLine = ({ id, status }: { id: SourceId; status: SyncStatus | undefined }) => {
+  if (!hasProbe(id)) {
+    return (
+      <p className="vo-meta vo-sync-line" data-state="unverified">
+        <span className="vo-sync-dot" data-state="unverified" />
+        Connected, but Kova cannot verify this source yet — no reads have been made.
+      </p>
+    );
+  }
+
+  const s: SyncStatus = status ?? { state: "idle", lastSyncAt: null, rows: null };
+
+  const text =
+    s.state === "syncing"
+      ? "Syncing now…"
+      : s.state === "error"
+        ? `Error — ${s.error ?? "read failed"}. Last good sync ${relativeTime(s.lastSyncAt)}.`
+        : s.state === "ok"
+          ? `Synced ${relativeTime(s.lastSyncAt)}${s.rows !== null ? ` · ${s.rows} rows` : ""}`
+          : "Connected, not synced yet this session.";
+
+  return (
+    <p
+      className="vo-meta vo-sync-line"
+      data-state={s.state}
+      title={s.lastSyncAt ? `Last successful sync: ${absoluteTime(s.lastSyncAt)}` : undefined}
+    >
+      <span className="vo-sync-dot" data-state={s.state} />
+      {text}
+    </p>
+  );
+};
 
 /**
  * Connect — a checklist, not a wizard.
  *
  * Every card says what it turns on, so a tenant can stop the moment they
- * have what they came for instead of being marched through ten steps.
- * Google Workspace is first because it unlocks more surfaces than anything
- * else: one connection and the product is already telling the truth.
+ * have what they came for instead of being marched through ten steps, and
+ * what it last did, so a missing number can be traced to the source that
+ * failed rather than guessed at.
  */
 export const Connect = () => {
   const active = useConnectedSources();
+  const statuses = useSyncStatuses();
   const { live, total } = featureCount(active);
   const pct = Math.round((live / total) * 100);
+  const failing = active.filter((id) => statuses[id]?.state === "error");
+  const syncing = active.some((id) => statuses[id]?.state === "syncing");
+
 
   return (
     <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
@@ -46,8 +94,21 @@ export const Connect = () => {
             Kova holds no data of its own. Each source you connect turns real surfaces on; the
             rest stay dark and say so rather than showing you a zero.
           </Desc>
+          <div className="vo-between" style={{ flexWrap: "wrap", gap: "var(--s-2)" }}>
+            <span className="vo-meta">
+              {failing.length > 0
+                ? `${failing.length} source${failing.length === 1 ? "" : "s"} failing: ${failing.join(", ")}`
+                : syncing
+                  ? "Syncing…"
+                  : "No source is reporting an error."}
+            </span>
+            <Button size="sm" onClick={() => void syncAll(active)} disabled={syncing}>
+              {syncing ? "Syncing…" : "Sync all"}
+            </Button>
+          </div>
         </div>
       </Card>
+
 
       {/* Permissions, stated before the first click rather than buried. */}
       <Card ungated>
@@ -66,13 +127,24 @@ export const Connect = () => {
         {SOURCES.map((s) => {
           const on = active.includes(s.id);
           const surfaces = surfacesFor(s.id);
+          const status = statuses[s.id];
           return (
             <div key={s.id} className="vo-card vo-source-card" data-on={on ? "true" : undefined}>
               <div className="vo-between" style={{ flexWrap: "wrap", gap: "var(--s-3)" }}>
                 <div className="vo-stack" style={{ gap: 4, minWidth: 0 }}>
                   <div className="vo-row" style={{ gap: "var(--s-2)" }}>
                     <Title>{s.name}</Title>
-                    {on ? <Tag tone="ok">Connected</Tag> : <Tag>Not connected</Tag>}
+                    {!on ? (
+                      <Tag>Not connected</Tag>
+                    ) : status?.state === "error" ? (
+                      <Tag tone="risk">Error</Tag>
+                    ) : status?.state === "syncing" ? (
+                      <Tag tone="accent">Syncing</Tag>
+                    ) : status?.state === "ok" ? (
+                      <Tag tone="ok">Connected</Tag>
+                    ) : (
+                      <Tag tone="warn">Connected · not synced</Tag>
+                    )}
                     {surfaces.length > 0 && (
                       <span className="vo-meta">
                         Required by {surfaces.length} {surfaces.length === 1 ? "surface" : "surfaces"}
@@ -81,10 +153,27 @@ export const Connect = () => {
                   </div>
                   <Desc>{s.reads}</Desc>
                 </div>
-                <Button variant={on ? undefined : "primary"} size="sm" onClick={() => toggleSource(s.id)}>
-                  {on ? "Disconnect" : "Connect"}
-                </Button>
+                <div className="vo-row" style={{ gap: "var(--s-2)" }}>
+                  {on && hasProbe(s.id) && (
+                    <Button
+                      size="sm"
+                      onClick={() => void syncSource(s.id)}
+                      disabled={status?.state === "syncing"}
+                    >
+                      {status?.state === "syncing" ? "Syncing…" : "Sync now"}
+                    </Button>
+                  )}
+                  <Button variant={on ? undefined : "primary"} size="sm" onClick={() => toggleSource(s.id)}>
+                    {on ? "Disconnect" : "Connect"}
+                  </Button>
+                </div>
               </div>
+
+              {on && (
+                <div style={{ marginTop: "var(--s-2)" }}>
+                  <SyncLine id={s.id} status={status} />
+                </div>
+              )}
 
               <div className="vo-gate-chips" style={{ marginTop: "var(--s-2)" }}>
                 {s.turnsOn.map((t) => (
@@ -105,6 +194,7 @@ export const Connect = () => {
       </div>
     </div>
   );
+
 };
 
 export default Connect;
