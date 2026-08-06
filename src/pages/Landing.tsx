@@ -426,9 +426,6 @@ export default function Landing() {
         </div>
       </section>
 
-        </div>
-      </section>
-
       {/* FAQ */}
       <section id="faq">
         <div className="wrap">
