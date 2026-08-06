@@ -177,7 +177,9 @@ const CHAIN = [
   { n: "04", t: "It got reported", d: "Every venture rolls into one morning brief: what moved, what slipped, what needs you." },
 ];
 
+const TEAM = [
   { i: "MK", n: "Myke", r: "Founder" },
+
   { i: "AV", n: "Vision", r: "Chief of staff, AI" },
   { i: "OP", n: "Ops", r: "Delivery" },
   { i: "DS", n: "Design", r: "Product" },
