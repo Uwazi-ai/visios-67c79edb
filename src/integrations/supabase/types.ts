@@ -2126,6 +2126,48 @@ export type Database = {
           },
         ]
       }
+      kova_org_members: {
+        Row: {
+          created_at: string
+          id: string
+          org_id: string
+          permission: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          org_id: string
+          permission?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          org_id?: string
+          permission?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kova_org_members_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "kova_orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kova_org_members_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kova_orgs: {
         Row: {
           color: string
@@ -4534,6 +4576,13 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      my_kova_org_slugs: {
+        Args: never
+        Returns: {
+          permission: string
+          slug: string
+        }[]
       }
       my_org_memberships: {
         Args: never
