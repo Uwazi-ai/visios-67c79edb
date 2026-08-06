@@ -59,7 +59,7 @@
   --ws-uwazi: #2563EB;
   --ws-cc: #059669;
   --ws-bin: #EF4444;
-  --ws-raia: #7C3AED;
+  --ws-raia: #5B21B6;
   --ws-1flock: #8A8A99;
 
   /* Text sitting on a saturated fill. Not a third text colour — it is the
@@ -141,7 +141,7 @@
 :root {
   --sw-blue: #2563EB;
   --sw-indigo: #4F46E5;
-  --sw-violet: #7C3AED;
+  --sw-violet: #5B21B6;
   --sw-magenta: #DB2777;
   --sw-red: #DC2626;
   --sw-amber: #D97706;
