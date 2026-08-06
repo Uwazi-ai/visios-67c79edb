@@ -10,7 +10,9 @@ import { useAuth } from "@/contexts/AuthContext";
 export function AppUpdateListener() {
   const { user } = useAuth();
   const baselineRef = useRef<number | null>(null);
-  const [pending, setPending] = useState<{ version: number; notes: string | null } | null>(null);
+  // Only the version number is readable by ordinary users — release notes stay
+  // with the platform admin, so the banner announces the update without them.
+  const [pending, setPending] = useState<{ version: number } | null>(null);
   const [dismissed, setDismissed] = useState<number | null>(null);
 
   useEffect(() => {
