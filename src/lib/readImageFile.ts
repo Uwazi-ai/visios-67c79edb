@@ -12,7 +12,7 @@
  */
 
 /** Above this a data URL starts to hurt render and memory for no gain. */
-const MAX_BYTES = 4 * 1024 * 1024;
+const MAX_BYTES = 25 * 1024 * 1024;
 
 export interface ReadResult {
   url?: string;
@@ -25,7 +25,7 @@ export function readImageFile(file: File): Promise<ReadResult> {
   }
   if (file.size > MAX_BYTES) {
     return Promise.resolve({
-      error: `${file.name} is ${(file.size / 1024 / 1024).toFixed(1)} MB — keep it under 4 MB.`,
+      error: `${file.name} is ${(file.size / 1024 / 1024).toFixed(1)} MB — keep it under 25 MB.`,
     });
   }
   return new Promise((resolve) => {
