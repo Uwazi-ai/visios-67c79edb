@@ -352,16 +352,38 @@ export default function Landing() {
           <div className="eyebrow">Team</div>
           <h2 style={{ marginTop: 12 }}>Small on purpose.</h2>
           <p className="dim" style={{ marginTop: 14 }}>
-            Kova is built by operators who run the ventures it was made for — plus one member
-            who never sleeps.
+            Real people, real words. Slots stay empty until there is a real photo and a
+            quote we have permission to print.
           </p>
           <div className="klp-team">
-            {TEAM.map((m) => (
-              <div className="card" key={m.n}>
-                <div className="klp-avatar">{m.i}</div>
-                <h3 style={{ marginTop: 12 }}>{m.n}</h3>
-                <div className="dim" style={{ fontSize: 14, marginTop: 4 }}>{m.r}</div>
-              </div>
+            {TEAM.map((m, i) => (
+              <figure className="klp-person" key={i}>
+                <div className="klp-shot">
+                  {m.photo ? (
+                    <img src={m.photo} alt={m.n} />
+                  ) : (
+                    <span className="klp-slot">PHOTO · 4:5 · 1200×1500 min</span>
+                  )}
+                </div>
+                {m.n ? (
+                  <figcaption>
+                    <h3 style={{ marginTop: 12, fontSize: 17 }}>{m.n}</h3>
+                    <div className="dim" style={{ fontSize: 13, marginTop: 2 }}>{m.r}</div>
+                    {m.q && (
+                      <blockquote className="klp-quote">“{m.q}”</blockquote>
+                    )}
+                  </figcaption>
+                ) : (
+                  <figcaption>
+                    <div className="dim" style={{ fontSize: 13, marginTop: 12 }}>
+                      Name · Role — pending
+                    </div>
+                    <div className="klp-quote klp-quote-empty">
+                      Quote pending written permission
+                    </div>
+                  </figcaption>
+                )}
+              </figure>
             ))}
           </div>
         </div>
@@ -378,7 +400,7 @@ export default function Landing() {
                 {p.badge && <div className="klp-badge">{p.badge}</div>}
                 <h3>{p.name}</h3>
                 <div className="amt" style={{ marginTop: 10 }}>{p.price}</div>
-                <div className="dim" style={{ fontSize: 13 }}>{p.note}</div>
+                <div className="dim" style={{ fontSize: 13, minHeight: 18 }}>{p.note}</div>
                 <div style={{ margin: "16px 0" }}>
                   {p.feats.map((f) => (
                     <div className="feat" key={f}>
@@ -393,9 +415,17 @@ export default function Landing() {
               </div>
             ))}
           </div>
-          <div className="dim" style={{ fontSize: 13, marginTop: 14 }}>
-            Free for one workspace. No card required. Enterprise pricing on request.
+          <div className="klp-cost">
+            <strong>An honest note about cost.</strong> If you&apos;re paying for Asana, Notion,
+            Calendly, a CRM, meeting notes and a digital card, Kova replaces about $104 a seat a
+            month of that. If you&apos;re on free tiers of all of them, Kova won&apos;t save you
+            money — it&apos;ll save you the switching between them. There&apos;s a calculator
+            inside the product that will tell you which you are, including when the answer is
+            &apos;don&apos;t switch yet.&apos;
           </div>
+        </div>
+      </section>
+
         </div>
       </section>
 
