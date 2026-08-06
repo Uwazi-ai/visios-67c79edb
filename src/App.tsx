@@ -17,6 +17,7 @@ import BookingPublic from "./pages/BookingPublic";
 import ContactMeetPublic from "./pages/ContactMeetPublic";
 import CardPublic from "./pages/CardPublic";
 import OAuthCallback from "./pages/OAuthCallback";
+import OAuthConsent from "./pages/OAuthConsent";
 import Onboarding from "./pages/Onboarding";
 import OS from "./pages/OS";
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/meet/:token" element={<ContactMeetPublic />} />
               <Route path="/card/:username" element={<CardPublic />} />
               <Route path="/oauth-callback/:platform" element={<OAuthCallback />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <InstallBanner />
