@@ -33,7 +33,9 @@ const GoogleIcon = () => (
   </svg>
 );
 
-export function AuthPanel({ tab, setTab }: { tab: "signup" | "signin"; setTab: (t: "signup" | "signin") => void }) {
+export function AuthPanel({ tab, setTab, next }: { tab: "signup" | "signin"; setTab: (t: "signup" | "signin") => void; next?: string }) {
+  // Where auth should return to. `next` carries flows like the OAuth consent screen.
+  const returnTo = window.location.origin + (next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [pw2, setPw2] = useState("");
