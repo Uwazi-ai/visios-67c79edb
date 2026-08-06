@@ -54,7 +54,7 @@ export default function OnboardingPage() {
     );
   }
 
-  const finish = async (destination: "/" | "/chat") => {
+  const finish = async (destination: "/os" | "/os?screen=chat") => {
     if (!user) return;
     await supabase
       .from("profiles")
