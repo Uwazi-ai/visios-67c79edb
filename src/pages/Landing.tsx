@@ -161,7 +161,7 @@ const CSS = `
 .klp-price .amt { font-family: var(--display); font-size: 34px; letter-spacing: -.03em; }
 .klp-price .feat { display: flex; gap: 8px; font-size: 14px; color: var(--dim); padding: 6px 0; }
 .klp-price .feat svg { flex: none; margin-top: 3px; color: var(--ok-txt); }
-.klp-price .hi { border: 1px solid var(--a-500); }
+.klp-price .hi { border: 1px solid var(--p-500); }
 .klp-badge {
   display: inline-block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
   color: var(--accent-txt); margin-bottom: 8px;
