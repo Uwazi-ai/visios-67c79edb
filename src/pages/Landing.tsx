@@ -1,633 +1,499 @@
-import { useEffect, useRef, useState, ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Layers, Sparkles, ScanLine, Plug, ChevronDown, Check, Minus } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import kovaWordmark from "@/assets/kova-wordmark.png";
+import { Check, ChevronDown, Moon, Sun } from "lucide-react";
 
 /* ──────────────────────────────────────────────────────────────
-   Kova landing — v4.1
-   THE COLOUR RULE: blue is the app, magenta is the thinking.
-   All colour lives in the token block below. No hex elsewhere.
+   Kova marketing landing.
+   Every value comes from src/design/tokens.css. No hex here, no new
+   fonts — the display face is var(--display), the body var(--body).
    ────────────────────────────────────────────────────────────── */
 
-const TOKENS = `
-.kova-lp {
-  --bg:       #08080B;
-  --nav-bg:   #0B0B0F;
-  --card:     #131317;
-  --inset:    #1D1D23;
-  --line:     #26262E;
-  --text:     #F7F7F9;
-  --dim:      #96969F;
+const THEME_KEY = "kova:theme";
+type Theme = "dark" | "light";
 
-  --a-500:    #2563EB;
-  --a-400:    #3B82F6;
-  --a-300:    #60A5FA;
-
-  --p-500:    #D21FFF;
-  --p-600:    #BD1CE5;
-  --p-300:    #E272FF;
-
-  --ok:       #22C55E;
-  --warn:     #F59E0B;
-  --err:      #EF4444;
-
-  --org-blue:  #2563EB;
-  --org-green: #059669;
-  --org-red:   #EF4444;
-
-  --brand-gradient: linear-gradient(100deg,
-    #000E21 0%, #003276 14%, #0046A3 26%, #2542BC 38%,
-    #842FE1 52%, #B425F4 62%, #D21FFF 72%, #DF5FFF 84%, #EF9FFF 100%);
-
-  --m-hero:  clamp(38px, 7.2vw, 68px);
-  --m-h2:    clamp(28px, 4.4vw, 42px);
-  --m-h3:    clamp(19px, 2.2vw, 24px);
-  --m-body:  clamp(16px, 1.4vw, 17px);
-  --m-stat:  clamp(34px, 6.4vw, 52px);
-
+const CSS = `
+.klp {
   background: var(--bg);
   color: var(--text);
-  font-family: "Inter", system-ui, sans-serif;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+  font-family: var(--body);
   min-height: 100vh;
+  overflow-x: hidden;
 }
-.kova-lp .wrap { max-width: 1120px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
-.kova-lp section { padding: clamp(64px, 9vw, 112px) 0; scroll-margin-top: 72px; }
-.kova-lp h1, .kova-lp h2, .kova-lp h3 {
-  font-family: "Inter Tight", system-ui, sans-serif;
-  font-weight: 600; letter-spacing: -0.02em; margin: 0; line-height: 1.1;
+.klp .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+.klp section { padding: clamp(64px, 9vw, 116px) 0; scroll-margin-top: 76px; }
+.klp h1, .klp h2, .klp h3 { font-family: var(--display); margin: 0; font-weight: 600; }
+.klp h1 {
+  font-size: clamp(38px, 7.2vw, 68px);
+  letter-spacing: -0.03em;
+  line-height: 1.04;
+  max-width: 15ch;
 }
-.kova-lp h1 { font-size: var(--m-hero); }
-.kova-lp h2 { font-size: var(--m-h2); }
-.kova-lp h3 { font-size: var(--m-h3); }
-.kova-lp p { margin: 0; font-size: var(--m-body); line-height: 1.65; max-width: 68ch; }
-.kova-lp .dim { color: var(--dim); }
-.kova-lp .eyebrow {
-  font-weight: 500; text-transform: uppercase; letter-spacing: 0.16em;
-  font-size: 11px; color: var(--dim);
+.klp h2 { font-size: clamp(27px, 4.4vw, 40px); letter-spacing: -0.025em; line-height: 1.12; max-width: 20ch; }
+.klp h3 { font-size: 17px; letter-spacing: -0.015em; line-height: 1.3; }
+.klp p { margin: 0; font-size: clamp(15px, 1.35vw, 17px); line-height: 1.65; max-width: 62ch; }
+.klp .dim { color: var(--dim); }
+.klp .eyebrow {
+  font-family: var(--body); font-weight: 500; text-transform: uppercase;
+  letter-spacing: .16em; font-size: 11px; color: var(--dim);
 }
-.kova-lp .stat {
-  font-family: "Inter Tight", system-ui, sans-serif;
-  font-weight: 700; letter-spacing: -0.04em; font-size: var(--m-stat); line-height: 1;
+.klp .card {
+  background: var(--card); border: var(--card-border); border-radius: var(--r-card);
+  box-shadow: var(--shadow); padding: 22px;
 }
-.kova-lp .card {
-  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+.klp .inset { background: var(--inset); border-radius: var(--r-inner); }
+
+/* nav */
+.klp-nav {
+  position: sticky; top: 0; z-index: 40;
+  background: color-mix(in srgb, var(--nav-bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
 }
-.kova-lp .inset { background: var(--inset); border-radius: 12px; }
-.kova-lp .btn {
+.klp-nav .row { display: flex; align-items: center; gap: 18px; height: 64px; }
+.klp-nav .links { display: flex; gap: 22px; margin-left: auto; }
+.klp-nav a.nl { color: var(--dim); text-decoration: none; font-size: 14px; }
+.klp-nav a.nl:hover { color: var(--text); }
+@media (max-width: 820px) { .klp-nav .links { display: none; } }
+
+/* buttons */
+.klp .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 44px; padding: 0 20px; border-radius: 10px; font-size: 15px; font-weight: 500;
-  border: 1px solid transparent; cursor: pointer; text-decoration: none;
-  transition: background 150ms cubic-bezier(0.4,0,0.2,1);
+  height: 44px; padding: 0 20px; border-radius: var(--r-pill);
+  font-size: 15px; font-weight: 500; text-decoration: none; cursor: pointer;
+  border: 1px solid transparent; transition: transform .12s ease, background .12s ease;
 }
-.kova-lp .btn-lg { height: 48px; padding: 0 24px; font-size: 16px; }
-.kova-lp .btn-primary { background: var(--a-500); color: var(--text); }
-.kova-lp .btn-primary:hover { background: var(--a-400); }
-.kova-lp .btn-secondary { background: var(--inset); color: var(--text); }
-.kova-lp .btn-ghost { border-color: var(--line); color: var(--text); background: transparent; }
-.kova-lp a:focus-visible, .kova-lp button:focus-visible,
-.kova-lp input:focus-visible, .kova-lp select:focus-visible, .kova-lp summary:focus-visible {
-  outline: 2px solid var(--a-400); outline-offset: 2px;
+.klp .btn:active { transform: translateY(1px); }
+.klp .btn-pri { background: var(--a-500); color: var(--on-fill); }
+.klp .btn-pri:hover { background: var(--a-400); }
+.klp .btn-sec { background: transparent; color: var(--text); border-color: var(--line); }
+.klp .btn-sec:hover { border-color: var(--a-400); }
+.klp .btn-sm { height: 36px; padding: 0 14px; font-size: 14px; }
+.klp .icon-btn {
+  height: 36px; width: 36px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-pill); border: 1px solid var(--line);
+  background: transparent; color: var(--dim); cursor: pointer;
 }
-.kova-lp .pill {
-  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px;
-  padding: 3px 10px; font-size: 11px; font-weight: 500; letter-spacing: 0.04em;
-  text-transform: uppercase; border: 1px solid var(--line); color: var(--text);
+.klp .icon-btn:hover { color: var(--text); border-color: var(--a-400); }
+
+/* hero */
+.klp-hero { position: relative; padding-top: clamp(56px, 9vw, 104px); }
+.klp-hero::before {
+  content: ""; position: absolute; inset: -140px 0 auto 0; height: 780px;
+  background: radial-gradient(60% 60% at 50% 0%, rgba(210, 31, 255, .13), transparent 72%);
+  pointer-events: none;
 }
-.kova-lp .dot { width: 6px; height: 6px; border-radius: 999px; }
-.kova-lp .ai-mark {
-  display: inline-flex; align-items: center; gap: 5px; border-radius: 999px;
-  padding: 2px 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--p-300); border: 1px solid var(--p-600);
+[data-theme="light"] .klp-hero::before {
+  background: radial-gradient(60% 60% at 50% 0%, rgba(210, 31, 255, .09), transparent 72%);
 }
-.kova-lp .grid2 { display: grid; grid-template-columns: 1fr; gap: 20px; }
-.kova-lp .grid3 { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.kova-lp .grid4 { display: grid; grid-template-columns: 1fr; gap: 16px; }
-.kova-lp input, .kova-lp select {
-  width: 100%; height: 48px; border-radius: 10px; padding: 0 14px;
-  background: var(--inset); border: 1px solid var(--line); color: var(--text);
-  font-size: 15px; font-family: inherit;
+.klp-hero .inner { position: relative; }
+.klp-hero .sub { margin-top: 20px; font-size: clamp(16px, 1.7vw, 19px); color: var(--dim); max-width: 56ch; }
+.klp-hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.klp-hero .micro { margin-top: 14px; font-size: 13px; color: var(--dim); }
+
+/* chain */
+.klp-chain { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); margin-top: 36px; }
+.klp-chain .step .n {
+  font-family: var(--display); font-size: 12px; letter-spacing: .12em; color: var(--accent-txt);
 }
-.kova-lp .reveal { opacity: 0; transform: translateY(8px); }
-.kova-lp .reveal.in {
-  opacity: 1; transform: none;
-  transition: opacity 180ms cubic-bezier(0.4,0,0.2,1), transform 180ms cubic-bezier(0.4,0,0.2,1);
+.klp-chain .step h3 { margin: 10px 0 6px; }
+@media (max-width: 900px) { .klp-chain { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .klp-chain { grid-template-columns: 1fr; } }
+
+/* honesty */
+.klp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 32px; }
+@media (max-width: 820px) { .klp-two { grid-template-columns: 1fr; } }
+.klp-line { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.klp-line:last-child { border-bottom: 0; }
+.klp-line svg { flex: none; margin-top: 2px; color: var(--accent-txt); }
+.klp-draft {
+  border: 1px dashed var(--p-500); border-radius: var(--r-inner);
+  padding: 14px; color: var(--dim); font-size: 14px; background: transparent;
 }
-@media (min-width: 860px) {
-  .kova-lp .grid2 { grid-template-columns: 1fr 1fr; gap: 28px; }
-  .kova-lp .grid3 { grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .kova-lp .grid4 { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.klp-draft .tag { color: var(--ai-txt); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+
+/* scale */
+.klp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 32px; }
+@media (max-width: 720px) { .klp-stats { grid-template-columns: 1fr; } }
+.klp-stats .v { font-family: var(--display); font-size: var(--t-stat); letter-spacing: -.04em; line-height: 1; }
+
+/* who */
+.klp-who { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 32px; }
+@media (max-width: 900px) { .klp-who { grid-template-columns: 1fr; } }
+.klp-dot { width: 8px; height: 8px; border-radius: var(--r-pill); display: inline-block; margin-right: 8px; }
+
+/* team */
+.klp-team { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 32px; }
+@media (max-width: 900px) { .klp-team { grid-template-columns: repeat(2, 1fr); } }
+.klp-avatar {
+  width: 44px; height: 44px; border-radius: var(--r-pill);
+  background: var(--brand-gradient); display: flex; align-items: center; justify-content: center;
+  color: var(--on-fill); font-family: var(--display); font-size: 15px;
 }
-@media (prefers-reduced-motion: reduce) {
-  .kova-lp .reveal { opacity: 1; transform: none; transition: none; }
+
+/* pricing */
+.klp-price { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 32px; align-items: start; }
+@media (max-width: 900px) { .klp-price { grid-template-columns: 1fr; } }
+.klp-price .amt { font-family: var(--display); font-size: 34px; letter-spacing: -.03em; }
+.klp-price .feat { display: flex; gap: 8px; font-size: 14px; color: var(--dim); padding: 6px 0; }
+.klp-price .feat svg { flex: none; margin-top: 3px; color: var(--ok-txt); }
+.klp-price .hi { border: 1px solid var(--a-500); }
+.klp-badge {
+  display: inline-block; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent-txt); margin-bottom: 8px;
 }
+
+/* faq */
+.klp-faq { margin-top: 28px; border-top: 1px solid var(--line); }
+.klp-faq .q {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  background: transparent; border: 0; border-bottom: 1px solid var(--line);
+  padding: 18px 0; color: var(--text); font-size: 16px; text-align: left; cursor: pointer;
+  font-family: var(--body);
+}
+.klp-faq .a { padding: 0 0 18px; border-bottom: 1px solid var(--line); }
+.klp-faq svg { flex: none; color: var(--dim); transition: transform .16s ease; }
+.klp-faq .open svg { transform: rotate(180deg); }
+
+/* closing */
+.klp-close { text-align: center; }
+.klp-close h2 { margin: 0 auto; }
+.klp-close .cta { display: flex; gap: 12px; justify-content: center; margin-top: 26px; flex-wrap: wrap; }
+
+/* footer */
+.klp-foot { border-top: 1px solid var(--line); padding: 34px 0 46px; }
+.klp-foot .cols { display: flex; flex-wrap: wrap; gap: 40px; justify-content: space-between; }
+.klp-foot a { color: var(--dim); text-decoration: none; font-size: 14px; display: block; padding: 4px 0; }
+.klp-foot a:hover { color: var(--text); }
 `;
 
-const ORGS = [
-  { label: "Northwind", color: "var(--org-blue)" },
-  { label: "Verdant", color: "var(--org-green)" },
-  { label: "Redline", color: "var(--org-red)" },
+const CHAIN = [
+  { n: "01", t: "It happened", d: "Meetings, mail, messages and docs land in one timeline instead of eight tabs." },
+  { n: "02", t: "It became a task", d: "Vision reads the record and proposes the work — owner, venture, due date attached." },
+  { n: "03", t: "It got time", d: "Tasks are placed against your real calendar, so a full day says so before you promise it." },
+  { n: "04", t: "It got reported", d: "Every venture rolls into one morning brief: what moved, what slipped, what needs you." },
 ];
 
-function Reveal({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shown, setShown] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([e]) => e.isIntersecting && setShown(true), { threshold: 0.1 });
-    io.observe(el);
-    return () => io.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={`reveal${shown ? " in" : ""}`} style={{ transitionDelay: `${delay}ms` }}>
-      {children}
-    </div>
-  );
-}
-
-function OrgPill({ label, color }: { label: string; color: string }) {
-  return (
-    <span className="pill">
-      <span className="dot" style={{ background: color }} />
-      {label}
-    </span>
-  );
-}
-
-/* Product frame — always shows more than one org. */
-function ProductFrame() {
-  const rows = [
-    { org: ORGS[0], text: "Contract review — Q3 retainer renewal", meta: "Inbox · 2:14 PM" },
-    { org: ORGS[1], text: "Series A data room checklist updated", meta: "Drive · 1:02 PM" },
-    { org: ORGS[2], text: "Standup moved to Thursday 9:30 AM", meta: "Calendar · 11:40 AM" },
-  ];
-  return (
-    <div className="card" style={{ overflow: "hidden" }}>
-      <div
-        style={{
-          display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-          padding: "12px 14px", borderBottom: "1px solid var(--line)", background: "var(--nav-bg)",
-        }}
-      >
-        {ORGS.map((o) => <OrgPill key={o.label} {...o} />)}
-        <span className="dim" style={{ fontSize: 11, marginLeft: "auto" }}>All orgs</span>
-      </div>
-      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-        {rows.map((r) => (
-          <div
-            key={r.text}
-            className="inset"
-            style={{ padding: "12px 14px", borderLeft: `3px solid ${r.org.color}` }}
-          >
-            <div style={{ fontSize: 14, fontWeight: 500 }}>{r.text}</div>
-            <div className="dim" style={{ fontSize: 12, marginTop: 4 }}>
-              {r.org.label} · {r.meta}
-            </div>
-          </div>
-        ))}
-        <div
-          style={{
-            padding: "12px 14px", borderRadius: 12,
-            border: "1px dashed var(--p-600)", background: "var(--inset)", opacity: 0.92,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span className="ai-mark"><Sparkles size={11} /> Vision</span>
-            <span className="dim" style={{ fontSize: 11 }}>Draft — not sent</span>
-          </div>
-          <div style={{ fontSize: 14 }}>
-            Northwind's renewal and Verdant's raise both land next Tuesday. Move the standup?
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* Section 4 visual: authored beside model-written. */
-function MarkVisual() {
-  return (
-    <div className="card" style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
-      <div className="inset" style={{ padding: 14, borderLeft: "3px solid var(--org-blue)" }}>
-        <div className="eyebrow" style={{ marginBottom: 6 }}>You wrote this</div>
-        <div style={{ fontSize: 14 }}>Confirming Thursday. I'll bring the updated deck.</div>
-      </div>
-      <div style={{ padding: 14, borderRadius: 12, border: "1px dashed var(--p-600)", background: "var(--inset)", opacity: 0.92 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <span className="ai-mark"><Sparkles size={11} /> Kova wrote this</span>
-        </div>
-        <div style={{ fontSize: 14 }}>
-          Suggested reply: propose Thursday 9:30 AM, attach the Q3 summary.
-        </div>
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button className="btn btn-primary" style={{ height: 36, fontSize: 13 }}>Approve</button>
-          <button className="btn btn-ghost" style={{ height: 36, fontSize: 13 }}>Discard</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const HOW = [
-  {
-    icon: Layers,
-    title: "One workspace, every venture",
-    body: "Each organisation is a first-class citizen, colour-coded and scoped, with a real view across all of them. Not a switcher bolted onto separate accounts.",
-  },
-  {
-    icon: Sparkles,
-    title: "An AI chief of staff that sees everything",
-    body: "Vision reads across every entity at once: email, calendar, drive, meetings, pipeline. Six personas — Chief of Staff, Writer, Researcher, Analyst, Advisor, Creative Director.",
-  },
-  {
-    icon: ScanLine,
-    title: "You can always tell what it wrote",
-    body: "Model output carries a magenta mark; anything you authored stays blue. Nothing sends until you approve it.",
-  },
-  {
-    icon: Plug,
-    title: "Built on the tools you already run on",
-    body: "Google Workspace-native. Gmail, Calendar and Drive stay your source of truth. No migration.",
-  },
+const READS = [
+  "Gmail and Google Calendar",
+  "Meeting transcripts and notes",
+  "Your task and project history",
+  "Contacts and their provenance",
 ];
 
-const AUDIENCE = [
-  { title: "Multi-brand agencies", color: "var(--org-blue)", body: "One org per client. One contact book behind all of them." },
-  { title: "Portfolio entrepreneurs", color: "var(--org-green)", body: "You didn't start a second business to double your admin." },
-  { title: "Fractional executives", color: "var(--org-red)", body: "Every client, one command center. Four clients means four stacks and a Monday spent remembering where everything is." },
+const STATS = [
+  { v: "4", l: "ventures in one rail", d: "Scope switches everything on screen — nothing bleeds between orgs." },
+  { v: "1", l: "morning brief", d: "One read replaces the standing check-in across every company you run." },
+  { v: "0", l: "invented numbers", d: "A metric with no live source is not shown. Connect it or it stays dark." },
 ];
 
-const COMPARE = [
-  ["Multiple businesses", "Separate workspaces, manual switching", "One system, all orgs"],
-  ["AI context", "Sees only the workspace you're in", "Sees across every org"],
-  ["Human vs. AI output", "Indistinguishable", "Marked, always"],
-  ["Setup", "Rebuild your stack", "Connects to Google Workspace"],
+const WHO = [
+  { c: "var(--ws-uwazi)", t: "Founders with more than one thing", d: "A studio, an agency and a nonprofit are three contexts, not three logins." },
+  { c: "var(--ws-cc)", t: "Operators wearing every hat", d: "Sales in the morning, delivery at noon, payroll at five — one surface for all of it." },
+  { c: "var(--ws-bin)", t: "Small teams that move fast", d: "Three to eight people who need shared context without a project-management ritual." },
 ];
 
-const TIERS = [
-  { name: "Free", price: 0, unit: "", orgs: "2 orgs, 1 seat", line: "See both your businesses in one place." },
-  { name: "Starter", price: 29, unit: "/seat", orgs: "2 orgs, 3 seats", line: "Everything in one place, for one business." },
-  { name: "Growth", price: 79, unit: "/seat", orgs: "5 orgs, 25 seats", line: "Every venture you run, one system.", popular: true },
-  { name: "Enterprise", price: null, unit: "", orgs: "Unlimited orgs and seats", line: "White-label available." },
+const TEAM = [
+  { i: "MK", n: "Myke", r: "Founder" },
+  { i: "AV", n: "Vision", r: "Chief of staff, AI" },
+  { i: "OP", n: "Ops", r: "Delivery" },
+  { i: "DS", n: "Design", r: "Product" },
+];
+
+const PRICING = [
+  {
+    name: "Solo", price: "$29", note: "per month",
+    feats: ["One workspace", "Unlimited tasks and notes", "Vision briefs, 100 a month", "Google Workspace sync"],
+    cta: "Start free", hi: false,
+  },
+  {
+    name: "Team", price: "$79", note: "per month", badge: "Most chosen",
+    feats: ["Three seats", "Unlimited workspaces", "Team chat and meetings", "Agents and unlimited Vision"],
+    cta: "Start free", hi: true,
+  },
+  {
+    name: "Growth", price: "$179", note: "per month",
+    feats: ["Eight seats", "Social and campaigns", "Admin controls", "Custom Vision persona"],
+    cta: "Start free", hi: false,
+  },
 ];
 
 const FAQ = [
-  ["Isn't this just Notion with AI?", "Notion gives you a workspace per company and a switcher. Nothing is shared, nothing is visible across them, and the AI only sees whichever one you're in."],
-  ["We're small — is this overkill?", "If you run one company, we're probably not for you yet. If you run two, you already feel it."],
-  ["What about SOC 2?", "Not certified yet, and we'd rather say so. Google OAuth means your Workspace data stays in Workspace — we read it live, we don't copy it. If you need SOC 2 today, we're not your vendor yet."],
-  ["What happens when a big player ships this?", "They might. Retrofitting multi-entity into a single-workspace product is a rebuild, not a release."],
+  { q: "Do I need to connect anything to start?", a: "No. Kova works unconnected for tasks, notes and manual entry. Metrics that need a live source stay dark until you connect it — we would rather show nothing than a number we invented." },
+  { q: "How do multiple ventures work?", a: "Every record carries a venture. The rail switches scope, and each venture keeps one colour everywhere — chips, charts, the org face. Cross-venture views exist, but nothing leaks by accident." },
+  { q: "What does Vision actually do?", a: "It reads the record you already have and proposes: tasks from a meeting, a reply draft, a schedule for the day. Proposals arrive dashed and dimmed. A person commits them." },
+  { q: "Is my data used to train models?", a: "No. Your workspace content is used to answer your prompts and nothing else." },
+  { q: "Can I leave?", a: "Export your tasks, contacts and notes at any time. No lock-in clause, no export fee." },
 ];
 
 export default function Landing() {
-  const [annual, setAnnual] = useState(false);
-  const [email, setEmail] = useState("");
-  const [orgCount, setOrgCount] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "ok" | "dupe" | "error">("idle");
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof document === "undefined") return "dark";
+    const stored = localStorage.getItem(THEME_KEY) as Theme | null;
+    return stored === "light" || stored === "dark"
+      ? stored
+      : ((document.documentElement.getAttribute("data-theme") as Theme) ?? "dark");
+  });
+  const [open, setOpen] = useState<number | null>(0);
 
   useEffect(() => {
-    document.title = "Kova — One workspace. Every venture.";
-    const desc = document.querySelector('meta[name="description"]');
-    if (desc)
-      desc.setAttribute(
-        "content",
-        "Kova is the AI command center for operators running more than one business — every company, client and brand in a single system."
-      );
-  }, []);
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const value = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) || value.length > 255) {
-      setStatus("error");
-      return;
-    }
-    setStatus("loading");
-    const { error } = await supabase
-      .from("waitlist")
-      .insert({ email: value, org_count: orgCount || null, source: "landing" });
-    if (error) {
-      setStatus(error.code === "23505" || /duplicate/i.test(error.message) ? "dupe" : "error");
-      return;
-    }
-    setStatus("ok");
-  };
-
-  const price = (n: number) => (annual ? Math.round((n * 10) / 12) : n);
+  const wordmark =
+    theme === "dark"
+      ? "/brand/kova-wordmark-gradient-dark.png"
+      : "/brand/kova-wordmark-gradient-light.png";
 
   return (
-    <div className="kova-lp">
-      <style>{TOKENS}</style>
+    <div className="klp">
+      <style>{CSS}</style>
 
-      {/* 1 — Nav */}
-      <header
-        style={{
-          position: "fixed", top: 0, left: 0, right: 0, zIndex: 40, height: 64,
-          background: "color-mix(in srgb, var(--nav-bg) 85%, transparent)",
-          backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
-          borderBottom: "1px solid var(--line)",
-        }}
-      >
-        <div className="wrap" style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Link to="/" aria-label="Kova home" style={{ display: "flex", alignItems: "center" }}>
-            <img src={kovaWordmark} alt="Kova" style={{ height: 22, width: "auto", filter: "grayscale(1) brightness(3)" }} />
+      <header className="klp-nav">
+        <div className="wrap row">
+          <Link to="/" aria-label="Kova home" style={{ lineHeight: 0 }}>
+            <img src={wordmark} alt="Kova" style={{ height: 24, width: "auto", display: "block" }} />
           </Link>
-          <nav className="dim" style={{ display: "flex", gap: 24, fontSize: 14 }}>
-            <a href="#product" style={{ color: "inherit", textDecoration: "none" }}>Product</a>
-            <a href="#who" style={{ color: "inherit", textDecoration: "none" }}>Who It's For</a>
-            <a href="#pricing" style={{ color: "inherit", textDecoration: "none" }}>Pricing</a>
+          <nav className="links">
+            <a className="nl" href="#chain">How it works</a>
+            <a className="nl" href="#honesty">Honesty</a>
+            <a className="nl" href="#pricing">Pricing</a>
+            <a className="nl" href="#faq">FAQ</a>
           </nav>
-          <Link to="/login?tab=signup" className="btn btn-primary">Start free</Link>
+          <button
+            className="icon-btn"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+          >
+            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+          <Link className="btn btn-sec btn-sm" to="/login">Sign in</Link>
+          <Link className="btn btn-pri btn-sm" to="/login?tab=signup">Start free</Link>
         </div>
       </header>
 
-      <main style={{ paddingTop: 64 }}>
-        {/* 2 — Hero */}
-        <section>
-          <div className="wrap grid2" style={{ alignItems: "center" }}>
-            <Reveal>
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                <h1>One workspace.<br />Every venture.</h1>
-                <p className="dim" style={{ maxWidth: "60ch" }}>
-                  Kova is the AI command center for operators running more than one business.
-                  Your companies, clients, and brands in a single system — with an AI chief of
-                  staff that sees across all of them.
-                </p>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  <Link to="/login?tab=signup" className="btn btn-primary btn-lg">
-                    Start free — connect your first two orgs
-                  </Link>
-                  <a href="#product" className="btn btn-ghost btn-lg">See how it works</a>
-                </div>
-                <div className="dim" style={{ fontSize: 13 }}>
-                  Built by an operator running six organisations. Used daily to run all of them.
-                </div>
+      {/* HERO */}
+      <section className="klp-hero">
+        <div className="wrap inner">
+          <div className="eyebrow">The operating layer for entrepreneurs</div>
+          <h1 style={{ marginTop: 18 }}>Every hat, one place.</h1>
+          <p className="sub">
+            Kova turns what happened into what&apos;s next — meetings into tasks, tasks into time,
+            and every venture into one morning brief.
+          </p>
+          <div className="cta">
+            <Link className="btn btn-pri" to="/login?tab=signup">Start free</Link>
+            <a className="btn btn-sec" href="#chain">See how it works</a>
+          </div>
+          <div className="micro">Free for one workspace. No card required.</div>
+        </div>
+      </section>
+
+      {/* THE CHAIN */}
+      <section id="chain">
+        <div className="wrap">
+          <div className="eyebrow">The chain</div>
+          <h2 style={{ marginTop: 12 }}>What happened becomes what&apos;s next.</h2>
+          <div className="klp-chain">
+            {CHAIN.map((s) => (
+              <div className="card step" key={s.n}>
+                <div className="n">{s.n}</div>
+                <h3>{s.t}</h3>
+                <p className="dim" style={{ fontSize: 14 }}>{s.d}</p>
               </div>
-            </Reveal>
-            <Reveal delay={80}><ProductFrame /></Reveal>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* 3 — The problem */}
-        <section>
-          <div className="wrap">
-            <Reveal>
-              <h2 style={{ maxWidth: "18ch" }}>Every tool assumes you run one company.</h2>
-            </Reveal>
-            <div className="grid3" style={{ marginTop: 36 }}>
-              {[
-                ["Three workspaces", "A login for each business. Nothing shared, nothing connected."],
-                ["Three sets of context", "The lead from one brand never reaches the other's pipeline."],
-                ["One person holding it together", "You are the integration layer between your own companies."],
-              ].map(([t, b], i) => (
-                <Reveal key={t} delay={i * 60}>
-                  <div className="card" style={{ padding: 24, height: "100%" }}>
-                    <h3>{t}</h3>
-                    <p className="dim" style={{ marginTop: 10, fontSize: 15 }}>{b}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-            <p className="dim" style={{ fontSize: 13, marginTop: 24 }}>
-              Harvard Business Review found workers toggle between applications roughly 1,200 times
-              a day — losing just under four hours a week, about 9% of work time, reorienting.
-            </p>
-          </div>
-        </section>
-
-        {/* 4 — How it works */}
-        <section id="product">
-          <div className="wrap">
-            <Reveal><div className="eyebrow">How it works</div></Reveal>
-            <div style={{ display: "flex", flexDirection: "column", gap: 20, marginTop: 28 }}>
-              {HOW.map((h, i) => {
-                const Icon = h.icon;
-                const flip = i % 2 === 1;
-                return (
-                  <Reveal key={h.title} delay={i * 50}>
-                    <div className="card grid2" style={{ padding: 24, alignItems: "center" }}>
-                      <div style={{ order: flip ? 2 : 1 }}>
-                        <Icon size={22} style={{ color: "var(--a-300)" }} />
-                        <h3 style={{ marginTop: 14 }}>{h.title}</h3>
-                        <p className="dim" style={{ marginTop: 10, fontSize: 15 }}>{h.body}</p>
-                      </div>
-                      <div style={{ order: flip ? 1 : 2 }}>
-                        {i === 2 ? <MarkVisual /> : <ProductFrame />}
-                      </div>
-                    </div>
-                  </Reveal>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* 5 — Who it's for */}
-        <section id="who">
-          <div className="wrap">
-            <Reveal><h2>Who it's for</h2></Reveal>
-            <div className="grid3" style={{ marginTop: 32 }}>
-              {AUDIENCE.map((a, i) => (
-                <Reveal key={a.title} delay={i * 60}>
-                  <div className="card" style={{ padding: 24, borderLeft: `3px solid ${a.color}`, height: "100%" }}>
-                    <h3>{a.title}</h3>
-                    <p className="dim" style={{ marginTop: 10, fontSize: 15 }}>{a.body}</p>
-                  </div>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 6 — Why not just use Notion */}
-        <section>
-          <div className="wrap">
-            <Reveal>
-              <h2>Everyone's shipping an AI assistant this year.</h2>
-              <p className="dim" style={{ marginTop: 12 }}>
-                Nobody's shipping one that works across all your companies.
-              </p>
-            </Reveal>
-            <Reveal delay={60}>
-              <div className="card" style={{ marginTop: 28, overflow: "hidden" }}>
-                <div
-                  style={{
-                    display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0,
-                    borderBottom: "1px solid var(--line)", padding: "14px 20px",
-                  }}
-                >
-                  <div className="eyebrow">Single-workspace tools</div>
-                  <div className="eyebrow" style={{ color: "var(--a-300)" }}>Kova</div>
-                </div>
-                {COMPARE.map(([label, them, us]) => (
-                  <div key={label} style={{ padding: "16px 20px", borderBottom: "1px solid var(--line)" }}>
-                    <div className="dim" style={{ fontSize: 12, marginBottom: 8 }}>{label}</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                      <div className="dim" style={{ fontSize: 15, display: "flex", gap: 8 }}>
-                        <Minus size={16} style={{ flexShrink: 0, marginTop: 3 }} /> {them}
-                      </div>
-                      <div style={{ fontSize: 15, display: "flex", gap: 8 }}>
-                        <Check size={16} style={{ flexShrink: 0, marginTop: 3, color: "var(--a-300)" }} /> {us}
-                      </div>
-                    </div>
+      {/* HONESTY */}
+      <section id="honesty">
+        <div className="wrap">
+          <div className="eyebrow">Honesty</div>
+          <h2 style={{ marginTop: 12 }}>Kova has no data of its own.</h2>
+          <p className="dim" style={{ marginTop: 14 }}>
+            Every number on screen traces back to something you connected. Nothing is modelled,
+            padded or filled in. If a source is missing, the card says which one.
+          </p>
+          <div className="klp-two">
+            <div className="card">
+              <h3>What it reads</h3>
+              <div style={{ marginTop: 10 }}>
+                {READS.map((r) => (
+                  <div className="klp-line" key={r}>
+                    <Check size={15} />
+                    <span style={{ fontSize: 14 }}>{r}</span>
                   </div>
                 ))}
-                <div className="dim" style={{ padding: "16px 20px", fontSize: 14 }}>
-                  Multi-entity is an architecture decision, not a feature. It's in the data model
-                  from the first table.
-                </div>
               </div>
-            </Reveal>
-          </div>
-        </section>
-
-        {/* 7 — Pricing */}
-        <section id="pricing">
-          <div className="wrap">
-            <Reveal>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-                <h2>Pricing</h2>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  aria-pressed={annual}
-                  onClick={() => setAnnual((v) => !v)}
-                >
-                  {annual ? "Annual — two months free" : "Monthly — switch to annual"}
-                </button>
-              </div>
-            </Reveal>
-            <div className="grid4" style={{ marginTop: 32, alignItems: "stretch" }}>
-              {TIERS.map((t, i) => (
-                <Reveal key={t.name} delay={i * 50}>
-                  <div
-                    className="card"
-                    style={{
-                      padding: 22, height: "100%", display: "flex", flexDirection: "column", gap: 10,
-                      border: t.popular ? "1px solid var(--a-500)" : undefined,
-                      transform: t.popular ? "scale(1.02)" : undefined,
-                    }}
-                  >
-                    {t.popular && (
-                      <div className="eyebrow" style={{ color: "var(--a-300)" }}>Most popular</div>
-                    )}
-                    <h3>{t.name}</h3>
-                    <div className="stat" style={{ fontSize: "clamp(28px, 4vw, 36px)" }}>
-                      {t.price === null ? "Custom" : `$${price(t.price)}`}
-                      <span className="dim" style={{ fontSize: 14, fontWeight: 400, letterSpacing: 0 }}>{t.unit}</span>
-                    </div>
-                    <div style={{ fontSize: 14 }}>{t.orgs}</div>
-                    <p className="dim" style={{ fontSize: 14 }}>{t.line}</p>
-                    <Link
-                      to="/login?tab=signup"
-                      className={`btn ${t.popular ? "btn-primary" : "btn-secondary"}`}
-                      style={{ marginTop: "auto" }}
-                    >
-                      {t.price === null ? "Talk to us" : "Start free"}
-                    </Link>
-                  </div>
-                </Reveal>
-              ))}
             </div>
-            <p className="dim" style={{ fontSize: 14, marginTop: 20 }}>
-              Need more than five orgs? Per-org pricing for agencies and portfolio operators.
-            </p>
-          </div>
-        </section>
-
-        {/* 8 — Honest answers */}
-        <section>
-          <div className="wrap">
-            <Reveal><h2>Honest answers</h2></Reveal>
-            <div style={{ marginTop: 28, display: "flex", flexDirection: "column", gap: 12 }}>
-              {FAQ.map(([q, a], i) => (
-                <Reveal key={q} delay={i * 50}>
-                  <details className="card" style={{ padding: "18px 20px" }}>
-                    <summary
-                      style={{
-                        cursor: "pointer", listStyle: "none", display: "flex",
-                        alignItems: "center", justifyContent: "space-between", gap: 16,
-                        fontSize: 16, fontWeight: 500,
-                      }}
-                    >
-                      {q}
-                      <ChevronDown size={18} className="dim" style={{ flexShrink: 0 }} />
-                    </summary>
-                    <p className="dim" style={{ marginTop: 12, fontSize: 15 }}>{a}</p>
-                  </details>
-                </Reveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* 9 — Final CTA */}
-        <section style={{ background: "var(--brand-gradient)" }}>
-          <div className="wrap grid2" style={{ alignItems: "center" }}>
-            <div>
-              <h2>One workspace.<br />Every venture.</h2>
-            </div>
-            <div className="card" style={{ padding: 24 }}>
-              <p style={{ fontSize: 15, marginBottom: 16 }}>
-                Connect your first two orgs in under five minutes.
+            <div className="card">
+              <h3>What it proposes</h3>
+              <p className="dim" style={{ fontSize: 14, margin: "8px 0 14px" }}>
+                AI output arrives dashed and dimmed. It is not real until a person commits it.
               </p>
-              {status === "ok" ? (
-                <div style={{ fontSize: 15, color: "var(--ok)" }}>
-                  You're on the list. We'll be in touch.
+              <div className="klp-draft">
+                <div className="tag">Vision draft — not sent</div>
+                <div style={{ marginTop: 8 }}>
+                  Three tasks from this morning&apos;s call, owner set to you, due Friday.
                 </div>
-              ) : (
-                <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <label className="eyebrow" htmlFor="lp-email">Email</label>
-                  <input
-                    id="lp-email" type="email" value={email} autoComplete="email"
-                    onChange={(e) => { setEmail(e.target.value); if (status !== "loading") setStatus("idle"); }}
-                    placeholder="you@company.com" required
-                  />
-                  <label className="eyebrow" htmlFor="lp-orgs">How many businesses do you run?</label>
-                  <select id="lp-orgs" value={orgCount} onChange={(e) => setOrgCount(e.target.value)}>
-                    <option value="">Prefer not to say</option>
-                    <option value="1">1</option>
-                    <option value="2-4">2–4</option>
-                    <option value="5-10">5–10</option>
-                    <option value="10+">10+</option>
-                  </select>
-                  <button type="submit" className="btn btn-primary btn-lg" disabled={status === "loading"}>
-                    {status === "loading" ? "Joining…" : "Join the waitlist"}
-                  </button>
-                  {status === "dupe" && (
-                    <div className="dim" style={{ fontSize: 13 }}>You're already on the list.</div>
-                  )}
-                  {status === "error" && (
-                    <div style={{ fontSize: 13, color: "var(--err)" }}>
-                      Enter a valid email address and try again.
-                    </div>
-                  )}
-                </form>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* 10 — Footer */}
-        <footer style={{ borderTop: "1px solid var(--line)", padding: "40px 0" }}>
-          <div className="wrap" style={{ display: "flex", flexWrap: "wrap", gap: 16, alignItems: "center", justifyContent: "space-between" }}>
-            <div>
-              <img src={kovaWordmark} alt="Kova" style={{ height: 20, width: "auto", filter: "grayscale(1) brightness(3)" }} />
-              <div className="dim" style={{ fontSize: 13, marginTop: 8 }}>
-                The AI command center for operators running more than one business.
               </div>
             </div>
-            <div className="dim" style={{ display: "flex", gap: 20, fontSize: 13 }}>
-              <a href="/privacy" style={{ color: "inherit", textDecoration: "none" }}>Privacy</a>
-              <a href="/terms" style={{ color: "inherit", textDecoration: "none" }}>Terms</a>
-              <a href="mailto:hello@kova.app" style={{ color: "inherit", textDecoration: "none" }}>Contact</a>
-            </div>
-            <div className="dim" style={{ fontSize: 13 }}>© {new Date().getFullYear()} Kova</div>
           </div>
-        </footer>
-      </main>
+        </div>
+      </section>
+
+      {/* SCALE */}
+      <section id="scale">
+        <div className="wrap">
+          <div className="eyebrow">Scale</div>
+          <h2 style={{ marginTop: 12 }}>Built for the person running four things at once.</h2>
+          <div className="klp-stats">
+            {STATS.map((s) => (
+              <div className="card" key={s.l}>
+                <div className="v">{s.v}</div>
+                <div style={{ marginTop: 8, fontSize: 15 }}>{s.l}</div>
+                <p className="dim" style={{ fontSize: 14, marginTop: 6 }}>{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WHO IT'S FOR */}
+      <section id="who">
+        <div className="wrap">
+          <div className="eyebrow">Who it&apos;s for</div>
+          <h2 style={{ marginTop: 12 }}>One surface, however many hats.</h2>
+          <div className="klp-who">
+            {WHO.map((w) => (
+              <div className="card" key={w.t}>
+                <h3>
+                  <span className="klp-dot" style={{ background: w.c }} />
+                  {w.t}
+                </h3>
+                <p className="dim" style={{ fontSize: 14, marginTop: 8 }}>{w.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TEAM */}
+      <section id="team">
+        <div className="wrap">
+          <div className="eyebrow">Team</div>
+          <h2 style={{ marginTop: 12 }}>Small on purpose.</h2>
+          <p className="dim" style={{ marginTop: 14 }}>
+            Kova is built by operators who run the ventures it was made for — plus one member
+            who never sleeps.
+          </p>
+          <div className="klp-team">
+            {TEAM.map((m) => (
+              <div className="card" key={m.n}>
+                <div className="klp-avatar">{m.i}</div>
+                <h3 style={{ marginTop: 12 }}>{m.n}</h3>
+                <div className="dim" style={{ fontSize: 14, marginTop: 4 }}>{m.r}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section id="pricing">
+        <div className="wrap">
+          <div className="eyebrow">Pricing</div>
+          <h2 style={{ marginTop: 12 }}>Start free. Pay when it&apos;s carrying weight.</h2>
+          <div className="klp-price">
+            {PRICING.map((p) => (
+              <div className={`card${p.hi ? " hi" : ""}`} key={p.name}>
+                {p.badge && <div className="klp-badge">{p.badge}</div>}
+                <h3>{p.name}</h3>
+                <div className="amt" style={{ marginTop: 10 }}>{p.price}</div>
+                <div className="dim" style={{ fontSize: 13 }}>{p.note}</div>
+                <div style={{ margin: "16px 0" }}>
+                  {p.feats.map((f) => (
+                    <div className="feat" key={f}>
+                      <Check size={14} />
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <Link className={`btn ${p.hi ? "btn-pri" : "btn-sec"}`} to="/login?tab=signup" style={{ width: "100%" }}>
+                  {p.cta}
+                </Link>
+              </div>
+            ))}
+          </div>
+          <div className="dim" style={{ fontSize: 13, marginTop: 14 }}>
+            Free for one workspace. No card required. Enterprise pricing on request.
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq">
+        <div className="wrap">
+          <div className="eyebrow">FAQ</div>
+          <h2 style={{ marginTop: 12 }}>The questions that come up.</h2>
+          <div className="klp-faq">
+            {FAQ.map((f, i) => (
+              <div key={f.q}>
+                <button
+                  className={`q${open === i ? " open" : ""}`}
+                  onClick={() => setOpen(open === i ? null : i)}
+                  aria-expanded={open === i}
+                >
+                  <span>{f.q}</span>
+                  <ChevronDown size={18} />
+                </button>
+                {open === i && (
+                  <div className="a">
+                    <p className="dim" style={{ fontSize: 15 }}>{f.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CLOSING CTA */}
+      <section className="klp-close">
+        <div className="wrap">
+          <h2>Put every hat in one place.</h2>
+          <p className="dim" style={{ margin: "16px auto 0" }}>
+            One workspace, free, for as long as you like.
+          </p>
+          <div className="cta">
+            <Link className="btn btn-pri" to="/login?tab=signup">Start free</Link>
+            <Link className="btn btn-sec" to="/login">Sign in</Link>
+          </div>
+        </div>
+      </section>
+
+      <footer className="klp-foot">
+        <div className="wrap cols">
+          <div>
+            <img src={wordmark} alt="Kova" style={{ height: 22, width: "auto", display: "block" }} />
+            <div className="dim" style={{ fontSize: 13, marginTop: 12 }}>
+              The operating layer for entrepreneurs.
+            </div>
+          </div>
+          <div>
+            <Link to="/about">About</Link>
+            <Link to="/blog">Blog</Link>
+            <Link to="/changelog">Changelog</Link>
+            <Link to="/roadmap">Roadmap</Link>
+          </div>
+          <div>
+            <Link to="/terms">Terms</Link>
+            <Link to="/privacy">Privacy</Link>
+            <Link to="/login">Sign in</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
