@@ -79,7 +79,7 @@ export const Connect = () => {
           <div className="vo-between">
             <Eyebrow>Coverage</Eyebrow>
             <span className="vo-meta">
-              {live} / {total} features live
+              {live} / {total} fields live
             </span>
           </div>
           <div
