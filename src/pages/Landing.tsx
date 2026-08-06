@@ -277,6 +277,7 @@ const FAQ = [
 
 
 export default function Landing() {
+  const { session, loading: authLoading } = useAuth();
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof document === "undefined") return "dark";
     const stored = localStorage.getItem(THEME_KEY) as Theme | null;
