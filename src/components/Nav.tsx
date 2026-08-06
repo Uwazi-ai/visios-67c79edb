@@ -40,7 +40,11 @@ export const SYSTEM: NavEntry[] = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-export const NAV: NavEntry[] = [...MENU, ...MARKETING, ...SYSTEM];
+/** Kova staff only. Kept out of NAV so nothing else can surface it. */
+export const PLATFORM: NavEntry[] = [{ id: "admin", label: "Platform", icon: Shield }];
+
+export const NAV: NavEntry[] = [...MENU, ...MARKETING, ...SYSTEM, ...PLATFORM];
+
 
 const initialsOf = (name: string) =>
   name
