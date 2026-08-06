@@ -26,9 +26,16 @@ function buildStarField(count = 90) {
   return parts.join(",");
 }
 
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
+
 export default function SignIn() {
   const { session, loading } = useAuth();
   const [params] = useSearchParams();
+  const next = safeNext(params.get("next"));
   const initialTab: "signup" | "signin" =
     params.get("tab") === "signup" || params.get("signup") !== null ? "signup" : "signin";
   const [tab, setTab] = useState<"signup" | "signin">(initialTab);
