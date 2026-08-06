@@ -234,6 +234,17 @@
   position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto;
 }
 
+/* ---------- rail logo ----------
+   The wordmark swaps to the square mark under 96px of usable width. Measured
+   from the container, not window.innerWidth — the rail collapses on its own.
+   Padding is the clear space: the height of the K on all four sides. */
+.kova .vo-raillogo { container-type: inline-size; padding: 22px 0; }
+.kova .vo-raillogo-mark { display: none; }
+@container (max-width: 96px) {
+  .kova .vo-raillogo-word { display: none; }
+  .kova .vo-raillogo-mark { display: inline-flex; }
+}
+
 /* workspace switcher */
 .kova .vo-ws { position: relative; }
 .kova .vo-ws-btn {
