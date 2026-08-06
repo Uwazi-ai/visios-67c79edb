@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import {
   LayoutDashboard, Inbox, MessagesSquare, CheckSquare, Calendar, Users, BookOpen,
   CalendarClock, IdCard, TrendingUp, Megaphone, Rocket, Sparkles, Bot, Settings,
-  ChevronRight, ChevronDown, Sun, Moon,
+  ChevronRight, ChevronDown, Sun, Moon, Shield,
 } from "lucide-react";
 import { useAppState } from "@/lib/AppState";
+import { useTenant } from "@/contexts/TenantContext";
 import { Face } from "@/components/primitives";
 import { RailLogo } from "@/components/Logo";
+
 
 export interface NavEntry {
   id: string;
