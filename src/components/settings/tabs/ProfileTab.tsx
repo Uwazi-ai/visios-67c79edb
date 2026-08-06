@@ -36,7 +36,7 @@ const empty: ProfileForm = {
   preferences: {}, custom_links: {},
 };
 
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 25 * 1024 * 1024;
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const HUE_COLORS = ["#60A5FA", "#34D399", "#F59E0B", "#A78BFA", "#F472B6", "#22D3EE", "#FB7185", "#9bd34b"];
@@ -121,7 +121,7 @@ export default function ProfileTab() {
       return;
     }
     if (file.size > MAX_PHOTO_BYTES) {
-      toast.error("Photo must be 5MB or less");
+      toast.error("Photo must be 25MB or less");
       return;
     }
     setUploading(true);
