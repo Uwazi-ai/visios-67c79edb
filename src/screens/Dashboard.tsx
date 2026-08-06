@@ -62,11 +62,11 @@ export const Dashboard = ({ navigate }: { navigate?: (screen: string) => void })
           action={
             <GatedButton
               blockedCount={pending.length}
-              variant="primary"
+              variant="plain"
+              readyLabel="Plan my day"
               onClick={() => go("tasks")}
-            >
-              Plan my day
-            </GatedButton>
+            />
+
           }
         />
         <Bento>
