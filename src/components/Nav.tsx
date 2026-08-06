@@ -88,6 +88,8 @@ export const Nav = ({
   onNavigate: (id: string) => void;
 }) => {
   const { orgs, scope, setScope, scopeOrg, theme, toggleTheme, me } = useAppState();
+  const { isPlatformAdmin } = useTenant();
+
   const [open, setOpen] = useState(false);
   const marketingActive = MARKETING.some((m) => m.id === active);
   const [marketingOpen, setMarketingOpen] = useState(marketingActive);
