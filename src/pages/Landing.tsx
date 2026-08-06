@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { Check, ChevronDown, Moon, Sun } from "lucide-react";
 import { ProblemSection, PROBLEM_CSS } from "@/components/landing/Problem";
 import { HonestySection, ScaleSection, WhoSection, SECTIONS_CSS } from "@/components/landing/Sections";
