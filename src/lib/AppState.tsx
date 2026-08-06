@@ -75,7 +75,11 @@ interface AppStateValue {
   scopeOrg: () => Org;
 
   orgs: Org[];
+  /** Replace the org list with the ones this person is actually a member of.
+   *  Tenancy decides which orgs exist; org_members decides which you see. */
+  setOrgs: (list: Org[]) => void;
   setOrgColor: (id: string, color: string) => void;
+
   /** undefined clears the logo — an upload with no way back is a one-way door. */
   setOrgLogo: (id: string, logo?: string) => void;
 
