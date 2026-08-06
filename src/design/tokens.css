@@ -8,14 +8,39 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --a-500: #2563EB; /* fills, bars, buttons — white text on it: 5.17:1 */
-  --a-400: #3B82F6;
-  --a-300: #60A5FA; /* blue text on dark */
-  --a-700: #1D4ED8; /* blue text on light */
+  /* Blue — the product. Split by job because one tone cannot serve both
+     fills and small text. */
+  --a-500: #2563EB; /* fills, bars, primary buttons — white on it 5.17:1 */
+  --a-400: #3B82F6; /* hover, focus ring — 5.04:1 on dark, 3.68:1 on light */
+  --a-300: #60A5FA; /* blue text on dark — 7.29:1 */
+  --a-700: #1D4ED8; /* blue text on light — 6.70:1 */
+
+  /* Magenta — the AI layer. */
+  --p-500: #D21FFF; /* GRAPHICS ONLY. 3.90:1 on white — never text, never a
+                       fill that carries a label */
+  --p-600: #BD1CE5; /* fills that DO carry a label — white on it 4.71:1 */
+  --p-300: #E272FF; /* purple text on dark — 7.13:1 */
+  --p-700: #9214B0; /* purple text on light — 7.12:1 */
 
   --ok: #22C55E;
   --warn: #F59E0B;
   --err: #EF4444;
+
+  /* The logo gradient, sampled from the wordmark. #D21FFF sits at 72%, so
+     the brand magenta is a real point on this ramp. */
+  --brand-gradient: linear-gradient(100deg,
+    #000E21 0%, #003276 14%, #0046A3 26%, #2542BC 38%,
+    #842FE1 52%, #B425F4 62%, #D21FFF 72%, #DF5FFF 84%, #EF9FFF 100%);
+
+  /* Light surfaces must stop before the tail washes out — #EF9FFF is
+     1.9:1 on white. */
+  --brand-gradient-light: linear-gradient(100deg,
+    #000E21 0%, #003276 16%, #0046A3 30%, #2542BC 42%,
+    #842FE1 58%, #B425F4 72%, #D21FFF 88%, #A800CC 100%);
+
+  /* Completion gradient. Sampled at 21 steps — worst case 4.92:1 with
+     white. Do not extend it toward #D21FFF: that drops to 4.10:1 mid-ramp. */
+  --grad-action: linear-gradient(100deg, #1D4ED8 0%, #BD1CE5 100%);
 
   --r-card: 18px;
   --r-inner: 12px;
