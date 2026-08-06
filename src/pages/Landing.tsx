@@ -313,78 +313,12 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* HONESTY */}
-      <section id="honesty">
-        <div className="wrap">
-          <div className="eyebrow">Honesty</div>
-          <h2 style={{ marginTop: 12 }}>Kova has no data of its own.</h2>
-          <p className="dim" style={{ marginTop: 14 }}>
-            Every number on screen traces back to something you connected. Nothing is modelled,
-            padded or filled in. If a source is missing, the card says which one.
-          </p>
-          <div className="klp-two">
-            <div className="card">
-              <h3>What it reads</h3>
-              <div style={{ marginTop: 10 }}>
-                {READS.map((r) => (
-                  <div className="klp-line" key={r}>
-                    <Check size={15} />
-                    <span style={{ fontSize: 14 }}>{r}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="card">
-              <h3>What it proposes</h3>
-              <p className="dim" style={{ fontSize: 14, margin: "8px 0 14px" }}>
-                AI output arrives dashed and dimmed. It is not real until a person commits it.
-              </p>
-              <div className="klp-draft">
-                <div className="tag">Vision draft — not sent</div>
-                <div style={{ marginTop: 8 }}>
-                  Three tasks from this morning&apos;s call, owner set to you, due Friday.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HonestySection />
 
-      {/* SCALE */}
-      <section id="scale">
-        <div className="wrap">
-          <div className="eyebrow">Scale</div>
-          <h2 style={{ marginTop: 12 }}>Built for the person running four things at once.</h2>
-          <div className="klp-stats">
-            {STATS.map((s) => (
-              <div className="card" key={s.l}>
-                <div className="v">{s.v}</div>
-                <div style={{ marginTop: 8, fontSize: 15 }}>{s.l}</div>
-                <p className="dim" style={{ fontSize: 14, marginTop: 6 }}>{s.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ScaleSection />
 
-      {/* WHO IT'S FOR */}
-      <section id="who">
-        <div className="wrap">
-          <div className="eyebrow">Who it&apos;s for</div>
-          <h2 style={{ marginTop: 12 }}>One surface, however many hats.</h2>
-          <div className="klp-who">
-            {WHO.map((w) => (
-              <div className="card" key={w.t}>
-                <h3>
-                  <span className="klp-dot" style={{ background: w.c }} />
-                  {w.t}
-                </h3>
-                <p className="dim" style={{ fontSize: 14, marginTop: 8 }}>{w.d}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <WhoSection />
+
 
       {/* TEAM */}
       <section id="team">
