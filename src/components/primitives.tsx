@@ -98,16 +98,20 @@ export const Face = ({
   </span>
 );
 
+type Size = "lg" | "md" | "sm";
+
 export const Button = ({
   children,
   onClick,
   variant,
+  size = "md",
   disabled,
   title,
 }: {
   children: ReactNode;
   onClick?: () => void;
   variant?: "primary" | "quiet";
+  size?: Size;
   disabled?: boolean;
   title?: string;
 }) => (
@@ -115,6 +119,7 @@ export const Button = ({
     type="button"
     className="vo-btn"
     data-variant={variant}
+    data-size={size}
     onClick={onClick}
     disabled={disabled}
     title={title}
@@ -124,39 +129,75 @@ export const Button = ({
 );
 
 /**
- * GatedButton — refuses to fire while anything is pending review.
+ * GatedButton — three states, one rule.
+ *
+ * 01 BLOCKED  .b-gate      dashed, really `disabled`, labelled with what blocks it
+ * 02 CLEARED  .b-complete  --grad-action, live — only for model-proposed work
+ * 03 DONE     .b-done      green tint, no longer actionable
  *
  * The real `disabled` attribute, not styling that looks disabled: a button
  * that only *appears* blocked still fires on Enter for a keyboard user, and
- * still reads as actionable to a screen reader. The dashed border is the
- * visual half of a state the DOM already enforces.
+ * still reads as actionable to a screen reader.
+ *
+ * variant="plain" keeps ordinary primary actions on --a-500 blue. The
+ * gradient is reserved for a cleared AI workflow; used anywhere else it
+ * stops signalling anything and the gate stops reading as significant.
  */
 export const GatedButton = ({
   children,
   blockedCount,
+  readyLabel,
+  doneLabel,
+  done,
   onClick,
-  variant,
+  variant = "complete",
+  size = "md",
 }: {
-  children: ReactNode;
+  children?: ReactNode;
   blockedCount: number;
+  readyLabel?: string;
+  doneLabel?: string;
+  done?: boolean;
   onClick?: () => void;
-  variant?: "primary" | "quiet";
+  variant?: "complete" | "plain";
+  size?: Size;
 }) => {
-  const blocked = blockedCount > 0;
+  const label = readyLabel ?? children;
+
+  if (done) {
+    return (
+      <button type="button" className="b-done" data-size={size} disabled aria-disabled="true">
+        {doneLabel ?? "Done"}
+      </button>
+    );
+  }
+
+  if (blockedCount > 0) {
+    return (
+      <button
+        type="button"
+        className="b-gate"
+        data-size={size}
+        disabled
+        aria-describedby="gate-reason"
+      >
+        {`${blockedCount} proposal${blockedCount === 1 ? "" : "s"} pending review`}
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
-      className="vo-btn"
-      data-variant={blocked ? undefined : variant}
-      data-blocked={blocked ? "true" : undefined}
-      disabled={blocked}
-      aria-describedby={blocked ? "gate-reason" : undefined}
-      onClick={blocked ? undefined : onClick}
+      className={variant === "plain" ? "b-pri" : "b-complete"}
+      data-size={size}
+      onClick={onClick}
     >
-      {blocked ? `${blockedCount} item${blockedCount === 1 ? "" : "s"} pending review` : children}
+      {label}
     </button>
   );
 };
+
 
 /**
  * SectionHead — index is optional and means "step N of a sequence".
