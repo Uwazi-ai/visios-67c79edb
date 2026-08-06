@@ -74,13 +74,13 @@
    De-emphasis comes from size and position. There is no third grey. */
 .kova .vo-eyebrow {
   font-size: var(--t-eyebrow); letter-spacing: 0.09em; text-transform: uppercase;
-  color: var(--ink-dim); font-weight: 600;
+  color: var(--dim); font-weight: 600;
 }
 .kova .vo-title { font-size: var(--t-title); font-weight: 600; color: var(--ink); margin: 0; font-family: var(--display); letter-spacing: -0.02em; }
 .kova .vo-head { font-size: var(--t-head); font-weight: 700; color: var(--ink); margin: 0; font-family: var(--display); letter-spacing: -0.02em; }
 .kova .vo-hero { font-size: var(--t-hero); font-family: var(--display); letter-spacing: -0.02em; line-height: 1.15; margin: 0; }
-.kova .vo-desc { font-size: var(--t-body); color: var(--ink-dim); margin: 0; line-height: 1.5; }
-.kova .vo-meta { font-size: var(--t-meta); color: var(--ink-dim); }
+.kova .vo-desc { font-size: var(--t-body); color: var(--dim); margin: 0; line-height: 1.5; }
+.kova .vo-meta { font-size: var(--t-meta); color: var(--dim); }
 .kova .vo-stat {
   font-family: var(--display); font-size: var(--t-stat); font-weight: 700;
   letter-spacing: -0.04em; line-height: 1.02; color: var(--ink);
@@ -91,7 +91,7 @@
   display: inline-flex; align-items: center; gap: var(--s-1);
   font-size: var(--t-eyebrow); font-weight: 600; letter-spacing: 0.04em;
   padding: 2px var(--s-2); border-radius: var(--r-pill);
-  background: var(--inset); color: var(--ink-dim); text-transform: uppercase;
+  background: var(--inset); color: var(--dim); text-transform: uppercase;
 }
 .kova .vo-tag[data-tone="ok"] { background: var(--ok-soft); color: var(--ok-txt); }
 .kova .vo-tag[data-tone="warn"] { background: var(--warn-soft); color: var(--warn-txt); }
@@ -141,7 +141,7 @@
 
 /* dismiss, cancel */
 .kova .b-ghost,
-.kova .vo-btn[data-variant="quiet"] { background: transparent; border-color: var(--line); color: var(--ink-dim); }
+.kova .vo-btn[data-variant="quiet"] { background: transparent; border-color: var(--line); color: var(--dim); }
 .kova .vo-btn[data-variant="quiet"] { border-color: transparent; }
 
 .kova .vo-btn:disabled, .kova .b-pri:disabled, .kova .b-sec:disabled { cursor: not-allowed; opacity: 0.55; }
@@ -169,7 +169,7 @@
 /* ---------- proposal gate ---------- */
 .kova .vo-gate { border: 1px dashed var(--line-strong); border-radius: var(--r-md); padding: var(--s-3); background: transparent; }
 .kova .vo-gate[data-approved="true"] { border-style: solid; border-color: var(--line); background: var(--surface); }
-.kova .vo-gate[data-approved="false"] .vo-title { color: var(--ink-dim); }
+.kova .vo-gate[data-approved="false"] .vo-title { color: var(--dim); }
 
 /* ---------- focus, both themes ---------- */
 .kova :focus-visible { outline: 2px solid var(--a-400); outline-offset: 2px; border-radius: var(--r-sm); }
@@ -193,7 +193,7 @@
   background: var(--inset); border: 1px solid transparent;
   border-radius: var(--r-md); padding: var(--s-3); color: var(--ink);
 }
-.kova .vo-brief-cell:hover { border-color: var(--line-strong); }
+.kova .vo-brief-cell:hover { border-color: var(--a-500); }
 .kova .vo-brief-count {
   font-family: var(--display); font-size: 26px; font-weight: 700;
   letter-spacing: -0.04em; line-height: 1.05;
@@ -218,7 +218,7 @@
   border-left: 3px dashed var(--warn);
   background: transparent; box-shadow: none;
 }
-.kova .vo-prop[data-status="pending"] .vo-title { color: var(--ink-dim); }
+.kova .vo-prop[data-status="pending"] .vo-title { color: var(--dim); }
 .kova .vo-prop[data-status="approved"] { border-left: 3px solid var(--ok); }
 .kova .vo-prop[data-status="rejected"] { border-left: 3px solid var(--line-strong); opacity: 0.55; }
 .kova .vo-prop[data-status="approved"] .vo-track > i { background: var(--ok); }
@@ -289,9 +289,9 @@
   padding: var(--s-2); border-radius: var(--r-md);
   border: 1px solid var(--line); background: var(--inset); color: var(--ink); cursor: pointer;
 }
-.kova .vo-ws-btn:hover { border-color: var(--line-strong); }
+.kova .vo-ws-btn:hover { border-color: var(--a-500); }
 .kova .vo-ws-name { font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.kova .vo-ws-role { font-size: var(--t-meta); color: var(--ink-dim); line-height: 1.2; }
+.kova .vo-ws-role { font-size: var(--t-meta); color: var(--dim); line-height: 1.2; }
 .kova .vo-ws-menu {
   position: absolute; z-index: 20; top: calc(100% + var(--s-1)); left: 0; right: 0;
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
@@ -317,7 +317,7 @@
   display: flex; align-items: center; gap: var(--s-2);
   width: 100%; text-align: left; font: inherit; font-size: var(--t-body);
   padding: var(--s-2) var(--s-3); border-radius: var(--r-md);
-  border: 1px solid transparent; background: transparent; color: var(--ink-dim); cursor: pointer;
+  border: 1px solid transparent; background: transparent; color: var(--dim); cursor: pointer;
 }
 .kova .vo-navitem:hover { background: var(--inset); color: var(--ink); }
 .kova .vo-navitem[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
@@ -409,11 +409,11 @@
   display: inline-flex; align-items: center; gap: var(--s-1); background: none; border: 0; padding: 0;
   font: inherit; font-size: var(--t-meta); font-weight: 600; color: var(--accent); cursor: pointer;
 }
-.kova .vo-link[data-quiet="true"] { color: var(--ink-dim); font-weight: 500; }
+.kova .vo-link[data-quiet="true"] { color: var(--dim); font-weight: 500; }
 .kova .vo-link:hover { text-decoration: underline; }
 
 .kova .vo-note {
-  font-size: var(--t-meta); color: var(--ink-dim); line-height: 1.45;
+  font-size: var(--t-meta); color: var(--dim); line-height: 1.45;
   border-left: 2px solid var(--line-strong); padding-left: var(--s-2);
 }
 
@@ -453,7 +453,7 @@
   padding: var(--s-3) 0; border-top: 1px solid var(--line);
 }
 .kova .vo-toggle-list .vo-toggle-row:first-child { border-top: 0; }
-.kova .vo-toggle-row[data-locked="true"] .vo-toggle-label { color: var(--ink-dim); }
+.kova .vo-toggle-row[data-locked="true"] .vo-toggle-label { color: var(--dim); }
 .kova .vo-toggle-label { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--t-body); font-weight: 500; color: var(--ink); }
 .kova .vo-nowrap { white-space: nowrap; }
 
@@ -479,7 +479,7 @@
 .kova .vo-seg-opt {
   display: inline-flex; align-items: center; gap: var(--s-2); cursor: pointer;
   padding: var(--s-2) var(--s-3); border-radius: var(--r-pill);
-  font-size: var(--t-meta); font-weight: 600; color: var(--ink-dim);
+  font-size: var(--t-meta); font-weight: 600; color: var(--dim);
 }
 .kova .vo-seg-opt[data-active="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 .kova .vo-seg-opt input { position: absolute; opacity: 0; width: 1px; height: 1px; }
@@ -499,7 +499,7 @@
   background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--line);
   border-radius: var(--r-md); padding: var(--s-3); color: inherit; font: inherit;
 }
-.kova .vo-proj:hover { border-color: var(--line-strong); }
+.kova .vo-proj:hover { border-color: var(--a-500); }
 .kova .vo-proj[data-selected="true"] { box-shadow: 0 0 0 1px var(--a-400) inset; background: var(--inset); }
 .kova .vo-proj-name { font-family: var(--display); font-size: var(--t-title); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
 .kova .vo-late { font-size: var(--t-meta); font-weight: 600; color: var(--err-txt); }
@@ -522,7 +522,7 @@
 .kova .vo-task-main { display: flex; align-items: center; gap: var(--s-2); min-width: 0; cursor: pointer; flex: 1 1 220px; }
 .kova .vo-task-title { font-size: var(--t-body); color: var(--ink); }
 .kova .vo-task[data-done="true"] .vo-task-title,
-.kova .vo-tcard[data-done="true"] .vo-task-title { text-decoration: line-through; color: var(--ink-dim); }
+.kova .vo-tcard[data-done="true"] .vo-task-title { text-decoration: line-through; color: var(--dim); }
 .kova .vo-task-meta { display: flex; align-items: center; gap: var(--s-3); flex: none; }
 
 .kova .vo-box {
@@ -532,7 +532,7 @@
 .kova .vo-box:checked { background: var(--ok-txt); border-color: var(--ok-txt); }
 .kova .vo-box:checked::after { content: "✓"; display: block; text-align: center; line-height: 13px; font-size: 11px; color: var(--nav-bg); }
 
-.kova .vo-due { font-size: var(--t-meta); color: var(--ink-dim); white-space: nowrap; }
+.kova .vo-due { font-size: var(--t-meta); color: var(--dim); white-space: nowrap; }
 .kova .vo-due[data-late="true"] { color: var(--err-txt); font-weight: 600; }
 
 .kova .vo-board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
@@ -553,10 +553,10 @@
 .kova .vo-gantt-label { display: flex; flex-direction: column; justify-content: center; gap: 1px; overflow: hidden; }
 .kova .vo-gantt-name { line-height: 1.3; }
 .kova .vo-gantt-name { font-size: var(--t-body); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.kova .vo-gantt-name[data-done="true"] { color: var(--ink-dim); text-decoration: line-through; }
+.kova .vo-gantt-name[data-done="true"] { color: var(--dim); text-decoration: line-through; }
 .kova .vo-gantt-track { position: relative; min-width: 0; }
 .kova .vo-gantt-axis { display: grid; grid-template-columns: repeat(14, 1fr); border-bottom: 1px solid var(--line); }
-.kova .vo-gantt-day { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; font-size: 10px; color: var(--ink-dim); padding-bottom: var(--s-1); }
+.kova .vo-gantt-day { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; font-size: 10px; color: var(--dim); padding-bottom: var(--s-1); }
 .kova .vo-gantt-day strong { font-size: var(--t-meta); font-weight: 600; }
 .kova .vo-gantt-day[data-weekend="true"] { opacity: .55; }
 .kova .vo-gantt-day[data-today="true"] { color: var(--a-400); }
@@ -600,7 +600,7 @@
 [data-theme="light"] .kova .vo-today-flag { color: var(--on-fill); }
 
 .kova .vo-gantt-key { gap: var(--s-3); flex-wrap: wrap; }
-.kova .vo-key { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--t-meta); color: var(--ink-dim); }
+.kova .vo-key { display: inline-flex; align-items: center; gap: var(--s-1); font-size: var(--t-meta); color: var(--dim); }
 .kova .vo-key-swatch { width: 14px; height: 6px; border-radius: var(--r-pill); }
 .kova .vo-key-dash { width: 14px; border-top: 1px dashed var(--ink-dim); }
 
@@ -615,17 +615,17 @@
 .kova .vo-searchbox {
   display: flex; align-items: center; gap: var(--s-2);
   padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--r-md);
-  background: var(--inset); color: var(--ink-dim);
+  background: var(--inset); color: var(--dim);
 }
 .kova .vo-searchbox:focus-within { border-color: var(--a-400); }
 .kova .vo-searchbox input {
   flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
   color: var(--ink); font: inherit; font-size: var(--t-body);
 }
-.kova .vo-searchbox input::placeholder { color: var(--ink-dim); }
+.kova .vo-searchbox input::placeholder { color: var(--dim); }
 
 .kova .vo-chip {
-  font: inherit; font-size: var(--t-meta); color: var(--ink-dim);
+  font: inherit; font-size: var(--t-meta); color: var(--dim);
   border: 1px solid var(--line); border-radius: var(--r-pill);
   background: var(--inset); padding: 3px 9px; cursor: pointer;
 }
@@ -660,9 +660,9 @@
   padding-left: var(--s-2); border-left: 2px solid var(--a-400);
   color: var(--ink); font-size: var(--t-body); line-height: 1.55;
 }
-.kova .vo-quote svg { flex: 0 0 auto; margin-top: 4px; color: var(--ink-dim); }
+.kova .vo-quote svg { flex: 0 0 auto; margin-top: 4px; color: var(--dim); }
 
-.kova .vo-why { margin: 0; font-size: var(--t-meta); color: var(--ink-dim); line-height: 1.5; }
+.kova .vo-why { margin: 0; font-size: var(--t-meta); color: var(--dim); line-height: 1.5; }
 .kova .vo-why strong { color: var(--ink); font-weight: 600; }
 .kova .vo-why[data-weak="true"] { color: var(--warn-txt); }
 
@@ -674,7 +674,7 @@
 }
 .kova .vo-warn svg { flex: 0 0 auto; margin-top: 2px; }
 .kova .vo-warn strong { color: var(--warn-txt); }
-.kova .vo-warn .vo-meta { color: var(--ink-dim); }
+.kova .vo-warn .vo-meta { color: var(--dim); }
 
 .kova .vo-covlist { display: grid; gap: var(--s-3); }
 .kova .vo-cov { display: grid; gap: 5px; }
@@ -696,10 +696,10 @@
   font-size: var(--t-meta); color: var(--ink);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.kova .vo-cited-name svg { flex: 0 0 auto; color: var(--ink-dim); }
+.kova .vo-cited-name svg { flex: 0 0 auto; color: var(--dim); }
 .kova .vo-cited-bar { flex: 0 0 68px; height: 5px; border-radius: var(--r-pill); background: var(--line); overflow: hidden; }
 .kova .vo-cited-bar span { display: block; height: 100%; background: var(--a-400); border-radius: var(--r-pill); }
-.kova .vo-cited-n { flex: 0 0 auto; width: 24px; text-align: right; font-size: var(--t-meta); font-variant-numeric: tabular-nums; color: var(--ink-dim); }
+.kova .vo-cited-n { flex: 0 0 auto; width: 24px; text-align: right; font-size: var(--t-meta); font-variant-numeric: tabular-nums; color: var(--dim); }
 
 @media (max-width: 900px) {
   .kova .vo-cited-bar { display: none; }
@@ -724,11 +724,11 @@
 
 .kova .vo-trace-chip {
   display: inline-flex; align-items: center; gap: var(--s-2); flex-wrap: wrap;
-  font: inherit; font-size: var(--t-micro); color: var(--ink-dim);
+  font: inherit; font-size: var(--t-micro); color: var(--dim);
   background: transparent; border: 1px solid var(--line); border-radius: 999px;
   padding: 4px var(--s-3); cursor: pointer;
 }
-.kova .vo-trace-chip:hover { border-color: var(--line-strong); }
+.kova .vo-trace-chip:hover { border-color: var(--a-500); }
 .kova .vo-trace-dot { width: 6px; height: 6px; border-radius: 999px; background: var(--ok-txt); }
 .kova .vo-trace-dot[data-bad="true"] { background: var(--warn-txt); }
 .kova .vo-trace-more { text-decoration: underline; text-underline-offset: 2px; }
@@ -743,12 +743,12 @@
 .kova .vo-call[data-status="failed"] { border-left-color: var(--warn-txt); border-style: dashed; }
 .kova .vo-call-head { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
 .kova .vo-call-head .vo-mono, .kova .vo-call-args { font-family: var(--font-mono, ui-monospace, monospace); font-size: var(--t-micro); }
-.kova .vo-call-args { color: var(--ink-dim); word-break: break-word; }
+.kova .vo-call-args { color: var(--dim); word-break: break-word; }
 .kova .vo-call-status { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ok-txt); }
 .kova .vo-call-status[data-status="denied"] { color: var(--err-txt); }
 .kova .vo-call-status[data-status="failed"] { color: var(--warn-txt); }
-.kova .vo-call-ms { margin-left: auto; font-size: var(--t-micro); color: var(--ink-dim); }
-.kova .vo-call-result { font-size: var(--t-micro); color: var(--ink-dim); max-width: 78ch; }
+.kova .vo-call-ms { margin-left: auto; font-size: var(--t-micro); color: var(--dim); }
+.kova .vo-call-result { font-size: var(--t-micro); color: var(--dim); max-width: 78ch; }
 
 /* Inference is separated from record so nobody quotes it as a number. */
 .kova .vo-inferred {
@@ -762,7 +762,7 @@
 .kova .vo-vgate-body { margin: 0; padding-left: var(--s-3); border-left: 2px solid var(--line-strong); color: var(--ink); }
 .kova .vo-vgate-effect { margin: 0; display: grid; gap: var(--s-2); }
 .kova .vo-vgate-effect > div { display: flex; gap: var(--s-2); flex-wrap: wrap; }
-.kova .vo-vgate-effect dt { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-dim); min-width: 12ch; }
+.kova .vo-vgate-effect dt { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); min-width: 12ch; }
 .kova .vo-vgate-effect dd { margin: 0; font-size: var(--t-body); color: var(--ink); }
 .kova .vo-vgate-actions { display: flex; gap: var(--s-2); }
 
@@ -772,12 +772,12 @@
   padding: var(--s-2) var(--s-3); border-radius: var(--r-md);
   border: 1px solid var(--line); background: var(--surface); color: var(--ink);
 }
-.kova .vo-input::placeholder { color: var(--ink-dim); }
+.kova .vo-input::placeholder { color: var(--dim); }
 
 .kova .vo-sight { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--s-2); }
 .kova .vo-sight-row { border-top: 1px solid var(--line); padding-top: var(--s-2); }
 .kova .vo-sight-name { display: flex; align-items: center; gap: var(--s-2); font-size: var(--t-body); color: var(--ink); }
-.kova .vo-sight-row[data-blocked="true"] .vo-sight-name { color: var(--ink-dim); }
+.kova .vo-sight-row[data-blocked="true"] .vo-sight-name { color: var(--dim); }
 .kova .vo-sight-flag {
   font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--err-txt); border: 1px dashed var(--err-txt); border-radius: var(--r-sm); padding: 0 6px;
@@ -789,7 +789,7 @@
   border: 1px solid var(--line); border-radius: var(--r-md);
   padding: var(--s-2) var(--s-3); background: transparent; cursor: pointer;
 }
-.kova .vo-starter:hover { border-color: var(--line-strong); }
+.kova .vo-starter:hover { border-color: var(--a-500); }
 
 @media (max-width: 900px) {
   .kova .vo-call-ms { margin-left: 0; }
@@ -821,16 +821,16 @@
 .kova .vo-signals { display: grid; gap: var(--s-2); }
 .kova .vo-signal { border-top: 1px solid var(--line); padding-top: var(--s-2); display: grid; gap: 4px; }
 .kova .vo-signal-head { display: flex; align-items: center; gap: var(--s-2); }
-.kova .vo-signal-name { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-dim); min-width: 9ch; }
+.kova .vo-signal-name { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); min-width: 9ch; }
 .kova .vo-signal-state { font-size: var(--t-micro); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ok-txt); }
 .kova .vo-signal-state[data-state="weak"] { color: var(--warn-txt); }
-.kova .vo-signal-state[data-state="silent"] { color: var(--ink-dim); }
+.kova .vo-signal-state[data-state="silent"] { color: var(--dim); }
 .kova .vo-signal-bar { margin-left: auto; width: 120px; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
 .kova .vo-signal-bar > span { display: block; height: 100%; background: var(--ok-txt); }
 .kova .vo-signal-bar > span[data-state="weak"] { background: var(--warn-txt); }
 .kova .vo-signal-bar > span[data-state="silent"] { background: transparent; }
 .kova .vo-signal-read { font-size: var(--t-body); color: var(--ink); }
-.kova .vo-signal[data-state="silent"] .vo-signal-read { color: var(--ink-dim); font-style: italic; }
+.kova .vo-signal[data-state="silent"] .vo-signal-read { color: var(--dim); font-style: italic; }
 
 .kova .vo-track { position: relative; height: 30px; }
 .kova .vo-track-axis { position: absolute; left: 0; right: 0; top: 13px; height: 1px; background: var(--line-strong); }
@@ -842,11 +842,11 @@
 .kova .vo-track-dot[data-channel="email"] { background: var(--ink-dim); }
 .kova .vo-track-dot[data-channel="call"] { background: var(--ink); }
 .kova .vo-track-dot[data-channel="event"] { background: var(--warn-txt); }
-.kova .vo-track-end { position: absolute; right: 0; top: 0; font-size: var(--t-micro); color: var(--ink-dim); }
+.kova .vo-track-end { position: absolute; right: 0; top: 0; font-size: var(--t-micro); color: var(--dim); }
 
 .kova .vo-tp { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
 .kova .vo-tp li { display: flex; gap: var(--s-2); font-size: var(--t-body); color: var(--ink); }
-.kova .vo-tp-when { font-size: var(--t-micro); color: var(--ink-dim); min-width: 5ch; }
+.kova .vo-tp-when { font-size: var(--t-micro); color: var(--dim); min-width: 5ch; }
 .kova .vo-crossref {
   border-left: 3px solid var(--warn-txt); padding: var(--s-2) var(--s-3);
   font-size: var(--t-body); color: var(--ink); max-width: 72ch;
@@ -855,7 +855,7 @@
 .kova .vo-found { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-2); }
 .kova .vo-found li { border-top: 1px solid var(--line); padding-top: var(--s-2); display: grid; gap: 2px; }
 .kova .vo-found-src { font-size: var(--t-body); color: var(--ink); }
-.kova .vo-found-what { font-size: var(--t-micro); color: var(--ink-dim); }
+.kova .vo-found-what { font-size: var(--t-micro); color: var(--dim); }
 .kova .vo-found-url { font-family: var(--font-mono, ui-monospace, monospace); }
 .kova .vo-nomatch { border: 1px dashed var(--warn-txt); border-radius: var(--r-md); padding: var(--s-3); display: grid; gap: 4px; }
 
@@ -865,7 +865,7 @@
 }
 .kova .vo-draft[data-stated="false"] { border-style: dashed; border-left-color: var(--warn-txt); }
 .kova .vo-draft-open { margin: 0; font-size: var(--t-body); color: var(--ink); font-weight: 600; }
-.kova .vo-draft-body { margin: 0; font-size: var(--t-body); color: var(--ink-dim); }
+.kova .vo-draft-body { margin: 0; font-size: var(--t-body); color: var(--dim); }
 
 /* ------------------------------------------------------------------ */
 /* Chat — three panes; under 1240px the thread replaces the messages.   */
@@ -886,7 +886,7 @@
 .kova .vo-chrow {
   width: 100%; display: flex; align-items: center; gap: var(--s-2);
   padding: 6px 8px; border-radius: var(--r-sm); background: transparent;
-  border: 1px solid transparent; color: var(--ink-dim); font: inherit; font-size: 13px; cursor: pointer;
+  border: 1px solid transparent; color: var(--dim); font: inherit; font-size: 13px; cursor: pointer;
 }
 .kova .vo-chrow:hover { background: var(--surface); color: var(--ink); }
 .kova .vo-chrow[aria-current="true"] { background: var(--surface); border-color: var(--line-strong); color: var(--ink); font-weight: 600; }
@@ -913,19 +913,19 @@
 .kova .vo-chmsg:hover .vo-chtime-hover { color: var(--ink-faint); }
 .kova .vo-chmsg-head { display: flex; align-items: baseline; gap: var(--s-2); }
 .kova .vo-chauthor { font-weight: 700; color: var(--ink); font-size: 13px; }
-.kova .vo-chagent { font-size: 10px; letter-spacing: .08em; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--ink-dim); }
+.kova .vo-chagent { font-size: 10px; letter-spacing: .08em; font-weight: 700; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--dim); }
 .kova .vo-chtime { font-size: 11px; color: var(--ink-faint); }
 .kova .vo-chtext { margin: 2px 0 0; color: var(--ink); line-height: 1.5; max-width: 74ch; white-space: pre-wrap; }
-.kova .vo-chdiff { margin: var(--s-2) 0; padding: var(--s-2); border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--line); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-x: auto; white-space: pre; color: var(--ink-dim); }
+.kova .vo-chdiff { margin: var(--s-2) 0; padding: var(--s-2); border-radius: var(--r-sm); background: var(--surface); border: 1px solid var(--line); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; overflow-x: auto; white-space: pre; color: var(--dim); }
 
 .kova .vo-chreacts { display: flex; gap: 4px; flex-wrap: wrap; margin-top: var(--s-2); }
-.kova .vo-chreact { display: inline-flex; gap: 4px; align-items: center; font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink-dim); cursor: pointer; }
+.kova .vo-chreact { display: inline-flex; gap: 4px; align-items: center; font-size: 11px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--dim); cursor: pointer; }
 .kova .vo-chreact[data-mine="true"] { border-color: var(--accent); color: var(--ink); }
 .kova .vo-chthreadlink { margin-top: var(--s-2); display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--accent); background: transparent; border: 0; padding: 0; cursor: pointer; }
 
 .kova .vo-chactions { position: absolute; top: -10px; right: 8px; display: none; align-items: center; gap: 4px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 2px; }
 .kova .vo-chmsg:hover .vo-chactions, .kova .vo-chmsg:focus-within .vo-chactions { display: flex; }
-.kova .vo-chaction { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 4px; border: 0; background: transparent; color: var(--ink-dim); cursor: pointer; }
+.kova .vo-chaction { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 4px; border: 0; background: transparent; color: var(--dim); cursor: pointer; }
 .kova .vo-chaction:hover { background: var(--bg); color: var(--ink); }
 .kova .vo-chpicker { display: flex; gap: 2px; }
 .kova .vo-chpicker button { border: 0; background: transparent; cursor: pointer; font-size: 14px; padding: 0 3px; }
@@ -940,13 +940,13 @@
 .kova .vo-thlist { display: flex; flex-direction: column; gap: 2px; max-height: 620px; overflow-y: auto; }
 .kova .vo-throw { display: flex; gap: var(--s-3); align-items: flex-start; text-align: left; padding: var(--s-3); border: 1px solid transparent; border-radius: var(--r-md); background: transparent; cursor: pointer; color: inherit; }
 .kova .vo-throw:hover { background: var(--surface); }
-.kova .vo-throw[data-active="true"] { background: var(--surface); border-color: var(--line-strong); }
+.kova .vo-throw[data-active="true"] { background: var(--surface); border-color: var(--a-500); }
 .kova .vo-thwith { font-size: 13px; font-weight: 700; color: var(--ink); }
 .kova .vo-thsubject { font-size: var(--t-meta); color: var(--ink); }
-.kova .vo-thpreview { font-size: var(--t-meta); color: var(--ink-dim); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.kova .vo-thpreview { font-size: var(--t-meta); color: var(--dim); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .kova .vo-thstate { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; font-weight: 700; color: var(--warn-txt); }
 .kova .vo-thstate[data-state="sent"] { color: var(--ok-txt); }
-.kova .vo-thstate[data-state="discarded"] { color: var(--ink-dim); }
+.kova .vo-thstate[data-state="discarded"] { color: var(--dim); }
 
 .kova .vo-thread { display: flex; flex-direction: column; gap: var(--s-3); max-height: 320px; overflow-y: auto; padding-right: var(--s-2); }
 .kova .vo-thmsg { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: var(--s-3); }
@@ -958,7 +958,7 @@
 .kova .vo-draft .vo-eyebrow { color: inherit; }
 .kova .vo-draft > .vo-between > .vo-row { color: var(--warn-txt); }
 .kova .vo-draft[data-state="sent"] > .vo-between > .vo-row { color: var(--ok-txt); }
-.kova .vo-draft[data-state="discarded"] > .vo-between > .vo-row { color: var(--ink-dim); }
+.kova .vo-draft[data-state="discarded"] > .vo-between > .vo-row { color: var(--dim); }
 .kova .vo-draftbody { margin: 0; white-space: pre-wrap; font-size: var(--t-body); line-height: 1.6; color: var(--ink); max-width: 72ch; }
 
 /* ------------------------------------------------------------------ */
@@ -967,9 +967,9 @@
 .kova .vo-week { display: grid; grid-template-columns: 62px repeat(5, minmax(0, 1fr)); gap: 0; }
 .kova .vo-week-gutter { display: grid; grid-template-rows: 26px repeat(7, 1fr); }
 .kova .vo-week-corner { height: 26px; }
-.kova .vo-week-hour { font-size: 11px; color: var(--ink-dim); padding-right: var(--s-2); text-align: right; transform: translateY(-6px); }
+.kova .vo-week-hour { font-size: 11px; color: var(--dim); padding-right: var(--s-2); text-align: right; transform: translateY(-6px); }
 .kova .vo-week-col { min-width: 0; border-left: 1px solid var(--line); }
-.kova .vo-week-day { height: 26px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--ink-dim); text-align: center; }
+.kova .vo-week-day { height: 26px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--dim); text-align: center; }
 .kova .vo-week-track { position: relative; height: 420px; display: grid; grid-template-rows: repeat(7, 1fr); }
 .kova .vo-week-slot { border-top: 1px solid var(--line); }
 .kova .vo-ev {
@@ -980,11 +980,11 @@
   border-left: 3px solid var(--line-strong);
 }
 .kova .vo-ev[data-conflict="true"] { border-style: dashed; border-color: var(--warn-txt); background: var(--warn-soft); }
-.kova .vo-ev-time { font-size: 10px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.kova .vo-ev-time { font-size: 10px; color: var(--dim); font-variant-numeric: tabular-nums; }
 .kova .vo-ev-title { font-size: 12px; font-weight: 600; color: var(--ink); line-height: 1.25; }
-.kova .vo-ev-where { font-size: 10px; color: var(--ink-dim); }
+.kova .vo-ev-where { font-size: 10px; color: var(--dim); }
 
-.kova .vo-calchip { font-size: 11px; padding: 3px 9px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: transparent; color: var(--ink-dim); cursor: pointer; }
+.kova .vo-calchip { font-size: 11px; padding: 3px 9px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: transparent; color: var(--dim); cursor: pointer; }
 .kova .vo-calchip[data-off="true"] { opacity: .45; text-decoration: line-through; }
 
 .kova .vo-conflicts { display: grid; gap: var(--s-3); }
@@ -997,35 +997,35 @@
 /* ------------------------------------------------------------------ */
 .kova .vo-linkbar { display: flex; gap: var(--s-3); flex-wrap: wrap; }
 .kova .vo-linkchip { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; text-align: left; padding: var(--s-3) var(--s-4); border-radius: var(--r-md); border: 1px solid var(--line); background: transparent; color: inherit; cursor: pointer; }
-.kova .vo-linkchip[data-active="true"] { background: var(--surface); border-color: var(--line-strong); }
+.kova .vo-linkchip[data-active="true"] { background: var(--surface); border-color: var(--a-500); }
 .kova .vo-linkchip-title { font-size: 13px; font-weight: 700; color: var(--ink); }
 
 .kova .vo-cfggrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-3); }
 .kova .vo-cfg { background: var(--inset); border-radius: var(--r-md); padding: var(--s-3); display: grid; gap: 3px; }
 .kova .vo-cfg-value { font-size: var(--t-body); font-weight: 600; color: var(--ink); }
-.kova .vo-rules { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: var(--t-meta); color: var(--ink-dim); line-height: 1.5; }
+.kova .vo-rules { margin: 0; padding-left: 18px; display: grid; gap: 5px; font-size: var(--t-meta); color: var(--dim); line-height: 1.5; }
 
 .kova .vo-browser { border-radius: var(--r-lg); border: 1px solid var(--line-strong); overflow: hidden; background: var(--bg); box-shadow: var(--shadow); }
 .kova .vo-browser-bar { display: flex; align-items: center; gap: var(--s-3); padding: 7px var(--s-3); background: var(--inset); border-bottom: 1px solid var(--line); }
 .kova .vo-browser-dots { display: inline-flex; gap: 4px; }
 .kova .vo-browser-dots i { width: 8px; height: 8px; border-radius: var(--r-pill); background: var(--line-strong); display: block; }
-.kova .vo-browser-url { flex: 1; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-dim); background: var(--surface); border-radius: var(--r-pill); padding: 3px 10px; }
-.kova .vo-browser-tag { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; font-weight: 700; color: var(--ink-dim); }
+.kova .vo-browser-url { flex: 1; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--dim); background: var(--surface); border-radius: var(--r-pill); padding: 3px 10px; }
+.kova .vo-browser-tag { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; font-weight: 700; color: var(--dim); }
 .kova .vo-browser-page { padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-3); }
 .kova .vo-guest-strip { height: 4px; border-radius: var(--r-pill); width: 46px; }
-.kova .vo-guest-host { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--ink-dim); }
+.kova .vo-guest-host { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; color: var(--dim); }
 .kova .vo-guest-title { margin: 0; font-family: var(--display); font-size: 19px; letter-spacing: -.02em; color: var(--ink); }
-.kova .vo-guest-meta { font-size: var(--t-meta); color: var(--ink-dim); }
+.kova .vo-guest-meta { font-size: var(--t-meta); color: var(--dim); }
 .kova .vo-guest-blurb { margin: 0; font-size: var(--t-body); line-height: 1.55; color: var(--ink); }
 .kova .vo-guest-slots { display: flex; flex-wrap: wrap; gap: var(--s-2); }
 .kova .vo-guest-slot { font-size: 12px; padding: 5px 11px; border-radius: var(--r-sm); border: 1px solid var(--line-strong); color: var(--ink); font-variant-numeric: tabular-nums; }
 .kova .vo-guest-cta { text-align: center; padding: 9px; border-radius: var(--r-md); color: var(--on-fill); font-weight: 700; font-size: 13px; }
-.kova .vo-guest-foot { font-size: 11px; color: var(--ink-dim); }
+.kova .vo-guest-foot { font-size: 11px; color: var(--dim); }
 
 .kova .vo-heat { display: grid; grid-template-columns: 44px repeat(8, minmax(0, 1fr)); gap: 3px; align-items: center; }
 .kova .vo-heat-corner { height: 18px; }
-.kova .vo-heat-hour { font-size: 9px; color: var(--ink-dim); text-align: center; letter-spacing: .02em; }
-.kova .vo-heat-day { font-size: 11px; font-weight: 700; color: var(--ink-dim); }
+.kova .vo-heat-hour { font-size: 9px; color: var(--dim); text-align: center; letter-spacing: .02em; }
+.kova .vo-heat-day { font-size: 11px; font-weight: 700; color: var(--dim); }
 .kova .vo-heat-cell { height: 26px; border-radius: var(--r-sm); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
 .kova .vo-heat-cell[data-empty="true"] { background: repeating-linear-gradient(45deg, var(--line) 0 3px, transparent 3px 6px); }
 .kova .vo-heat-n { font-size: 10px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -1046,12 +1046,12 @@
 .kova .vo-flip-back { transform: rotateY(180deg); align-items: center; justify-content: center; gap: var(--s-3); }
 .kova .vo-card-name { font-family: var(--display); font-size: 22px; letter-spacing: -.02em; font-weight: 700; color: var(--ink); }
 .kova .vo-card-role { font-size: var(--t-meta); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
-.kova .vo-card-tag { font-size: var(--t-meta); color: var(--ink-dim); }
+.kova .vo-card-tag { font-size: var(--t-meta); color: var(--dim); }
 .kova .vo-card-lines { display: grid; gap: 4px; margin-top: auto; font-size: var(--t-meta); color: var(--ink); }
 .kova .vo-card-lines span { display: inline-flex; align-items: center; gap: 6px; }
-.kova .vo-card-hint { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); }
+.kova .vo-card-hint { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
 .kova .vo-qr { background: var(--qr-paper); padding: 8px; border-radius: var(--r-sm); display: inline-flex; }
-.kova .vo-card-url { font-size: 11px; color: var(--ink-dim); }
+.kova .vo-card-url { font-size: 11px; color: var(--dim); }
 
 .kova .vo-scanlist { display: grid; gap: var(--s-3); }
 .kova .vo-scan { display: grid; gap: 4px; }
@@ -1306,3 +1306,28 @@ button.vo-datamode { cursor: pointer; }
 }
 .kova .ai-draft-head { display: flex; align-items: center; gap: var(--s-2); }
 .kova .ai-draft-note { font-size: var(--t-meta); color: var(--ai-txt); text-transform: lowercase; }
+
+/* ---- Capability model: gates, source cards, coverage bar ------------- */
+.kova .vo-gate-empty {
+  border-style: dashed;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+}
+.kova .vo-gate-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.kova .vo-gate-note { color: var(--dim); }
+.kova .vo-source-card[data-on="true"] { border-color: var(--a-500); }
+.kova .vo-progress {
+  background: var(--inset);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  height: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+.kova .vo-progress-fill {
+  background: var(--a-500);
+  height: 100%;
+  transition: width 160ms ease;
+}

@@ -1,5 +1,6 @@
-import { EMAIL, DUE, EVENTS, MISSING_SOURCES, Proposal, byScope } from "@/data/mock";
+import { EMAIL, DUE, EVENTS, Proposal, byScope } from "@/data/mock";
 import { Eyebrow, Tag } from "@/components/primitives";
+import { useCapability } from "@/lib/sources";
 
 /**
  * Daily brief — the first thing on the page, full width.
@@ -113,6 +114,12 @@ export const DailyBrief = ({
   const events = byScope(EVENTS, scope);
   const pending = proposals.filter((p) => p.status === "pending");
 
+  /* What the brief could not see. Read from the same capability map the
+     widgets use, so it can never drift from what is actually connected. */
+  const { missingRequired, missingOptional } = useCapability("brief");
+  const blind = [...missingRequired, ...missingOptional];
+
+
   const lead = pickLead(proposals, email, due, events);
   const longest = [...email].sort((a, b) => b.waitingDays - a.waitingDays)[0];
   const dueToday = due.filter((t) => t.dueToday);
@@ -165,8 +172,9 @@ export const DailyBrief = ({
       {/* What was missing. A brief that silently drops a dead source reads
           as complete, which is the failure mode worth designing against. */}
       <p className="vo-meta vo-brief-foot">
-        Not included:{" "}
-        {MISSING_SOURCES.map((s) => `${s.name} — ${s.reason}`).join(" · ")}
+        {blind.length === 0
+          ? "Everything this brief reads from is connected."
+          : `Not included: ${blind.map((s) => s.name).join(", ")} — not connected.`}
       </p>
     </section>
   );
