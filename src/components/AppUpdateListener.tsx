@@ -70,14 +70,9 @@ export function AppUpdateListener() {
         <div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 600 }}>
           A new update is available
         </div>
-        {pending.notes && (
-          <div
-            className="t-mono"
-            style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}
-          >
-            {pending.notes}
-          </div>
-        )}
+        <div className="t-mono" style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 2 }}>
+          v{pending.version}
+        </div>
       </div>
       <button
         className="btn-primary"
