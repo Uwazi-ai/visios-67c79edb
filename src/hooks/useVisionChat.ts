@@ -284,8 +284,9 @@ export function useVisionChat(scopeOrgId: string | null) {
       .from("proposals")
       .update({
         status: "committed",
-        committed_at: new Date().toISOString(),
-        committed_by: auth?.user?.id ?? null,
+        decided_at: new Date().toISOString(),
+        decided_by: auth?.user?.id ?? null,
+
       })
       .eq("id", id);
     setProposals((prev) => (prev[id] ? { ...prev, [id]: { ...prev[id], status: "committed" } as any } : prev));
