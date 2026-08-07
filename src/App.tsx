@@ -52,7 +52,14 @@ const App = () => (
               <Route path="/about" element={<AboutPage />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/os" element={<OS />} />
+              <Route
+                path="/os"
+                element={
+                  <RequireAuth>
+                    <OS />
+                  </RequireAuth>
+                }
+              />
               <Route path="/dashboard" element={<Navigate to="/os" replace />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
