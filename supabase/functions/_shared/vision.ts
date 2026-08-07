@@ -250,6 +250,36 @@ export async function assembleContext(opts: {
     }
   }
 
+  /* Drive references shared into this conversation. Content is read only when
+     the type is text-extractable and the sharer's token still works, and it
+     enters the bundle fenced — a shared Doc can carry injected instructions as
+     easily as an email, and it looks more authoritative while doing it. */
+  if (opts.conversationId) {
+    const { data: driveRefs } = await db
+      .from("drive_references")
+      .select("id,org_id,file_name,mime_type,web_view_link,owner_email,externally_owned,status,shared_by")
+      .eq("conversation_id", opts.conversationId)
+      .order("created_at", { ascending: true })
+      .limit(10);
+
+    if (driveRefs?.length) {
+      lines.push("\nGOOGLE DRIVE FILES SHARED IN THIS CONVERSATION:");
+      for (const d of driveRefs) {
+        refs.push({ kind: "drive", id: d.id, label: d.file_name, org_id: d.org_id });
+        lines.push(
+          `- [${orgName(d.org_id)}] ${d.file_name} · ${d.mime_type}${d.externally_owned ? " · OWNED OUTSIDE THIS ORGANIZATION" : ""}`,
+        );
+        if (d.status !== "ok" || !visionCanRead(d.mime_type)) {
+          lines.push("  (content not read — say so rather than answering about it)");
+          continue;
+        }
+        const text = await readDriveText(d.file_id ?? "", d.mime_type, d.shared_by);
+        if (text) lines.push(untrusted(`drive:${d.id}`, text));
+        else lines.push("  (content could not be read this turn)");
+      }
+    }
+  }
+
   if (unreadable.length) {
     lines.push(
       `\nUNREADABLE THIS TURN: ${unreadable.join(", ")}. Say so if the answer depends on them; do not fill the gap with an estimate.`,
@@ -258,3 +288,4 @@ export async function assembleContext(opts: {
 
   return { text: lines.join("\n"), refs, orgNames };
 }
+
