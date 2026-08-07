@@ -11,8 +11,12 @@ export interface TemplateEntry {
 
 import { template as orgInvite } from './org-invite.tsx'
 import { template as calendarConnectInvite } from './calendar-connect-invite.tsx'
+import { template as notification } from './notification.tsx'
+import { template as notificationDigest } from './notification-digest.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'org-invite': orgInvite,
   'calendar-connect-invite': calendarConnectInvite,
+  'notification': notification,
+  'notification-digest': notificationDigest,
 }
