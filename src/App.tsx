@@ -20,6 +20,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import OAuthConsent from "./pages/OAuthConsent";
 import Onboarding from "./pages/Onboarding";
 import OS from "./pages/OS";
+import { RequireAuth } from "@/components/RequireAuth";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { AppUpdateListener } from "@/components/AppUpdateListener";
