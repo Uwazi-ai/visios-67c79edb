@@ -116,6 +116,30 @@ const Chat = () => {
   const [review, setReview] = useState<PendingProposal | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const drive = useDriveReferences(vc.activeId);
+  const [driveFolder, setDriveFolder] = useState<string | null>(null);
+  const [createdNotes, setCreatedNotes] = useState<Record<string, string>>({});
+
+  /* Drive attach is only offered where the file has somewhere to land. */
+  useEffect(() => {
+    let cancelled = false;
+    if (!scopeOrgId) {
+      setDriveFolder(null);
+      return;
+    }
+    void supabase
+      .from("orgs")
+      .select("drive_folder_id")
+      .eq("id", scopeOrgId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setDriveFolder((data as { drive_folder_id?: string | null })?.drive_folder_id ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [scopeOrgId]);
+
 
   const active = vc.conversations.find((c) => c.id === vc.activeId) ?? null;
   const personaKey = active?.persona_key ?? "chief_of_staff";
