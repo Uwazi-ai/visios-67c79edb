@@ -20,6 +20,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import OAuthConsent from "./pages/OAuthConsent";
 import Onboarding from "./pages/Onboarding";
 import OS from "./pages/OS";
+import { RequireAuth } from "@/components/RequireAuth";
 
 import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { AppUpdateListener } from "@/components/AppUpdateListener";
@@ -52,7 +53,14 @@ const App = () => (
               <Route path="/about" element={<AboutPage />} />
               <Route path="/blog" element={<BlogPage />} />
               <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/os" element={<OS />} />
+              <Route
+                path="/os"
+                element={
+                  <RequireAuth>
+                    <OS />
+                  </RequireAuth>
+                }
+              />
               <Route path="/dashboard" element={<Navigate to="/os" replace />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/book/:username/:slug" element={<BookingPublic />} />
