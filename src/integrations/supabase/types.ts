@@ -2485,6 +2485,226 @@ export type Database = {
           },
         ]
       }
+      mail_accounts: {
+        Row: {
+          connected_by: string
+          created_at: string
+          delta_token: string | null
+          display_name: string | null
+          email_address: string
+          history_id: string | null
+          id: string
+          last_error: string | null
+          last_sync_at: string | null
+          org_id: string
+          provider: string
+          status: Database["public"]["Enums"]["connection_status"]
+        }
+        Insert: {
+          connected_by: string
+          created_at?: string
+          delta_token?: string | null
+          display_name?: string | null
+          email_address: string
+          history_id?: string | null
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          org_id: string
+          provider?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+        }
+        Update: {
+          connected_by?: string
+          created_at?: string
+          delta_token?: string | null
+          display_name?: string | null
+          email_address?: string
+          history_id?: string | null
+          id?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          org_id?: string
+          provider?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mail_accounts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mail_accounts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mail_category_rules: {
+        Row: {
+          category: Database["public"]["Enums"]["message_category"]
+          created_at: string
+          id: string
+          is_active: boolean
+          match_type: string
+          match_value: string
+          org_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["message_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          match_type: string
+          match_value: string
+          org_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["message_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          match_type?: string
+          match_value?: string
+          org_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mail_category_rules_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mail_category_rules_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mail_messages: {
+        Row: {
+          body_cached_at: string | null
+          body_html: string | null
+          body_text: string | null
+          categorized_at: string | null
+          category: Database["public"]["Enums"]["message_category"]
+          category_confidence: number | null
+          category_source: Database["public"]["Enums"]["category_source"]
+          cc_addresses: string[]
+          created_at: string
+          from_address: string
+          from_name: string | null
+          gmail_labels: string[]
+          has_attachments: boolean
+          id: string
+          is_starred: boolean
+          is_unread: boolean
+          mail_account_id: string
+          needs_reply: boolean
+          org_id: string
+          provider_message_id: string
+          provider_thread_id: string
+          received_at: string
+          snippet: string | null
+          subject: string | null
+          to_addresses: string[]
+          triage_status: Database["public"]["Enums"]["triage_status"]
+          triaged_at: string | null
+          triaged_by: string | null
+        }
+        Insert: {
+          body_cached_at?: string | null
+          body_html?: string | null
+          body_text?: string | null
+          categorized_at?: string | null
+          category?: Database["public"]["Enums"]["message_category"]
+          category_confidence?: number | null
+          category_source?: Database["public"]["Enums"]["category_source"]
+          cc_addresses?: string[]
+          created_at?: string
+          from_address: string
+          from_name?: string | null
+          gmail_labels?: string[]
+          has_attachments?: boolean
+          id?: string
+          is_starred?: boolean
+          is_unread?: boolean
+          mail_account_id: string
+          needs_reply?: boolean
+          org_id: string
+          provider_message_id: string
+          provider_thread_id: string
+          received_at: string
+          snippet?: string | null
+          subject?: string | null
+          to_addresses?: string[]
+          triage_status?: Database["public"]["Enums"]["triage_status"]
+          triaged_at?: string | null
+          triaged_by?: string | null
+        }
+        Update: {
+          body_cached_at?: string | null
+          body_html?: string | null
+          body_text?: string | null
+          categorized_at?: string | null
+          category?: Database["public"]["Enums"]["message_category"]
+          category_confidence?: number | null
+          category_source?: Database["public"]["Enums"]["category_source"]
+          cc_addresses?: string[]
+          created_at?: string
+          from_address?: string
+          from_name?: string | null
+          gmail_labels?: string[]
+          has_attachments?: boolean
+          id?: string
+          is_starred?: boolean
+          is_unread?: boolean
+          mail_account_id?: string
+          needs_reply?: boolean
+          org_id?: string
+          provider_message_id?: string
+          provider_thread_id?: string
+          received_at?: string
+          snippet?: string | null
+          subject?: string | null
+          to_addresses?: string[]
+          triage_status?: Database["public"]["Enums"]["triage_status"]
+          triaged_at?: string | null
+          triaged_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mail_messages_mail_account_id_fkey"
+            columns: ["mail_account_id"]
+            isOneToOne: false
+            referencedRelation: "mail_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mail_messages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mail_messages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mcp_approvals: {
         Row: {
           created_at: string
@@ -4846,8 +5066,17 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
+      category_source: "pending" | "ai" | "user" | "rule"
       connection_status: "connected" | "disconnected" | "error" | "expired"
+      message_category:
+        | "urgent"
+        | "meetings"
+        | "transactions"
+        | "outreach"
+        | "marketing"
+        | "uncategorized"
       proposal_status: "pending" | "committed" | "dismissed" | "expired"
+      triage_status: "inbox" | "needs_reply" | "waiting" | "done" | "archived"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4976,8 +5205,18 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
+      category_source: ["pending", "ai", "user", "rule"],
       connection_status: ["connected", "disconnected", "error", "expired"],
+      message_category: [
+        "urgent",
+        "meetings",
+        "transactions",
+        "outreach",
+        "marketing",
+        "uncategorized",
+      ],
       proposal_status: ["pending", "committed", "dismissed", "expired"],
+      triage_status: ["inbox", "needs_reply", "waiting", "done", "archived"],
     },
   },
 } as const
