@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
   if (!key) return jsonResponse({ error: "Vision is not configured" }, 500);
 
   const persona = await loadPersona((convo as any).persona_key ?? "chief_of_staff", scopeOrgId);
-  const ctx = await assembleContext({ userId: user.id, orgIds, scopeOrgId, question: message });
+  const ctx = await assembleContext({ userId: user.id, orgIds, scopeOrgId, question: message, conversationId });
 
   /* Persist the operator's turn before the model runs: a failed generation
      must not lose what the person typed. */

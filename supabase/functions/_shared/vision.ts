@@ -2,6 +2,7 @@
 // boundary. Everything here runs server-side; no persona text or key reaches
 // the browser.
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { getFreshGoogleAccessToken } from "./google.ts";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -108,11 +109,12 @@ export function untrusted(label: string, body: string): string {
  * ------------------------------------------------------------------ */
 
 export interface ContextRef {
-  kind: "mail" | "event" | "task" | "proposal" | "contact" | "org";
+  kind: "mail" | "event" | "task" | "proposal" | "contact" | "org" | "drive";
   id: string;
   label: string;
   org_id: string | null;
 }
+
 
 export interface AssembledContext {
   text: string;
@@ -132,8 +134,10 @@ export async function assembleContext(opts: {
   orgIds: string[];
   scopeOrgId: string | null;
   question: string;
+  conversationId?: string | null;
 }): Promise<AssembledContext> {
   const db = admin();
+
   const ids = opts.scopeOrgId ? [opts.scopeOrgId] : opts.orgIds;
   if (ids.length === 0) {
     return { text: "The operator belongs to no organizations yet.", refs: [], orgNames: {} };
@@ -247,6 +251,36 @@ export async function assembleContext(opts: {
     }
   }
 
+  /* Drive references shared into this conversation. Content is read only when
+     the type is text-extractable and the sharer's token still works, and it
+     enters the bundle fenced — a shared Doc can carry injected instructions as
+     easily as an email, and it looks more authoritative while doing it. */
+  if (opts.conversationId) {
+    const { data: driveRefs } = await db
+      .from("drive_references")
+      .select("id,org_id,file_id,file_name,mime_type,web_view_link,owner_email,externally_owned,status,shared_by")
+      .eq("conversation_id", opts.conversationId)
+      .order("created_at", { ascending: true })
+      .limit(10);
+
+    if (driveRefs?.length) {
+      lines.push("\nGOOGLE DRIVE FILES SHARED IN THIS CONVERSATION:");
+      for (const d of driveRefs) {
+        refs.push({ kind: "drive", id: d.id, label: d.file_name, org_id: d.org_id });
+        lines.push(
+          `- [${orgName(d.org_id)}] ${d.file_name} · ${d.mime_type}${d.externally_owned ? " · OWNED OUTSIDE THIS ORGANIZATION" : ""}`,
+        );
+        if (d.status !== "ok" || !visionCanRead(d.mime_type)) {
+          lines.push("  (content not read — say so rather than answering about it)");
+          continue;
+        }
+        const text = await readDriveText(d.file_id ?? "", d.mime_type, d.shared_by);
+        if (text) lines.push(untrusted(`drive:${d.id}`, text));
+        else lines.push("  (content could not be read this turn)");
+      }
+    }
+  }
+
   if (unreadable.length) {
     lines.push(
       `\nUNREADABLE THIS TURN: ${unreadable.join(", ")}. Say so if the answer depends on them; do not fill the gap with an estimate.`,
@@ -254,4 +288,41 @@ export async function assembleContext(opts: {
   }
 
   return { text: lines.join("\n"), refs, orgNames };
+}
+
+
+/* ------------------------------------------------------------------ *
+ * Drive content — read only what can honestly be read
+ * ------------------------------------------------------------------ */
+
+const DRIVE_EXTRACTABLE = new Set([
+  "application/vnd.google-apps.document",
+  "application/vnd.google-apps.spreadsheet",
+  "application/vnd.google-apps.presentation",
+  "application/pdf",
+  "text/plain",
+  "text/csv",
+  "text/markdown",
+]);
+
+export const visionCanRead = (mime: string) =>
+  DRIVE_EXTRACTABLE.has(mime) || mime.startsWith("text/");
+
+/** Uses the sharer's token. If it can't read the file, Vision says it can't. */
+export async function readDriveText(fileId: string, mimeType: string, sharedBy: string) {
+  if (!fileId) return null;
+  let token: string;
+  try {
+    token = await getFreshGoogleAccessToken(sharedBy);
+  } catch {
+    return null;
+  }
+  const exportMime = mimeType.includes("spreadsheet") ? "text/csv" : "text/plain";
+  const url = mimeType.startsWith("application/vnd.google-apps")
+    ? `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=${encodeURIComponent(exportMime)}&supportsAllDrives=true`
+    : `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) return null;
+  const text = await r.text();
+  return text.slice(0, 4000);
 }

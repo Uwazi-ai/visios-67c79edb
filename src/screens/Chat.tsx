@@ -5,7 +5,13 @@ import { Button, Desc, Eyebrow, SectionHead } from "@/components/primitives";
 import { ProposalDrawer, agentLabel } from "@/components/dashboard/ProposalDrawer";
 import { useWorkspaceScope } from "@/lib/WorkspaceScope";
 import { useVisionChat, type ChatMessage } from "@/hooks/useVisionChat";
+import { useDriveReferences } from "@/hooks/useDriveReferences";
+import { DriveCard } from "@/components/chat/DriveCard";
+import { DriveAttachMenu } from "@/components/chat/DriveAttachMenu";
+import { firstDriveUrl } from "@/data/driveMarks";
+import { supabase } from "@/integrations/supabase/client";
 import type { PendingProposal } from "@/hooks/useDashboardSummary";
+
 
 /**
  * Chat — the conversational surface of Vision by Kova.
@@ -110,6 +116,30 @@ const Chat = () => {
   const [review, setReview] = useState<PendingProposal | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const drive = useDriveReferences(vc.activeId);
+  const [driveFolder, setDriveFolder] = useState<string | null>(null);
+  const [createdNotes, setCreatedNotes] = useState<Record<string, string>>({});
+
+  /* Drive attach is only offered where the file has somewhere to land. */
+  useEffect(() => {
+    let cancelled = false;
+    if (!scopeOrgId) {
+      setDriveFolder(null);
+      return;
+    }
+    void supabase
+      .from("orgs")
+      .select("drive_folder_id")
+      .eq("id", scopeOrgId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setDriveFolder((data as { drive_folder_id?: string | null })?.drive_folder_id ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [scopeOrgId]);
+
 
   const active = vc.conversations.find((c) => c.id === vc.activeId) ?? null;
   const personaKey = active?.persona_key ?? "chief_of_staff";
@@ -134,18 +164,54 @@ const Chat = () => {
     [vc.conversations],
   );
 
+  const ensureConversation = async () => {
+    if (vc.activeId) return vc.activeId;
+    const convo = await vc.newConversation(personaKey);
+    return convo?.id ?? null;
+  };
+
   const ask = async (text: string) => {
     const body = text.trim();
     if (!body) return;
-    let id = vc.activeId;
-    if (!id) {
-      const convo = await vc.newConversation(personaKey);
-      if (!convo) return;
-      id = convo.id;
+    const id = await ensureConversation();
+    if (!id) return;
+
+    /* A Drive link is a reference, not an unfurl — unfurling one returns a
+       Google sign-in page. */
+    const link = firstDriveUrl(body);
+    if (link) {
+      setDraft("");
+      await drive.addFromUrl(link);
+      const rest = body.replace(link, "").trim();
+      if (!rest) return;
+      await vc.send(id, rest);
+      return;
     }
+
     setDraft("");
     await vc.send(id, body);
   };
+
+  const attachPicked = async (files: { id: string; name: string; mimeType: string; url: string }[]) => {
+    if (!(await ensureConversation())) return;
+    for (const f of files) await drive.addFromPicker(f);
+  };
+
+  const createDoc = async (type: "document" | "spreadsheet" | "presentation") => {
+    if (!(await ensureConversation())) return;
+    const title = window.prompt("Name this file", active?.title ?? "Untitled");
+    if (title === null) return;
+    const res = await drive.createDoc(type, title || "Untitled");
+    if (res?.reference) {
+      setCreatedNotes((n) => ({
+        ...n,
+        [res.reference.id]: `Created in ${res.org_name}${
+          res.shared_with.length ? ` · shared with ${res.shared_with.join(", ")}` : " · not shared with anyone yet"
+        }`,
+      }));
+    }
+  };
+
 
   return (
     <div>
@@ -289,6 +355,23 @@ const Chat = () => {
             {vc.error ? <div className="vc-err">{vc.error}</div> : null}
           </div>
 
+          {drive.refs.length ? (
+            <div className="vc-drive-tray">
+              {drive.refs.map((r) => (
+                <DriveCard
+                  key={r.id}
+                  reference={r}
+                  access={drive.access[r.id]}
+                  createdNote={createdNotes[r.id]}
+                  onCheck={() => void drive.checkAccess(r.id)}
+                  onGrant={(emails, role) => drive.grantAccess(r.id, emails, role)}
+                  onRemove={() => void drive.removeRef(r.id)}
+                />
+              ))}
+              {drive.error ? <div className="vc-err">{drive.error}</div> : null}
+            </div>
+          ) : null}
+
           <form
             className="vc-composer"
             onSubmit={(e) => {
@@ -312,6 +395,15 @@ const Chat = () => {
               aria-label="Ask Vision"
             />
             <div className="vc-composer-foot">
+              <DriveAttachMenu
+                driveReady={!!scopeOrgId && !!driveFolder}
+                onPicked={(files) => void attachPicked(files)}
+                onPasteRequest={() => {
+                  const url = window.prompt("Paste a Google Drive link");
+                  if (url) void ask(url);
+                }}
+                onCreate={(t) => void createDoc(t)}
+              />
               {vc.streaming ? (
                 <Button variant="quiet" onClick={vc.stop}>
                   Stop
@@ -320,6 +412,7 @@ const Chat = () => {
               <Button onClick={() => ask(draft)} disabled={!draft.trim() || vc.streaming}>
                 Ask
               </Button>
+
             </div>
           </form>
         </section>
