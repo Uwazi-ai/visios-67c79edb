@@ -34,7 +34,7 @@ export const EventDetail = ({
             ))}
             <Eyebrow>{event.org_ids.map(orgName).join(" + ")}</Eyebrow>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
+          <Button variant="quiet" size="sm" onClick={onClose}>Close</Button>
         </div>
 
         <h3 className="vo-title">{event.title ?? "(untitled)"}</h3>
@@ -70,9 +70,9 @@ export const EventDetail = ({
         {event.location ? <span className="vo-meta">{event.location}</span> : null}
 
         <div className="cal-rsvp">
-          <Button size="sm" variant={event.self_response === "accepted" ? "primary" : "ghost"} onClick={() => onRsvp("accepted")}>Yes</Button>
-          <Button size="sm" variant={event.self_response === "tentative" ? "primary" : "ghost"} onClick={() => onRsvp("tentative")}>Maybe</Button>
-          <Button size="sm" variant={event.self_response === "declined" ? "primary" : "ghost"} onClick={() => onRsvp("declined")}>No</Button>
+          <Button size="sm" variant={event.self_response === "accepted" ? "primary" : "quiet"} onClick={() => onRsvp("accepted")}>Yes</Button>
+          <Button size="sm" variant={event.self_response === "tentative" ? "primary" : "quiet"} onClick={() => onRsvp("tentative")}>Maybe</Button>
+          <Button size="sm" variant={event.self_response === "declined" ? "primary" : "quiet"} onClick={() => onRsvp("declined")}>No</Button>
         </div>
 
         {event.attendees.length > 0 && (
@@ -97,7 +97,7 @@ export const EventDetail = ({
           {!brief && (
             <>
               <Desc>What Google cannot tell you: the thread, the open task, and what you promised last time.</Desc>
-              <Button size="sm" variant="ghost" onClick={onBrief}>Prepare me for this</Button>
+              <Button size="sm" variant="quiet" onClick={onBrief}>Prepare me for this</Button>
             </>
           )}
           {brief?.status === "generating" && <span className="vo-meta" style={{ color: "var(--ai-txt)" }}>Assembling…</span>}
@@ -159,7 +159,7 @@ export const HoldDetail = ({
       <div className="cal-detail">
         <div className="vo-between">
           <span className="ai-mark">Proposed hold</span>
-          <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
+          <Button variant="quiet" size="sm" onClick={onClose}>Close</Button>
         </div>
         <h3 className="vo-title">{hold.title}</h3>
         <span className="vo-meta">
@@ -186,7 +186,7 @@ export const HoldDetail = ({
             size="sm"
             onClick={onCommit}
           />
-          <Button size="sm" variant="ghost" onClick={onDismiss}>Dismiss</Button>
+          <Button size="sm" variant="quiet" onClick={onDismiss}>Dismiss</Button>
         </div>
       </div>
     </Card>
