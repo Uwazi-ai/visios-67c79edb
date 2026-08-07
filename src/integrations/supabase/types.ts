@@ -745,6 +745,7 @@ export type Database = {
       }
       connections: {
         Row: {
+          connected_by: string | null
           created_at: string
           id: string
           last_error: string | null
@@ -755,6 +756,7 @@ export type Database = {
           status: Database["public"]["Enums"]["connection_status"]
         }
         Insert: {
+          connected_by?: string | null
           created_at?: string
           id?: string
           last_error?: string | null
@@ -765,6 +767,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["connection_status"]
         }
         Update: {
+          connected_by?: string | null
           created_at?: string
           id?: string
           last_error?: string | null
@@ -3410,6 +3413,161 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          attempts: number
+          channel: string
+          created_at: string
+          error: string | null
+          event_id: string
+          id: string
+          provider_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["delivery_status"]
+        }
+        Insert: {
+          attempts?: number
+          channel?: string
+          created_at?: string
+          error?: string | null
+          event_id: string
+          id?: string
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+        }
+        Update: {
+          attempts?: number
+          channel?: string
+          created_at?: string
+          error?: string | null
+          event_id?: string
+          id?: string
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "notification_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_events: {
+        Row: {
+          actor_id: string | null
+          body: string | null
+          created_at: string
+          deep_link: string
+          dismissed_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          event_type: Database["public"]["Enums"]["notification_event_type"]
+          id: string
+          org_id: string | null
+          read_at: string | null
+          recipient_id: string
+          title: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          deep_link?: string
+          dismissed_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type: Database["public"]["Enums"]["notification_event_type"]
+          id?: string
+          org_id?: string | null
+          read_at?: string | null
+          recipient_id: string
+          title: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string | null
+          created_at?: string
+          deep_link?: string
+          dismissed_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type?: Database["public"]["Enums"]["notification_event_type"]
+          id?: string
+          org_id?: string | null
+          read_at?: string | null
+          recipient_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email: Database["public"]["Enums"]["delivery_mode"]
+          event_type: Database["public"]["Enums"]["notification_event_type"]
+          id: string
+          in_app: boolean
+          org_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: Database["public"]["Enums"]["delivery_mode"]
+          event_type: Database["public"]["Enums"]["notification_event_type"]
+          id?: string
+          in_app?: boolean
+          org_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: Database["public"]["Enums"]["delivery_mode"]
+          event_type?: Database["public"]["Enums"]["notification_event_type"]
+          id?: string
+          in_app?: boolean
+          org_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           acknowledged_at: string | null
@@ -3471,6 +3629,60 @@ export type Database = {
           },
           {
             foreignKeyName: "notifications_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          org_id: string
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          token_hash: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          org_id: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token_hash: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          org_id?: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invitations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_invitations_org_id_fkey"
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "orgs_public"
@@ -3677,6 +3889,7 @@ export type Database = {
           slug: string
           stage_labels: Json
           status: string
+          storage_bytes_used: number
           subscription_status: string
           subscription_tier: string
           success_definition: string | null
@@ -3713,6 +3926,7 @@ export type Database = {
           slug: string
           stage_labels?: Json
           status?: string
+          storage_bytes_used?: number
           subscription_status?: string
           subscription_tier?: string
           success_definition?: string | null
@@ -3749,6 +3963,7 @@ export type Database = {
           slug?: string
           stage_labels?: Json
           status?: string
+          storage_bytes_used?: number
           subscription_status?: string
           subscription_tier?: string
           success_definition?: string | null
@@ -4030,6 +4245,48 @@ export type Database = {
           },
         ]
       }
+      proposal_expiry_policies: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          org_id: string | null
+          ttl_hours: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          org_id?: string | null
+          ttl_hours?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          org_id?: string | null
+          ttl_hours?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_expiry_policies_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposal_expiry_policies_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       proposals: {
         Row: {
           agent_key: string
@@ -4037,6 +4294,8 @@ export type Database = {
           created_at: string
           decided_at: string | null
           decided_by: string | null
+          expired_at: string | null
+          expiring_notified_at: string | null
           id: string
           kind: string
           org_id: string
@@ -4052,6 +4311,8 @@ export type Database = {
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
+          expired_at?: string | null
+          expiring_notified_at?: string | null
           id?: string
           kind: string
           org_id: string
@@ -4067,6 +4328,8 @@ export type Database = {
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
+          expired_at?: string | null
+          expiring_notified_at?: string | null
           id?: string
           kind?: string
           org_id?: string
@@ -4594,6 +4857,7 @@ export type Database = {
           id: string
           name: string
           org_id: string | null
+          size_bytes: number
           source: string
           task_id: string
           url: string
@@ -4605,6 +4869,7 @@ export type Database = {
           id?: string
           name: string
           org_id?: string | null
+          size_bytes?: number
           source?: string
           task_id: string
           url: string
@@ -4616,6 +4881,7 @@ export type Database = {
           id?: string
           name?: string
           org_id?: string | null
+          size_bytes?: number
           source?: string
           task_id?: string
           url?: string
@@ -5412,6 +5678,7 @@ export type Database = {
           slug: string
           stage_labels: Json
           status: string
+          storage_bytes_used: number
           subscription_status: string
           subscription_tier: string
           success_definition: string | null
@@ -5451,6 +5718,7 @@ export type Database = {
           overlap_start: string
         }[]
       }
+      get_usage_summary: { Args: { p_org_id?: string }; Returns: Json }
       has_org_role: {
         Args: {
           _org_id: string
@@ -5515,6 +5783,7 @@ export type Database = {
           slug: string
           stage_labels: Json
           status: string
+          storage_bytes_used: number
           subscription_status: string
           subscription_tier: string
           success_definition: string | null
@@ -5618,6 +5887,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      recompute_org_storage: { Args: never; Returns: undefined }
       recount_org_usage: { Args: { _org_id: string }; Returns: undefined }
       search_kb_text: {
         Args: {
@@ -5642,6 +5912,8 @@ export type Database = {
       chat_message_status: "streaming" | "complete" | "aborted" | "failed"
       chat_role: "user" | "assistant" | "system"
       connection_status: "connected" | "disconnected" | "error" | "expired"
+      delivery_mode: "off" | "immediate" | "digest"
+      delivery_status: "pending" | "sent" | "failed" | "suppressed"
       drive_ref_source: "picker" | "pasted" | "created"
       drive_ref_status: "ok" | "no_access" | "not_found" | "unenriched"
       event_source: "synced" | "kova" | "proposal"
@@ -5654,6 +5926,19 @@ export type Database = {
         | "outreach"
         | "marketing"
         | "uncategorized"
+      notification_event_type:
+        | "dm_received"
+        | "mention"
+        | "proposal_pending"
+        | "proposal_expiring"
+        | "task_assigned"
+        | "task_due"
+        | "meeting_soon"
+        | "meeting_brief_ready"
+        | "connection_failed"
+        | "connection_expired"
+        | "member_joined"
+        | "quota_warning"
       proposal_status: "pending" | "committed" | "dismissed" | "expired"
       rsvp_status: "needsAction" | "accepted" | "declined" | "tentative"
       triage_status: "inbox" | "needs_reply" | "waiting" | "done" | "archived"
@@ -5790,6 +6075,8 @@ export const Constants = {
       chat_message_status: ["streaming", "complete", "aborted", "failed"],
       chat_role: ["user", "assistant", "system"],
       connection_status: ["connected", "disconnected", "error", "expired"],
+      delivery_mode: ["off", "immediate", "digest"],
+      delivery_status: ["pending", "sent", "failed", "suppressed"],
       drive_ref_source: ["picker", "pasted", "created"],
       drive_ref_status: ["ok", "no_access", "not_found", "unenriched"],
       event_source: ["synced", "kova", "proposal"],
@@ -5802,6 +6089,20 @@ export const Constants = {
         "outreach",
         "marketing",
         "uncategorized",
+      ],
+      notification_event_type: [
+        "dm_received",
+        "mention",
+        "proposal_pending",
+        "proposal_expiring",
+        "task_assigned",
+        "task_due",
+        "meeting_soon",
+        "meeting_brief_ready",
+        "connection_failed",
+        "connection_expired",
+        "member_joined",
+        "quota_warning",
       ],
       proposal_status: ["pending", "committed", "dismissed", "expired"],
       rsvp_status: ["needsAction", "accepted", "declined", "tentative"],
