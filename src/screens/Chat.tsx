@@ -5,7 +5,13 @@ import { Button, Desc, Eyebrow, SectionHead } from "@/components/primitives";
 import { ProposalDrawer, agentLabel } from "@/components/dashboard/ProposalDrawer";
 import { useWorkspaceScope } from "@/lib/WorkspaceScope";
 import { useVisionChat, type ChatMessage } from "@/hooks/useVisionChat";
+import { useDriveReferences } from "@/hooks/useDriveReferences";
+import { DriveCard } from "@/components/chat/DriveCard";
+import { DriveAttachMenu } from "@/components/chat/DriveAttachMenu";
+import { firstDriveUrl } from "@/data/driveMarks";
+import { supabase } from "@/integrations/supabase/client";
 import type { PendingProposal } from "@/hooks/useDashboardSummary";
+
 
 /**
  * Chat — the conversational surface of Vision by Kova.
