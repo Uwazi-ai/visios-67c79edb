@@ -397,3 +397,5 @@
 .vd-menu-item:hover:not(:disabled) { background: var(--surface-2); }
 .vd-menu-item:disabled { color: var(--ink-2); cursor: not-allowed; }
 .vd-menu-note { margin: 6px 8px 2px; font-size: 11px; color: var(--ink-2); }
+.vc-drive-tray { padding: 0 var(--s-4) var(--s-2); }
+.vc-composer-foot { align-items: center; }
