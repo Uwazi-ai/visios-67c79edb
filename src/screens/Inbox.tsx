@@ -1,131 +1,224 @@
-import { useMemo, useState } from "react";
-import { Bento, Card, Col, Desc, Eyebrow, Face, SectionHead, Tag } from "@/components/primitives";
-import { DraftBox, SendRule } from "@/components/InboxParts";
-import { THREADS } from "@/data/inbox";
-import { setSend, useSends } from "@/data/inboxStore";
-import { useAppState } from "@/lib/AppState";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import "@/design/inbox.css";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { SectionHead } from "@/components/primitives";
+import { useWorkspaceScope } from "@/lib/WorkspaceScope";
+import { useInbox, type MailMessage } from "@/hooks/useInbox";
+import { CategoryChips } from "@/components/inbox/CategoryChips";
+import { MailList } from "@/components/inbox/MailList";
+import { ReadingPane } from "@/components/inbox/ReadingPane";
+import { FilterEmpty, InboxZero, NoSelection, NotConnected } from "@/components/inbox/EmptyStates";
+import { CATEGORIES, type Category } from "@/data/mailCategories";
 
 /**
- * Inbox — thread list plus a reader in which the draft, not the last
- * message, is the thing you came for. The messages above it are context
- * for a decision that lives in a dashed box.
+ * Inbox — a Gmail-shaped client over every organisation at once.
+ *
+ * The one rule this screen exists to get right: category is what a message is,
+ * triage is whether you are finished with it. They never write each other, and
+ * every list query drops done/archived, so a handled message leaves its
+ * category view the instant it is handled.
  */
 const Inbox = () => {
-  const { orgs, inScope, scope } = useAppState();
-  const scopeName = orgs.find((o) => o.id === scope)?.name ?? "All organizations";
-  const sends = useSends();
-  const scoped = useMemo(() => THREADS.filter((t) => inScope(t.org)), [inScope]);
-  const [selectedId, setSelectedId] = useState(scoped[0]?.id ?? THREADS[0].id);
-  const thread = scoped.find((t) => t.id === selectedId) ?? scoped[0];
+  const navigate = useNavigate();
+  const { orgs, scopeOrgId } = useWorkspaceScope();
+  const {
+    loading, messages, accounts, orgsWithAccounts, proposalFor,
+    setTriage, setCategory, markRead, reload,
+  } = useInbox(scopeOrgId);
 
-  const colorOf = (org: string) => orgs.find((o) => o.id === org)?.color ?? "var(--ws-all)";
-  const pending = scoped.filter((t) => !sends[t.id]).length;
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [cats, setCats] = useState<Set<Category>>(new Set());
+  const [needsReplyOnly, setNeedsReplyOnly] = useState(false);
+  const [dismissedStrip, setDismissedStrip] = useState(false);
+  const [mobileReading, setMobileReading] = useState(false);
 
-  if (!thread) {
+  const orgById = useMemo(() => new Map(orgs.map((o) => [o.id, o])), [orgs]);
+  const orgName = useCallback((id: string) => orgById.get(id)?.name ?? "Unassigned", [orgById]);
+  const orgColor = useCallback(
+    (id: string) => orgById.get(id)?.identity_color ?? "var(--t-dim)",
+    [orgById],
+  );
+
+  const visible = useMemo(() => {
+    let list = messages;
+    if (cats.size) list = list.filter((m) => cats.has(m.category));
+    if (needsReplyOnly) list = list.filter((m) => m.needs_reply);
+    return list;
+  }, [messages, cats, needsReplyOnly]);
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {};
+    for (const m of messages) c[m.category] = (c[m.category] ?? 0) + 1;
+    return c;
+  }, [messages]);
+
+  const needsReplyCount = useMemo(
+    () => messages.filter((m) => m.needs_reply).length,
+    [messages],
+  );
+
+  const selected = useMemo(
+    () => visible.find((m) => m.id === selectedId) ?? null,
+    [visible, selectedId],
+  );
+
+  const open = useCallback(
+    (m: MailMessage) => {
+      setSelectedId(m.id);
+      setMobileReading(true);
+      if (m.is_unread) markRead(m.id);
+    },
+    [markRead],
+  );
+
+  /** Handling a message opens the next one — the queue keeps moving. */
+  const advance = useCallback(
+    (fromId: string) => {
+      const i = visible.findIndex((m) => m.id === fromId);
+      const next = visible[i + 1] ?? visible[i - 1] ?? null;
+      setSelectedId(next?.id ?? null);
+      if (!next) setMobileReading(false);
+    },
+    [visible],
+  );
+
+  const triage = useCallback(
+    (id: string, status: MailMessage["triage_status"]) => {
+      advance(id);
+      setTriage(id, status);
+    },
+    [advance, setTriage],
+  );
+
+  /* Gmail muscle memory: e archive, j/k navigate, r focuses the composer. */
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (t && /input|textarea/i.test(t.tagName)) return;
+      if (!visible.length) return;
+      const i = visible.findIndex((m) => m.id === selectedId);
+      if (e.key === "j") { e.preventDefault(); open(visible[Math.min(i + 1, visible.length - 1)] ?? visible[0]); }
+      if (e.key === "k") { e.preventDefault(); open(visible[Math.max(i - 1, 0)] ?? visible[0]); }
+      if (e.key === "e" && selectedId) { e.preventDefault(); triage(selectedId, "archived"); }
+      if (e.key === "r") {
+        e.preventDefault();
+        document.querySelector<HTMLTextAreaElement>(".mb-textarea")?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [visible, selectedId, open, triage]);
+
+  const scopedOrgs = scopeOrgId ? orgs.filter((o) => o.id === scopeOrgId) : orgs;
+  const unconnected = scopedOrgs.filter((o) => !orgsWithAccounts.has(o.id));
+  const noAccounts = accounts.length === 0;
+  const broken = accounts.filter((a) => a.status === "error" || a.status === "expired");
+
+  if (!loading && noAccounts) {
     return (
-      <div>
+      <div className="vo-stack" style={{ gap: "var(--s-4)" }}>
         <SectionHead title="Inbox" />
-        <Card ungated>
-          <div className="vo-empty">
-            <Eyebrow>{scopeName}</Eyebrow>
-            <Desc>No threads for {scopeName}. Switch scope in the rail to see the rest.</Desc>
-          </div>
-        </Card>
+        <NotConnected orgNames={scopedOrgs.map((o) => o.name)} onConnect={() => navigate("/os/connect")} />
       </div>
     );
   }
 
-  const state = sends[thread.id] ?? "draft";
+  const activeCatCopy =
+    cats.size === 1
+      ? CATEGORIES.find((c) => cats.has(c.key))?.empty ?? "Nothing here."
+      : needsReplyOnly
+        ? "Nobody is waiting on a reply."
+        : "Nothing matches those filters.";
 
   return (
-    <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
-      <SectionHead
-        title="Inbox"
-        action={
-          <span className="vo-meta">
-            {scoped.length} threads · {pending} draft{pending === 1 ? "" : "s"} waiting on you
-          </span>
-        }
-      />
+    <div className="mb-shell" data-reading={mobileReading ? "true" : undefined}>
+      <div className="mb-listpane">
+        <div className="mb-listhead">
+          <SectionHead
+            title="Inbox"
+            action={<span className="vo-meta">{visible.length} open</span>}
+          />
+          <CategoryChips
+            counts={counts}
+            selected={cats}
+            onToggle={(c) =>
+              setCats((prev) => {
+                const next = new Set(prev);
+                next.has(c) ? next.delete(c) : next.add(c);
+                return next;
+              })
+            }
+            needsReplyCount={needsReplyCount}
+            needsReplyOn={needsReplyOnly}
+            onToggleNeedsReply={() => setNeedsReplyOnly((v) => !v)}
+          />
+        </div>
 
-      <Bento>
-        <Col span={4}>
-          <Card ungated>
-            <div className="vo-stack" style={{ gap: "var(--s-2)" }}>
-              <Eyebrow>Threads</Eyebrow>
-              <div className="vo-thlist">
-                {scoped.map((t) => {
-                  const s = sends[t.id] ?? "draft";
-                  return (
-                    <button
-                      key={t.id}
-                      type="button"
-                      className="vo-throw"
-                      data-active={t.id === thread.id ? "true" : undefined}
-                      onClick={() => setSelectedId(t.id)}
-                    >
-                      <Face initials={t.initials} color={colorOf(t.org)} title={t.with} />
-                      <span className="vo-stack" style={{ gap: 2, minWidth: 0, flex: 1, alignItems: "flex-start" }}>
-                        <span className="vo-between" style={{ width: "100%" }}>
-                          <span className="vo-thwith">{t.with}</span>
-                          <span className="vo-meta">{t.at}</span>
-                        </span>
-                        <span className="vo-thsubject">{t.subject}</span>
-                        <span className="vo-thpreview">{t.preview}</span>
-                        <span className="vo-thstate" data-state={s}>
-                          {s === "sent" ? "Reply sent" : s === "discarded" ? "Draft discarded" : "Draft waiting"}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </Card>
+        {broken.length ? (
+          <div className="mb-banner" role="alert">
+            <strong>{broken[0].email_address}</strong>{" "}
+            {broken[0].status === "expired"
+              ? "needs reconnecting. Mail below is cached and may be stale."
+              : `stopped syncing: ${broken[0].last_error ?? "unknown error"}`}
+            <button type="button" className="mb-link" onClick={() => navigate("/os/connect")}>
+              Reconnect
+            </button>
+          </div>
+        ) : null}
 
-          <SendRule />
-        </Col>
+        {!dismissedStrip && !scopeOrgId && unconnected.length ? (
+          <div className="mb-strip">
+            <span>
+              Not connected: {unconnected.map((o) => o.name).join(", ")}
+            </span>
+            <button type="button" className="mb-link" onClick={() => setDismissedStrip(true)}>
+              Dismiss
+            </button>
+          </div>
+        ) : null}
 
-        <Col span={8}>
-          <Card>
-            <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
-              <div className="vo-between">
-                <div className="vo-stack" style={{ gap: 2 }}>
-                  <h3 className="vo-title">{thread.subject}</h3>
-                  <span className="vo-meta">
-                    {thread.with} · {thread.messages.length} messages
-                  </span>
-                </div>
-                <Tag>{orgs.find((o) => o.id === thread.org)?.name ?? "Cross-venture"}</Tag>
-              </div>
+        {!loading && visible.length === 0 ? (
+          messages.length === 0 ? <InboxZero /> : <FilterEmpty copy={activeCatCopy} />
+        ) : (
+          <MailList
+            messages={visible}
+            selectedId={selectedId}
+            onSelect={open}
+            showIdentity={!scopeOrgId}
+            orgColor={orgColor}
+            orgName={orgName}
+            hasDraft={(id) => !!proposalFor(id)}
+            loading={loading}
+          />
+        )}
+      </div>
 
-              <div className="vo-thread">
-                {thread.messages.map((m, i) => (
-                  <div key={i} className="vo-thmsg" data-mine={m.mine ? "true" : undefined}>
-                    <Face initials={m.initials} title={m.from} />
-                    <div className="vo-stack" style={{ gap: 2, minWidth: 0 }}>
-                      <div className="vo-row" style={{ gap: "var(--s-2)" }}>
-                        <span className="vo-chauthor">{m.from}</span>
-                        <span className="vo-chtime">{m.at}</span>
-                      </div>
-                      <p className="vo-chtext">{m.body}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <DraftBox
-                draft={thread.draft}
-                state={state}
-                onSend={() => setSend(thread.id, "sent")}
-                onDiscard={() => setSend(thread.id, "discarded")}
-              />
-            </div>
-          </Card>
-        </Col>
-      </Bento>
+      <div className="mb-readpane">
+        {selected ? (
+          <ReadingPane
+            key={selected.id}
+            message={selected}
+            proposal={proposalFor(selected.id)}
+            orgName={orgName(selected.org_id)}
+            isDemo={!!orgById.get(selected.org_id)?.is_demo}
+            onBack={() => setMobileReading(false)}
+            onTriage={(s) => triage(selected.id, s)}
+            onCategory={(c) => setCategory(selected.id, c)}
+            onSent={() => { advance(selected.id); reload(); }}
+            onReloadProposals={reload}
+          />
+        ) : (
+          <NoSelection />
+        )}
+      </div>
     </div>
   );
 };
 
 export default Inbox;
+
+/** Kept for callers that want a manual sync trigger. */
+export async function syncAccount(mailAccountId: string) {
+  return await supabase.functions.invoke("gmail-sync", { body: { mail_account_id: mailAccountId } });
+}
