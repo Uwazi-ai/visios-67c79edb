@@ -2,6 +2,7 @@
 // boundary. Everything here runs server-side; no persona text or key reaches
 // the browser.
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
+import { getFreshGoogleAccessToken } from "./google.ts";
 
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
