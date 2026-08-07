@@ -493,6 +493,65 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          content: string
+          context_refs: Json
+          conversation_id: string
+          created_at: string
+          error: string | null
+          id: string
+          latency_ms: number | null
+          model: string | null
+          persona_key: string | null
+          proposal_ids: string[]
+          role: Database["public"]["Enums"]["chat_role"]
+          status: Database["public"]["Enums"]["chat_message_status"]
+          tokens_in: number | null
+          tokens_out: number | null
+        }
+        Insert: {
+          content?: string
+          context_refs?: Json
+          conversation_id: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          latency_ms?: number | null
+          model?: string | null
+          persona_key?: string | null
+          proposal_ids?: string[]
+          role: Database["public"]["Enums"]["chat_role"]
+          status?: Database["public"]["Enums"]["chat_message_status"]
+          tokens_in?: number | null
+          tokens_out?: number | null
+        }
+        Update: {
+          content?: string
+          context_refs?: Json
+          conversation_id?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          latency_ms?: number | null
+          model?: string | null
+          persona_key?: string | null
+          proposal_ids?: string[]
+          role?: Database["public"]["Enums"]["chat_role"]
+          status?: Database["public"]["Enums"]["chat_message_status"]
+          tokens_in?: number | null
+          tokens_out?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       connections: {
         Row: {
           created_at: string
@@ -875,6 +934,60 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          id: string
+          is_pinned: boolean
+          last_message_at: string
+          org_id: string | null
+          persona_key: string
+          title: string | null
+          title_generated: boolean
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          last_message_at?: string
+          org_id?: string | null
+          persona_key?: string
+          title?: string | null
+          title_generated?: boolean
+          user_id: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          last_message_at?: string
+          org_id?: string | null
+          persona_key?: string
+          title?: string | null
+          title_generated?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
             referencedColumns: ["id"]
           },
         ]
@@ -3269,6 +3382,63 @@ export type Database = {
           },
         ]
       }
+      personas: {
+        Row: {
+          allowed_tools: string[]
+          created_at: string
+          description: string | null
+          display_name: string
+          icon_key: string | null
+          id: string
+          is_active: boolean
+          key: string
+          org_id: string | null
+          sort_order: number
+          system_prompt: string
+        }
+        Insert: {
+          allowed_tools?: string[]
+          created_at?: string
+          description?: string | null
+          display_name: string
+          icon_key?: string | null
+          id?: string
+          is_active?: boolean
+          key: string
+          org_id?: string | null
+          sort_order?: number
+          system_prompt: string
+        }
+        Update: {
+          allowed_tools?: string[]
+          created_at?: string
+          description?: string | null
+          display_name?: string
+          icon_key?: string | null
+          id?: string
+          is_active?: boolean
+          key?: string
+          org_id?: string | null
+          sort_order?: number
+          system_prompt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personas_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_admins: {
         Row: {
           granted_at: string
@@ -4792,6 +4962,10 @@ export type Database = {
           version: number
         }[]
       }
+      can_access_conversation: {
+        Args: { _conversation_id: string }
+        Returns: boolean
+      }
       current_tenant_id: { Args: never; Returns: string }
       default_tenant_id: { Args: never; Returns: string }
       delete_email: {
@@ -5067,6 +5241,8 @@ export type Database = {
     Enums: {
       app_role: "owner" | "admin" | "member"
       category_source: "pending" | "ai" | "user" | "rule"
+      chat_message_status: "streaming" | "complete" | "aborted" | "failed"
+      chat_role: "user" | "assistant" | "system"
       connection_status: "connected" | "disconnected" | "error" | "expired"
       message_category:
         | "urgent"
@@ -5206,6 +5382,8 @@ export const Constants = {
     Enums: {
       app_role: ["owner", "admin", "member"],
       category_source: ["pending", "ai", "user", "rule"],
+      chat_message_status: ["streaming", "complete", "aborted", "failed"],
+      chat_role: ["user", "assistant", "system"],
       connection_status: ["connected", "disconnected", "error", "expired"],
       message_category: [
         "urgent",
