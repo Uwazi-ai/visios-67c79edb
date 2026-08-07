@@ -355,6 +355,23 @@ const Chat = () => {
             {vc.error ? <div className="vc-err">{vc.error}</div> : null}
           </div>
 
+          {drive.refs.length ? (
+            <div className="vc-drive-tray">
+              {drive.refs.map((r) => (
+                <DriveCard
+                  key={r.id}
+                  reference={r}
+                  access={drive.access[r.id]}
+                  createdNote={createdNotes[r.id]}
+                  onCheck={() => void drive.checkAccess(r.id)}
+                  onGrant={(emails, role) => drive.grantAccess(r.id, emails, role)}
+                  onRemove={() => void drive.removeRef(r.id)}
+                />
+              ))}
+              {drive.error ? <div className="vc-err">{drive.error}</div> : null}
+            </div>
+          ) : null}
+
           <form
             className="vc-composer"
             onSubmit={(e) => {
@@ -378,6 +395,15 @@ const Chat = () => {
               aria-label="Ask Vision"
             />
             <div className="vc-composer-foot">
+              <DriveAttachMenu
+                driveReady={!!scopeOrgId && !!driveFolder}
+                onPicked={(files) => void attachPicked(files)}
+                onPasteRequest={() => {
+                  const url = window.prompt("Paste a Google Drive link");
+                  if (url) void ask(url);
+                }}
+                onCreate={(t) => void createDoc(t)}
+              />
               {vc.streaming ? (
                 <Button variant="quiet" onClick={vc.stop}>
                   Stop
@@ -386,6 +412,7 @@ const Chat = () => {
               <Button onClick={() => ask(draft)} disabled={!draft.trim() || vc.streaming}>
                 Ask
               </Button>
+
             </div>
           </form>
         </section>
