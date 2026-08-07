@@ -152,12 +152,8 @@ const Chat = () => {
       <SectionHead
         title="Chat"
         action={
-          <Button
-            onClick={() => vc.newConversation(personaKey)}
-            variant="quiet"
-            icon={<Plus size={14} strokeWidth={1.75} aria-hidden />}
-          >
-            New conversation
+          <Button onClick={() => void vc.newConversation(personaKey)} variant="quiet">
+            <Plus size={14} strokeWidth={1.75} aria-hidden /> New conversation
           </Button>
         }
       />
@@ -317,11 +313,11 @@ const Chat = () => {
             />
             <div className="vc-composer-foot">
               {vc.streaming ? (
-                <Button variant="quiet" onClick={vc.stop} type="button">
+                <Button variant="quiet" onClick={vc.stop}>
                   Stop
                 </Button>
               ) : null}
-              <Button type="submit" disabled={!draft.trim() || vc.streaming}>
+              <Button onClick={() => ask(draft)} disabled={!draft.trim() || vc.streaming}>
                 Ask
               </Button>
             </div>
