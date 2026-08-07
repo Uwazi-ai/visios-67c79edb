@@ -107,9 +107,9 @@ Deno.serve(async (req) => {
           templateName: "notification",
           recipientEmail: profile.email,
           idempotencyKey: `notification-${ev.id}`,
-          subjectOverride: `${orgPrefix}${ev.title}`,
           templateData: {
             title: ev.title,
+            subjectPrefix: orgPrefix,
             body: ev.body ?? "",
             orgName: ev.__org_name ?? "",
             deepLink: ev.deep_link,

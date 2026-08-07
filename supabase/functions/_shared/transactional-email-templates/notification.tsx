@@ -36,7 +36,7 @@ const NotificationEmail = ({ title, body, orgName, deepLink }: Props) => (
 
 export const template = {
   component: NotificationEmail,
-  subject: (d: Record<string, any>) => d?.title || 'New notification',
+  subject: (d: Record<string, any>) => `${d?.subjectPrefix ?? ''}${d?.title || 'New notification'}`,
   displayName: 'Notification',
   previewData: { title: 'Marcus sent you a message', body: 'Can you look at the Q3 deck?', orgName: 'Northstar Group', deepLink: '/os' },
 } satisfies TemplateEntry
