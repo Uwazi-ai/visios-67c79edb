@@ -1068,6 +1068,145 @@ export type Database = {
           },
         ]
       }
+      drive_access_grants: {
+        Row: {
+          drive_reference_id: string
+          google_permission_id: string | null
+          granted_at: string
+          granted_by: string
+          granted_to_email: string
+          granted_to_user_id: string | null
+          id: string
+          revoked_at: string | null
+          role: string
+        }
+        Insert: {
+          drive_reference_id: string
+          google_permission_id?: string | null
+          granted_at?: string
+          granted_by: string
+          granted_to_email: string
+          granted_to_user_id?: string | null
+          id?: string
+          revoked_at?: string | null
+          role: string
+        }
+        Update: {
+          drive_reference_id?: string
+          google_permission_id?: string | null
+          granted_at?: string
+          granted_by?: string
+          granted_to_email?: string
+          granted_to_user_id?: string | null
+          id?: string
+          revoked_at?: string | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drive_access_grants_drive_reference_id_fkey"
+            columns: ["drive_reference_id"]
+            isOneToOne: false
+            referencedRelation: "drive_references"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drive_references: {
+        Row: {
+          chat_message_id: string | null
+          conversation_id: string | null
+          created_at: string
+          drive_url: string
+          externally_owned: boolean
+          file_id: string
+          file_modified_at: string | null
+          file_name: string
+          icon_url: string | null
+          id: string
+          metadata_fetched_at: string | null
+          mime_type: string
+          org_id: string
+          owner_email: string | null
+          shared_by: string
+          source: Database["public"]["Enums"]["drive_ref_source"]
+          status: Database["public"]["Enums"]["drive_ref_status"]
+          thumbnail_link: string | null
+          web_view_link: string
+        }
+        Insert: {
+          chat_message_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          drive_url: string
+          externally_owned?: boolean
+          file_id: string
+          file_modified_at?: string | null
+          file_name: string
+          icon_url?: string | null
+          id?: string
+          metadata_fetched_at?: string | null
+          mime_type: string
+          org_id: string
+          owner_email?: string | null
+          shared_by: string
+          source: Database["public"]["Enums"]["drive_ref_source"]
+          status?: Database["public"]["Enums"]["drive_ref_status"]
+          thumbnail_link?: string | null
+          web_view_link: string
+        }
+        Update: {
+          chat_message_id?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          drive_url?: string
+          externally_owned?: boolean
+          file_id?: string
+          file_modified_at?: string | null
+          file_name?: string
+          icon_url?: string | null
+          id?: string
+          metadata_fetched_at?: string | null
+          mime_type?: string
+          org_id?: string
+          owner_email?: string | null
+          shared_by?: string
+          source?: Database["public"]["Enums"]["drive_ref_source"]
+          status?: Database["public"]["Enums"]["drive_ref_status"]
+          thumbnail_link?: string | null
+          web_view_link?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drive_references_chat_message_id_fkey"
+            columns: ["chat_message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drive_references_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drive_references_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drive_references_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -5244,6 +5383,8 @@ export type Database = {
       chat_message_status: "streaming" | "complete" | "aborted" | "failed"
       chat_role: "user" | "assistant" | "system"
       connection_status: "connected" | "disconnected" | "error" | "expired"
+      drive_ref_source: "picker" | "pasted" | "created"
+      drive_ref_status: "ok" | "no_access" | "not_found" | "unenriched"
       message_category:
         | "urgent"
         | "meetings"
@@ -5385,6 +5526,8 @@ export const Constants = {
       chat_message_status: ["streaming", "complete", "aborted", "failed"],
       chat_role: ["user", "assistant", "system"],
       connection_status: ["connected", "disconnected", "error", "expired"],
+      drive_ref_source: ["picker", "pasted", "created"],
+      drive_ref_status: ["ok", "no_access", "not_found", "unenriched"],
       message_category: [
         "urgent",
         "meetings",
