@@ -133,8 +133,10 @@ export async function assembleContext(opts: {
   orgIds: string[];
   scopeOrgId: string | null;
   question: string;
+  conversationId?: string | null;
 }): Promise<AssembledContext> {
   const db = admin();
+
   const ids = opts.scopeOrgId ? [opts.scopeOrgId] : opts.orgIds;
   if (ids.length === 0) {
     return { text: "The operator belongs to no organizations yet.", refs: [], orgNames: {} };
