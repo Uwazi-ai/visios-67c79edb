@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "@/design/inbox.css";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SectionHead } from "@/components/primitives";
 import { useWorkspaceScope } from "@/lib/WorkspaceScope";
@@ -19,8 +18,7 @@ import { CATEGORIES, type Category } from "@/data/mailCategories";
  * every list query drops done/archived, so a handled message leaves its
  * category view the instant it is handled.
  */
-const Inbox = () => {
-  const navigate = useNavigate();
+const Inbox = ({ navigate }: { navigate: (id: string) => void }) => {
   const { orgs, scopeOrgId } = useWorkspaceScope();
   const {
     loading, messages, accounts, orgsWithAccounts, proposalFor,
@@ -119,7 +117,7 @@ const Inbox = () => {
     return (
       <div className="vo-stack" style={{ gap: "var(--s-4)" }}>
         <SectionHead title="Inbox" />
-        <NotConnected orgNames={scopedOrgs.map((o) => o.name)} onConnect={() => navigate("/os/connect")} />
+        <NotConnected orgNames={scopedOrgs.map((o) => o.name)} onConnect={() => navigate("connect")} />
       </div>
     );
   }
@@ -161,7 +159,7 @@ const Inbox = () => {
             {broken[0].status === "expired"
               ? "needs reconnecting. Mail below is cached and may be stale."
               : `stopped syncing: ${broken[0].last_error ?? "unknown error"}`}
-            <button type="button" className="mb-link" onClick={() => navigate("/os/connect")}>
+            <button type="button" className="mb-link" onClick={() => navigate("connect")}>
               Reconnect
             </button>
           </div>
