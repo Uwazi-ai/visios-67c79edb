@@ -12,6 +12,11 @@ import {
 } from "@/components/SettingsParts";
 import { useKovaData } from "@/data/live/KovaData";
 import { setGuardrail, useGuardrails } from "@/data/guardrailStore";
+import { useSurfaceActivity } from "@/hooks/useSurfaceActivity";
+import NotificationsPanel from "@/components/settings/NotificationsPanel";
+import MembersPanel from "@/components/settings/MembersPanel";
+import ExpiryPanel from "@/components/settings/ExpiryPanel";
+import PlanUsagePanel from "@/components/settings/PlanUsagePanel";
 import { EVENTS } from "@/data/mock";
 
 /**
@@ -348,40 +353,65 @@ const AppearanceSection = () => {
 
 /* ---------------------------------------------------------------- screen */
 
-export const Settings = () => (
-  <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
-    <div>
-      <Eyebrow>System</Eyebrow>
-      <h1 className="vo-head" style={{ fontSize: 26, marginTop: 4 }}>
-        Settings
-      </h1>
+export const Settings = () => {
+  useSurfaceActivity("settings");
+
+  return (
+    <div className="vo-stack" style={{ gap: "var(--s-5)" }}>
+      <div>
+        <Eyebrow>System</Eyebrow>
+        <h1 className="vo-head" style={{ fontSize: 26, marginTop: 4 }}>
+          Settings
+        </h1>
+      </div>
+
+      <section>
+        <SectionHead title="Your profile" />
+        <ProfileSection />
+      </section>
+
+      <section>
+        <SectionHead title="Organisations" />
+        <OrgsSection />
+      </section>
+
+      <section>
+        <SectionHead title="People" />
+        <MembersPanel />
+      </section>
+
+      <section>
+        <SectionHead title="Notifications" />
+        <NotificationsPanel />
+      </section>
+
+      <section>
+        <SectionHead title="Proposal expiry" />
+        <ExpiryPanel />
+      </section>
+
+      <section>
+        <SectionHead title="Plan and usage" />
+        <PlanUsagePanel />
+      </section>
+
+      <section>
+        <SectionHead title="Connections" />
+        <ConnectionsSection />
+      </section>
+
+      <section>
+        <SectionHead title="Guardrails" />
+        <GuardrailsSection />
+      </section>
+
+      <section>
+        <SectionHead title="Appearance" />
+        <AppearanceSection />
+      </section>
     </div>
-
-    <section>
-      <SectionHead title="Your profile" />
-      <ProfileSection />
-    </section>
-
-    <section>
-      <SectionHead title="Organisations" />
-      <OrgsSection />
-    </section>
-
-    <section>
-      <SectionHead title="Connections" />
-      <ConnectionsSection />
-    </section>
-
-    <section>
-      <SectionHead title="Guardrails" />
-      <GuardrailsSection />
-    </section>
-
-    <section>
-      <SectionHead title="Appearance" />
-      <AppearanceSection />
-    </section>
-  </div>
-);
+  );
+};
 
 export default Settings;
+
