@@ -421,6 +421,197 @@ export type Database = {
           },
         ]
       }
+      calendar_accounts: {
+        Row: {
+          account_email: string
+          calendar_id: string
+          color_override: string | null
+          connected_by: string
+          created_at: string
+          display_name: string | null
+          id: string
+          is_primary: boolean
+          last_error: string | null
+          last_sync_at: string | null
+          org_id: string
+          provider: string
+          status: Database["public"]["Enums"]["connection_status"]
+          sync_token: string | null
+          watch_channel_id: string | null
+          watch_expires_at: string | null
+        }
+        Insert: {
+          account_email: string
+          calendar_id: string
+          color_override?: string | null
+          connected_by: string
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_primary?: boolean
+          last_error?: string | null
+          last_sync_at?: string | null
+          org_id: string
+          provider?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          sync_token?: string | null
+          watch_channel_id?: string | null
+          watch_expires_at?: string | null
+        }
+        Update: {
+          account_email?: string
+          calendar_id?: string
+          color_override?: string | null
+          connected_by?: string
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_primary?: boolean
+          last_error?: string | null
+          last_sync_at?: string | null
+          org_id?: string
+          provider?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          sync_token?: string | null
+          watch_channel_id?: string | null
+          watch_expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_accounts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_accounts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_events: {
+        Row: {
+          all_day: boolean
+          attendees: Json
+          calendar_account_id: string
+          conference_url: string | null
+          created_at: string
+          description: string | null
+          ends_at: string
+          event_timezone: string
+          ical_uid: string | null
+          id: string
+          is_recurring_instance: boolean
+          linked_task_ids: string[]
+          location: string | null
+          org_id: string
+          organizer_email: string | null
+          proposal_id: string | null
+          provider_event_id: string
+          recurring_event_id: string | null
+          self_response: Database["public"]["Enums"]["rsvp_status"]
+          source: Database["public"]["Enums"]["event_source"]
+          starts_at: string
+          status: Database["public"]["Enums"]["event_status"]
+          title: string | null
+          transcript_ref: Json
+          transparency: string
+          updated_at: string
+          visibility: Database["public"]["Enums"]["event_visibility"]
+        }
+        Insert: {
+          all_day?: boolean
+          attendees?: Json
+          calendar_account_id: string
+          conference_url?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at: string
+          event_timezone?: string
+          ical_uid?: string | null
+          id?: string
+          is_recurring_instance?: boolean
+          linked_task_ids?: string[]
+          location?: string | null
+          org_id: string
+          organizer_email?: string | null
+          proposal_id?: string | null
+          provider_event_id: string
+          recurring_event_id?: string | null
+          self_response?: Database["public"]["Enums"]["rsvp_status"]
+          source?: Database["public"]["Enums"]["event_source"]
+          starts_at: string
+          status?: Database["public"]["Enums"]["event_status"]
+          title?: string | null
+          transcript_ref?: Json
+          transparency?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["event_visibility"]
+        }
+        Update: {
+          all_day?: boolean
+          attendees?: Json
+          calendar_account_id?: string
+          conference_url?: string | null
+          created_at?: string
+          description?: string | null
+          ends_at?: string
+          event_timezone?: string
+          ical_uid?: string | null
+          id?: string
+          is_recurring_instance?: boolean
+          linked_task_ids?: string[]
+          location?: string | null
+          org_id?: string
+          organizer_email?: string | null
+          proposal_id?: string | null
+          provider_event_id?: string
+          recurring_event_id?: string | null
+          self_response?: Database["public"]["Enums"]["rsvp_status"]
+          source?: Database["public"]["Enums"]["event_source"]
+          starts_at?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          title?: string | null
+          transcript_ref?: Json
+          transparency?: string
+          updated_at?: string
+          visibility?: Database["public"]["Enums"]["event_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_calendar_account_id_fkey"
+            columns: ["calendar_account_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_preferences: {
         Row: {
           id: string
@@ -3072,6 +3263,61 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_briefs: {
+        Row: {
+          content: string
+          context_refs: Json
+          event_id: string
+          generated_at: string
+          generated_for: string
+          id: string
+          org_id: string
+          status: Database["public"]["Enums"]["brief_status"]
+        }
+        Insert: {
+          content: string
+          context_refs?: Json
+          event_id: string
+          generated_at?: string
+          generated_for: string
+          id?: string
+          org_id: string
+          status?: Database["public"]["Enums"]["brief_status"]
+        }
+        Update: {
+          content?: string
+          context_refs?: Json
+          event_id?: string
+          generated_at?: string
+          generated_for?: string
+          id?: string
+          org_id?: string
+          status?: Database["public"]["Enums"]["brief_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_briefs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_briefs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_briefs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "orgs_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           channel_id: string
@@ -5193,6 +5439,18 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_schedule_conflicts: {
+        Args: { p_end: string; p_start: string }
+        Returns: {
+          event_a_id: string
+          event_b_id: string
+          is_cross_org: boolean
+          org_a_id: string
+          org_b_id: string
+          overlap_end: string
+          overlap_start: string
+        }[]
+      }
       has_org_role: {
         Args: {
           _org_id: string
@@ -5379,12 +5637,16 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
+      brief_status: "generating" | "ready" | "failed"
       category_source: "pending" | "ai" | "user" | "rule"
       chat_message_status: "streaming" | "complete" | "aborted" | "failed"
       chat_role: "user" | "assistant" | "system"
       connection_status: "connected" | "disconnected" | "error" | "expired"
       drive_ref_source: "picker" | "pasted" | "created"
       drive_ref_status: "ok" | "no_access" | "not_found" | "unenriched"
+      event_source: "synced" | "kova" | "proposal"
+      event_status: "confirmed" | "tentative" | "cancelled"
+      event_visibility: "default" | "public" | "private" | "confidential"
       message_category:
         | "urgent"
         | "meetings"
@@ -5393,6 +5655,7 @@ export type Database = {
         | "marketing"
         | "uncategorized"
       proposal_status: "pending" | "committed" | "dismissed" | "expired"
+      rsvp_status: "needsAction" | "accepted" | "declined" | "tentative"
       triage_status: "inbox" | "needs_reply" | "waiting" | "done" | "archived"
     }
     CompositeTypes: {
@@ -5522,12 +5785,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "member"],
+      brief_status: ["generating", "ready", "failed"],
       category_source: ["pending", "ai", "user", "rule"],
       chat_message_status: ["streaming", "complete", "aborted", "failed"],
       chat_role: ["user", "assistant", "system"],
       connection_status: ["connected", "disconnected", "error", "expired"],
       drive_ref_source: ["picker", "pasted", "created"],
       drive_ref_status: ["ok", "no_access", "not_found", "unenriched"],
+      event_source: ["synced", "kova", "proposal"],
+      event_status: ["confirmed", "tentative", "cancelled"],
+      event_visibility: ["default", "public", "private", "confidential"],
       message_category: [
         "urgent",
         "meetings",
@@ -5537,6 +5804,7 @@ export const Constants = {
         "uncategorized",
       ],
       proposal_status: ["pending", "committed", "dismissed", "expired"],
+      rsvp_status: ["needsAction", "accepted", "declined", "tentative"],
       triage_status: ["inbox", "needs_reply", "waiting", "done", "archived"],
     },
   },

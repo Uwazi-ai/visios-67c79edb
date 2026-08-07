@@ -1,0 +1,130 @@
+/* ===========================================================
+   Calendar (Sprint 05)
+
+   This is the one screen where org identity colours carry meaning:
+   six ventures on one grid is the entire feature. Everywhere else
+   suppresses them; here they are the data.
+
+   Magenta appears only on brief affordances and proposed holds.
+   A conflict is a status, not an entity — warning colour, never
+   magenta and never an org colour.
+   =========================================================== */
+
+.kova .cal-wrap { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: var(--s-4); align-items: start; }
+.kova .cal-wrap[data-detail="true"] { grid-template-columns: 236px minmax(0, 1fr) 320px; }
+
+.kova .cal-side { display: flex; flex-direction: column; gap: var(--s-4); }
+.kova .cal-side-block { display: flex; flex-direction: column; gap: var(--s-2); }
+
+/* mini month */
+.kova .cal-mini { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+.kova .cal-mini-h { font-size: 9.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); text-align: center; padding-bottom: 2px; }
+.kova .cal-mini-d {
+  font-size: 11px; line-height: 22px; height: 22px; text-align: center; border-radius: var(--r-sm);
+  background: transparent; border: 0; color: var(--text); cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.kova .cal-mini-d[data-out="true"] { color: var(--dim); opacity: .5; }
+.kova .cal-mini-d[data-today="true"] { color: var(--accent-txt); font-weight: 700; }
+.kova .cal-mini-d[data-sel="true"] { background: var(--inset); font-weight: 700; }
+
+/* calendar toggles */
+.kova .cal-toggle {
+  display: flex; align-items: center; gap: var(--s-2); width: 100%; min-height: 30px;
+  background: transparent; border: 0; cursor: pointer; text-align: left; padding: 2px 0; color: var(--text);
+  font-size: var(--t-meta);
+}
+.kova .cal-toggle[data-off="true"] { color: var(--dim); }
+.kova .cal-toggle[data-off="true"] .cal-swatch { opacity: .3; }
+.kova .cal-toggle[data-unconnected="true"] { color: var(--dim); opacity: .65; }
+.kova .cal-swatch { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.kova .cal-box { width: 12px; height: 12px; border: 1px solid var(--line-strong, var(--line)); border-radius: 3px; flex: none; }
+.kova .cal-box[data-on="true"] { background: var(--a-500); border-color: var(--a-500); }
+
+/* main */
+.kova .cal-main { display: flex; flex-direction: column; gap: var(--s-3); min-width: 0; }
+.kova .cal-bar { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap; }
+.kova .cal-views { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-pill); overflow: hidden; }
+.kova .cal-views button {
+  min-height: 30px; padding: 0 12px; font-size: 11.5px; background: transparent; border: 0; cursor: pointer;
+  color: var(--dim);
+}
+.kova .cal-views button[data-on="true"] { background: var(--inset); color: var(--text); font-weight: 700; }
+
+/* grid */
+.kova .cal-grid { display: grid; gap: 0; min-width: 0; overflow-x: auto; }
+.kova .cal-gutter { display: grid; }
+.kova .cal-hour { font-size: 10.5px; color: var(--dim); text-align: right; padding-right: var(--s-2); transform: translateY(-6px); }
+.kova .cal-col { min-width: 0; border-left: 1px solid var(--line); }
+.kova .cal-colhead { height: 30px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--dim); text-align: center; }
+.kova .cal-colhead[data-today="true"] { color: var(--accent-txt); font-weight: 700; }
+.kova .cal-track { position: relative; height: 640px; display: grid; }
+.kova .cal-slot { border-top: 1px solid var(--line); }
+.kova .cal-allday { display: flex; flex-direction: column; gap: 2px; padding: 2px; min-height: 20px; border-left: 1px solid var(--line); }
+.kova .cal-allday-pill {
+  font-size: 10px; padding: 1px 6px; border-radius: var(--r-sm); color: var(--on-fill);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* event block — filled in the org's identity colour */
+.kova .cal-ev {
+  position: absolute; display: flex; flex-direction: column; gap: 1px; overflow: hidden;
+  border-radius: var(--r-sm); padding: 3px 6px; cursor: pointer; text-align: left;
+  border: 0; border-left: 3px solid var(--scrim);
+  color: var(--on-fill); font-size: 11px;
+}
+.kova .cal-ev[data-declined="true"] { opacity: .5; text-decoration: line-through; }
+.kova .cal-ev-time { font-size: 9.5px; opacity: .85; font-variant-numeric: tabular-nums; }
+.kova .cal-ev-title { font-weight: 700; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
+.kova .cal-ev-marks { display: flex; gap: 3px; align-items: center; }
+.kova .cal-ev[data-short="true"] { flex-direction: row; align-items: baseline; gap: 4px; padding: 1px 5px; }
+.kova .cal-ev[data-short="true"] .cal-ev-title { white-space: nowrap; }
+
+/* conflict marker — semantic warning, never magenta, never an org colour */
+.kova .cal-conflict-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; border-radius: 3px; flex: none;
+  background: var(--warn-txt); color: var(--scrim); font-size: 9px; font-weight: 800;
+}
+.kova .cal-ev[data-conflict="cross"] { outline: 2px solid var(--warn-txt); outline-offset: -2px; }
+.kova .cal-ev[data-conflict="same"] { outline: 1px dashed var(--warn-txt); outline-offset: -2px; }
+
+/* a proposed hold — dashed magenta, on the grid, where it would land */
+.kova .cal-hold {
+  position: absolute; border: 1px dashed var(--ai-txt); border-radius: var(--r-sm);
+  background: transparent; color: var(--ai-txt); font-size: 10.5px; padding: 3px 6px;
+  display: flex; flex-direction: column; gap: 2px; cursor: pointer; text-align: left;
+}
+
+/* agenda */
+.kova .cal-agenda { display: flex; flex-direction: column; gap: var(--s-3); }
+.kova .cal-agenda-day { display: flex; flex-direction: column; gap: var(--s-2); }
+.kova .cal-agenda-h { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); }
+.kova .cal-agenda-row {
+  display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: var(--s-3); align-items: start;
+  border: 0; border-left: 3px solid var(--line); background: transparent; cursor: pointer;
+  padding: 6px var(--s-3); min-height: 44px; text-align: left; width: 100%; color: var(--text);
+}
+.kova .cal-agenda-time { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+/* month */
+.kova .cal-month { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+.kova .cal-month-cell { min-height: 96px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 4px; display: flex; flex-direction: column; gap: 2px; }
+.kova .cal-month-n { font-size: 10.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.kova .cal-month-n[data-today="true"] { color: var(--accent-txt); font-weight: 700; }
+.kova .cal-chip {
+  font-size: 10px; border-radius: var(--r-sm); padding: 1px 5px; color: var(--on-fill);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 0; cursor: pointer; text-align: left;
+}
+
+/* detail pane */
+.kova .cal-detail { display: flex; flex-direction: column; gap: var(--s-3); }
+.kova .cal-attendee { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); font-size: var(--t-meta); }
+.kova .cal-rsvp { display: flex; gap: var(--s-2); flex-wrap: wrap; }
+
+/* conflict panel */
+.kova .cal-conflict-pair { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+
+@media (max-width: 900px) {
+  .kova .cal-wrap, .kova .cal-wrap[data-detail="true"] { grid-template-columns: minmax(0, 1fr); }
+  .kova .cal-conflict-pair { grid-template-columns: 1fr; }
+}
