@@ -1,0 +1,262 @@
+/* Chat (Sprint 03) — Vision's conversational surface.
+   Desktop is rail + thread. Below 900px the rail collapses above the thread
+   so the conversation keeps the full width it needs to be readable. */
+
+.kova .vc-grid {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: var(--s-4);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .kova .vc-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Rail -------------------------------------------------------------- */
+
+.kova .vc-rail {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.kova .vc-rail-empty { margin: 0; color: var(--text-2); font-size: 13px; line-height: 1.5; }
+.kova .vc-rail-group { display: flex; flex-direction: column; gap: 2px; }
+.kova .vc-rail-day {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+  padding: var(--s-2) 4px 4px;
+}
+
+.kova .vc-rail-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  border-radius: var(--r-1);
+}
+.kova .vc-rail-row[data-active="true"] { background: var(--surface-3); }
+
+.kova .vc-rail-btn {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  padding: 8px 10px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-radius: var(--r-1);
+}
+.kova .vc-rail-btn:focus-visible,
+.kova .vc-rail-del:focus-visible,
+.kova .vc-starter:focus-visible,
+.kova .vc-ctx-toggle:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.kova .vc-rail-title {
+  display: block;
+  color: var(--text-1);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kova .vc-rail-meta { display: block; color: var(--text-2); font-size: 11px; margin-top: 2px; }
+
+.kova .vc-rail-del {
+  all: unset;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 44px;
+  color: var(--text-2);
+  border-radius: var(--r-1);
+}
+.kova .vc-rail-del:hover { color: var(--st-bad); }
+
+/* Thread ------------------------------------------------------------ */
+
+.kova .vc-pane {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+  display: flex;
+  flex-direction: column;
+  min-height: 60vh;
+  max-height: 78vh;
+}
+
+.kova .vc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+}
+.kova .vc-head-title { display: flex; align-items: center; gap: var(--s-2); }
+.kova .vc-head-persona { color: var(--text-1); font-size: 14px; }
+.kova .vc-head-meta { color: var(--text-2); font-size: 12px; margin-top: 4px; }
+
+.kova .vc-persona-pick select {
+  background: var(--surface-3);
+  color: var(--text-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  padding: 8px 10px;
+  min-height: 40px;
+  font: inherit;
+  font-size: 13px;
+}
+.kova .vc-visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.kova .vc-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.kova .vc-empty { display: flex; flex-direction: column; gap: var(--s-3); }
+.kova .vc-starters { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.kova .vc-starter {
+  all: unset;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  padding: 10px 12px;
+  min-height: 44px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.kova .vc-starter:hover { color: var(--text-1); border-color: var(--brand); }
+
+.kova .vc-msg { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: var(--s-3); }
+.kova .vc-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  background: var(--surface-3);
+  color: var(--text-2);
+}
+.kova .vc-avatar[data-role="assistant"] { background: var(--ai); color: var(--ai-on); }
+
+.kova .vc-body { min-width: 0; display: flex; flex-direction: column; gap: var(--s-2); }
+.kova .vc-text { margin: 0; color: var(--text-1); font-size: 14px; line-height: 1.65; white-space: pre-wrap; }
+.kova .vc-thinking { color: var(--text-2); }
+.kova .vc-err {
+  color: var(--st-bad);
+  font-size: 13px;
+  border: 1px solid var(--st-bad);
+  border-radius: var(--r-1);
+  padding: var(--s-2) var(--s-3);
+}
+
+/* Context trace ----------------------------------------------------- */
+
+.kova .vc-ctx { display: flex; flex-direction: column; gap: 6px; }
+.kova .vc-ctx-toggle {
+  all: unset;
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 12px;
+  min-height: 24px;
+}
+.kova .vc-ctx-toggle:hover { color: var(--text-1); }
+.kova .vc-ctx-list {
+  margin: 0;
+  padding: var(--s-2) var(--s-3);
+  list-style: none;
+  border-left: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--text-2);
+  font-size: 12px;
+}
+.kova .vc-ctx-kind {
+  display: inline-block;
+  min-width: 74px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 10px;
+}
+
+/* Proposal cards ---------------------------------------------------- */
+
+.kova .vc-prop {
+  border: 1px dashed var(--ai);
+  border-radius: var(--r-2);
+  padding: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  opacity: 0.92;
+}
+.kova .vc-prop[data-decided="true"] {
+  border-style: solid;
+  border-color: var(--line);
+  opacity: 1;
+}
+.kova .vc-prop-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  font-size: 11px;
+  color: var(--text-2);
+}
+.kova .vc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.kova .vc-prop-kind { text-transform: uppercase; letter-spacing: 0.06em; }
+.kova .vc-prop-title { color: var(--text-1); font-size: 14px; }
+.kova .vc-prop-why { margin: 0; color: var(--text-2); font-size: 13px; line-height: 1.55; }
+.kova .vc-prop-state { color: var(--text-2); font-size: 12px; }
+.kova .vc-prop-actions { display: flex; gap: var(--s-2); justify-content: flex-end; flex-wrap: wrap; }
+
+/* Composer ---------------------------------------------------------- */
+
+.kova .vc-composer {
+  border-top: 1px solid var(--line);
+  padding: var(--s-3) var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.kova .vc-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  background: var(--surface-3);
+  color: var(--text-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-1);
+  padding: 12px;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.kova .vc-input:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.kova .vc-composer-foot { display: flex; justify-content: flex-end; gap: var(--s-2); }
