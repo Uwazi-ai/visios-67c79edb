@@ -108,11 +108,12 @@ export function untrusted(label: string, body: string): string {
  * ------------------------------------------------------------------ */
 
 export interface ContextRef {
-  kind: "mail" | "event" | "task" | "proposal" | "contact" | "org";
+  kind: "mail" | "event" | "task" | "proposal" | "contact" | "org" | "drive";
   id: string;
   label: string;
   org_id: string | null;
 }
+
 
 export interface AssembledContext {
   text: string;
