@@ -137,8 +137,12 @@ export function useVisionChat(scopeOrgId: string | null) {
 
   const newConversation = useCallback(
     async (personaKey: string) => {
+      setError(null);
       const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) return null;
+      if (!auth?.user) {
+        setError("You are signed out — sign in again to start a conversation.");
+        return null;
+      }
       const { data, error: err } = await supabase
         .from("conversations")
         .insert({ user_id: auth.user.id, org_id: scopeOrgId, persona_key: personaKey })
