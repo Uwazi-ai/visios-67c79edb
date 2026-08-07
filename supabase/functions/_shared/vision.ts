@@ -257,7 +257,7 @@ export async function assembleContext(opts: {
   if (opts.conversationId) {
     const { data: driveRefs } = await db
       .from("drive_references")
-      .select("id,org_id,file_name,mime_type,web_view_link,owner_email,externally_owned,status,shared_by")
+      .select("id,org_id,file_id,file_name,mime_type,web_view_link,owner_email,externally_owned,status,shared_by")
       .eq("conversation_id", opts.conversationId)
       .order("created_at", { ascending: true })
       .limit(10);
@@ -289,3 +289,39 @@ export async function assembleContext(opts: {
   return { text: lines.join("\n"), refs, orgNames };
 }
 
+
+/* ------------------------------------------------------------------ *
+ * Drive content — read only what can honestly be read
+ * ------------------------------------------------------------------ */
+
+const DRIVE_EXTRACTABLE = new Set([
+  "application/vnd.google-apps.document",
+  "application/vnd.google-apps.spreadsheet",
+  "application/vnd.google-apps.presentation",
+  "application/pdf",
+  "text/plain",
+  "text/csv",
+  "text/markdown",
+]);
+
+export const visionCanRead = (mime: string) =>
+  DRIVE_EXTRACTABLE.has(mime) || mime.startsWith("text/");
+
+/** Uses the sharer's token. If it can't read the file, Vision says it can't. */
+export async function readDriveText(fileId: string, mimeType: string, sharedBy: string) {
+  if (!fileId) return null;
+  let token: string;
+  try {
+    token = await getFreshGoogleAccessToken(sharedBy);
+  } catch {
+    return null;
+  }
+  const exportMime = mimeType.includes("spreadsheet") ? "text/csv" : "text/plain";
+  const url = mimeType.startsWith("application/vnd.google-apps")
+    ? `https://www.googleapis.com/drive/v3/files/${fileId}/export?mimeType=${encodeURIComponent(exportMime)}&supportsAllDrives=true`
+    : `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&supportsAllDrives=true`;
+  const r = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) return null;
+  const text = await r.text();
+  return text.slice(0, 4000);
+}
