@@ -5617,6 +5617,10 @@ export type Database = {
         Args: { _conversation_id: string }
         Returns: boolean
       }
+      can_see_event: {
+        Args: { _event_id: string; _user_id?: string }
+        Returns: boolean
+      }
       current_tenant_id: { Args: never; Returns: string }
       default_tenant_id: { Args: never; Returns: string }
       delete_email: {
@@ -5728,12 +5732,18 @@ export type Database = {
         Returns: boolean
       }
       increment_vision_usage: { Args: { _org_id: string }; Returns: undefined }
+      is_event_attendee: {
+        Args: { _event_id: string; _user_id?: string }
+        Returns: boolean
+      }
       is_exempt_user: { Args: never; Returns: boolean }
       is_org_member:
         | { Args: { _org_id: string; _user_id: string }; Returns: boolean }
         | { Args: { p_org_id: string }; Returns: boolean }
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
-      is_platform_admin: { Args: never; Returns: boolean }
+      is_platform_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id?: string }; Returns: boolean }
       is_super_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }

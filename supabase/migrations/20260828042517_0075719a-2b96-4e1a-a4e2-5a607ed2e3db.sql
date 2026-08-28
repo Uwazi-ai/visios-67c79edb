@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.is_platform_admin(uuid) FROM anon, authenticated;
