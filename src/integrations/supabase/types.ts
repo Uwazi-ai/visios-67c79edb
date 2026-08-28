@@ -5733,7 +5733,9 @@ export type Database = {
         | { Args: { _org_id: string; _user_id: string }; Returns: boolean }
         | { Args: { p_org_id: string }; Returns: boolean }
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
-      is_platform_admin: { Args: never; Returns: boolean }
+      is_platform_admin:
+        | { Args: never; Returns: boolean }
+        | { Args: { _user_id?: string }; Returns: boolean }
       is_super_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
