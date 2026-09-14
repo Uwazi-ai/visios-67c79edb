@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Check, ChevronDown, Moon, Sun } from "lucide-react";
 import { ProblemSection, PROBLEM_CSS } from "@/components/landing/Problem";
 import { HonestySection, ScaleSection, WhoSection, SECTIONS_CSS } from "@/components/landing/Sections";
+import kovaWebGraphic from "@/assets/kova-web-graphic.png.asset.json";
 
 /* ──────────────────────────────────────────────────────────────
    Kova marketing landing.
@@ -90,10 +91,32 @@ const CSS = `
 [data-theme="light"] .klp-hero::before {
   background: radial-gradient(60% 60% at 50% 0%, rgba(210, 31, 255, .09), transparent 72%);
 }
-.klp-hero .inner { position: relative; }
+.klp-hero .inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 460px);
+  align-items: center;
+  gap: clamp(36px, 7vw, 88px);
+}
+.klp-hero-copy { position: relative; z-index: 1; }
+.klp-hero-art {
+  position: relative;
+  justify-self: end;
+  width: min(100%, 430px);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: var(--r-card);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.klp-hero-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .klp-hero .sub { margin-top: 20px; font-size: clamp(16px, 1.7vw, 19px); color: var(--dim); max-width: 56ch; }
 .klp-hero .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
 .klp-hero .micro { margin-top: 14px; font-size: 13px; color: var(--dim); }
+@media (max-width: 820px) {
+  .klp-hero .inner { grid-template-columns: 1fr; }
+  .klp-hero-art { justify-self: stretch; width: 100%; max-height: 620px; }
+}
 
 /* chain */
 .klp-chain { display: grid; gap: 14px; grid-template-columns: repeat(4, 1fr); margin-top: 36px; }
@@ -329,19 +352,24 @@ export default function Landing() {
       {/* HERO */}
       <section className="klp-hero">
         <div className="wrap inner">
-          <div className="eyebrow">The operating layer for entrepreneurs</div>
-          <h1 style={{ marginTop: 18 }}>
-            Every hat,<span className="hb"> </span>one place.
-          </h1>
-          <p className="sub">
-            Kova turns what happened into what&apos;s next — meetings into tasks, tasks into time,
-            and every venture into one morning brief.
-          </p>
-          <div className="cta">
-            <Link className="btn btn-pri" to="/login?tab=signup">Start free</Link>
-            <a className="btn btn-sec" href="#chain">See how it works</a>
+          <div className="klp-hero-copy">
+            <div className="eyebrow">The operating layer for entrepreneurs</div>
+            <h1 style={{ marginTop: 18 }}>
+              Every hat,<span className="hb"> </span>one place.
+            </h1>
+            <p className="sub">
+              Kova turns what happened into what&apos;s next — meetings into tasks, tasks into time,
+              and every venture into one morning brief.
+            </p>
+            <div className="cta">
+              <Link className="btn btn-pri" to="/login?tab=signup">Start free</Link>
+              <a className="btn btn-sec" href="#chain">See how it works</a>
+            </div>
+            <div className="micro">Free for one workspace. No card required.</div>
           </div>
-          <div className="micro">Free for one workspace. No card required.</div>
+          <div className="klp-hero-art">
+            <img src={kovaWebGraphic.url} alt="Kova brand graphic" />
+          </div>
         </div>
       </section>
 
