@@ -5862,7 +5862,7 @@ export type Database = {
       is_owner_anywhere: { Args: { _user_id: string }; Returns: boolean }
       is_platform_admin:
         | { Args: never; Returns: boolean }
-        | { Args: { _user_id?: string }; Returns: boolean }
+        | { Args: { _user_id: string }; Returns: boolean }
       is_super_admin:
         | { Args: never; Returns: boolean }
         | { Args: { _user_id: string }; Returns: boolean }
