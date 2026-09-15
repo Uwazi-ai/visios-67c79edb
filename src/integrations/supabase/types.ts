@@ -2931,6 +2931,33 @@ export type Database = {
           },
         ]
       }
+      lock_events: {
+        Row: {
+          created_at: string
+          feature: string
+          id: string
+          lock_type: string | null
+          tier: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          feature: string
+          id?: string
+          lock_type?: string | null
+          tier?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          feature?: string
+          id?: string
+          lock_type?: string | null
+          tier?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       mail_accounts: {
         Row: {
           connected_by: string
@@ -4039,6 +4066,30 @@ export type Database = {
           },
         ]
       }
+      plans: {
+        Row: {
+          created_at: string
+          id: string
+          limits: Json
+          name: string
+          price_monthly: number
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          limits?: Json
+          name: string
+          price_monthly?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          limits?: Json
+          name?: string
+          price_monthly?: number
+        }
+        Relationships: []
+      }
       platform_admins: {
         Row: {
           granted_at: string
@@ -4757,6 +4808,44 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          org_owner_id: string
+          period_end: string | null
+          plan_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          org_owner_id: string
+          period_end?: string | null
+          plan_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          org_owner_id?: string
+          period_end?: string | null
+          plan_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -5172,6 +5261,36 @@ export type Database = {
           slug?: string
           status?: string
           trial_ends_at?: string
+        }
+        Relationships: []
+      }
+      usage_counters: {
+        Row: {
+          count: number
+          created_at: string
+          id: string
+          metric: string
+          owner_id: string
+          period: string
+          updated_at: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          id?: string
+          metric: string
+          owner_id: string
+          period: string
+          updated_at?: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          id?: string
+          metric?: string
+          owner_id?: string
+          period?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -5899,6 +6018,7 @@ export type Database = {
       }
       recompute_org_storage: { Args: never; Returns: undefined }
       recount_org_usage: { Args: { _org_id: string }; Returns: undefined }
+      reset_usage_counters: { Args: never; Returns: undefined }
       search_kb_text: {
         Args: {
           match_count?: number
