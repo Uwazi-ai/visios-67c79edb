@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
   }
 
   const key = Deno.env.get("LOVABLE_API_KEY");
-  if (!key) return jsonResponse({ error: "Vision is not configured" }, 500);
+  if (!key) return jsonResponse({ error: "Kova is not configured" }, 500);
 
   const persona = await loadPersona((convo as any).persona_key ?? "chief_of_staff", scopeOrgId);
   const ctx = await assembleContext({ userId: user.id, orgIds, scopeOrgId, question: message, conversationId });
@@ -208,7 +208,7 @@ ${ctx.text}`,
 
           if (res.status === 429) throw new Error("RATE_LIMIT");
           if (res.status === 402) throw new Error("NO_CREDITS");
-          if (!res.ok || !res.body) throw new Error(`Vision could not answer (${res.status})`);
+          if (!res.ok || !res.body) throw new Error(`Kova could not answer (${res.status})`);
 
           const reader = res.body.getReader();
           const decoder = new TextDecoder();
@@ -318,9 +318,9 @@ ${ctx.text}`,
         const msg = (e as Error).message;
         failure =
           msg === "RATE_LIMIT"
-            ? "Vision is rate limited right now. Try again in a moment."
+            ? "Kova is rate limited right now. Try again in a moment."
             : msg === "NO_CREDITS"
-              ? "This workspace is out of AI credits. Add credits to keep using Vision."
+              ? "This workspace is out of AI credits. Add credits to keep using Kova."
               : msg;
         send("error", { message: failure });
       }

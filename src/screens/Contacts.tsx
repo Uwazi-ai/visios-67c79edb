@@ -144,7 +144,7 @@ const Contacts = ({ navigate }: { navigate: (id: string) => void }) => {
                 <div className="ai-draft-head">
                   <span className="ai-mark">
                     <span className="ai-dot" aria-hidden />
-                    Vision
+                    Kova
                   </span>
                   <span className="ai-draft-note">not sent</span>
                 </div>

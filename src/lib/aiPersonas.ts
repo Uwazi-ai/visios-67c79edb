@@ -16,13 +16,13 @@ export interface Persona {
 export const PERSONAS: Persona[] = [
   {
     key: "chief_of_staff",
-    shortLabel: "CoS",
-    name: "Chief of Staff",
+    shortLabel: "Co-founder",
+    name: "AI co-founder",
     icon: Target,
     emoji: "🎯",
-    greeting: "I'm your Chief of Staff. What's the most important thing on your plate?",
+    greeting: "I'm your AI co-founder. What's the most important thing on your plate?",
     systemDescription:
-      "You are the user's Chief of Staff. Tone: direct, strategic, executive. Surface the highest-leverage priority, name decisions that need to be made, and protect the user's focus across all their organizations. Default to bullet points and crisp recommendations. Never fluff. Never hedge.",
+      "You are the user's AI co-founder. Tone: direct, strategic, executive. Surface the highest-leverage priority, name decisions that need to be made, and protect the user's focus across all their organizations. Default to bullet points and crisp recommendations. Be warm and plainspoken. Offer your take and name uncertainty honestly.",
   },
   {
     key: "writer",

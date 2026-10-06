@@ -60,9 +60,9 @@ export const Composer = ({
         <span className={state === "vision" ? "ai-mark" : "mb-composerlabel"}>
           {state === "vision" ? <span className="ai-dot" aria-hidden /> : null}
           {state === "vision"
-            ? "Vision drafted this"
+            ? "Kova drafted this"
             : state === "edited"
-              ? "Vision draft, edited by you"
+              ? "Kova draft, edited by you"
               : "Reply"}
         </span>
         <span className="vo-meta">{recipient ? `To ${recipient}` : "No recipient"}</span>

@@ -241,7 +241,7 @@ export function AddOrgWizard({ open, onOpenChange, editingOrg, onCreated }: Prop
 
       {step === 2 && (
         <>
-          <Field label="Description" hint="Vision reads this for org-aware reasoning">
+          <Field label="Description" hint="Kova reads this for org-aware reasoning">
             <textarea className="input-glass" rows={3} value={data.description} onChange={(e) => setData({ ...data, description: e.target.value })} placeholder="What does this org do? Who does it serve?" />
           </Field>
           <Field label="Top 3 priorities this quarter">

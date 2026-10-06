@@ -72,7 +72,7 @@ export const UsageWidget = () => {
             </div>
           ) : (
             <>
-              <Meter label="Vision msgs" used={usage.vision_messages_used} limit={limits.vision_messages_per_month} />
+              <Meter label="Kova msgs" used={usage.vision_messages_used} limit={limits.vision_messages_per_month} />
               <Meter label="Docs" used={usage.knowledge_docs_count} limit={limits.knowledge_base_docs} />
               <Meter label="Contacts" used={usage.contacts_count} limit={limits.contacts} />
               {tier === "team" && (

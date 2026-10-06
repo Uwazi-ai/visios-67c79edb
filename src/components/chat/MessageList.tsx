@@ -330,7 +330,7 @@ export const MessageList = ({
         const name = isBot
           ? "Tech Team 🤖"
           : isVision
-            ? "Vision"
+            ? "Kova"
             : profile?.display_name ?? profile?.email ?? "System";
         const nameColor = isBot
           ? BOT_COLOR

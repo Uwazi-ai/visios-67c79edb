@@ -92,8 +92,8 @@ export const DriveCard = ({
           <div className="vd-vision" data-can={visionCanRead(reference.mime_type) ? "true" : "false"}>
             <Sparkles size={12} strokeWidth={1.75} aria-hidden />
             {visionCanRead(reference.mime_type)
-              ? "Vision can read this file"
-              : "Vision can't read this file type"}
+              ? "Kova can read this file"
+              : "Kova can't read this file type"}
           </div>
         ) : null}
 

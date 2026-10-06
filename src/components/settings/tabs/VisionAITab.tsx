@@ -115,7 +115,7 @@ export default function VisionAITab() {
 
   const clearConversations = async () => {
     if (!user) return;
-    const txt = prompt('Type "CLEAR" to delete all Vision conversations.');
+    const txt = prompt('Type "CLEAR" to delete all Kova conversations.');
     if (txt !== "CLEAR") return;
     await supabase.from("vision_messages").delete().eq("user_id", user.id);
     await supabase.from("vision_conversations").delete().eq("user_id", user.id);
@@ -127,7 +127,7 @@ export default function VisionAITab() {
 
   return (
     <div className="flex flex-col gap-4">
-      <SectionCard title="Default Persona" subtitle="The persona Vision opens with on every new conversation.">
+      <SectionCard title="Default Persona" subtitle="The persona Kova opens with on every new conversation.">
         <div className="grid grid-cols-2 gap-2">
           {PERSONAS.map((p) => {
             const active = (prefs.default_persona ?? "chief_of_staff") === p.key;
@@ -142,13 +142,13 @@ export default function VisionAITab() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Vision Identity" subtitle="What your AI calls itself, how it sounds, and any custom persona instructions.">
+      <SectionCard title="Kova Identity" subtitle="What your AI calls itself, how it sounds, and any custom persona instructions.">
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Display name" hint="The name Vision uses to refer to itself.">
+          <Field label="Display name" hint="The name Kova uses to refer to itself.">
             <input
               className="input-glass"
               value={prefs.vision_display_name ?? ""}
-              placeholder="Vision"
+              placeholder="Kova"
               onChange={(e) => updPref({ vision_display_name: e.target.value })}
             />
           </Field>
@@ -170,20 +170,20 @@ export default function VisionAITab() {
           <textarea
             className="input-glass"
             rows={3}
-            placeholder="e.g. Speak like a no-nonsense Chief of Staff with a startup-operator mindset. Reference my OKRs when relevant."
+            placeholder="e.g. Speak warmly and directly as my AI co-founder. Give me your take, and reference my OKRs when relevant."
             value={prefs.vision_persona_description ?? ""}
             onChange={(e) => updPref({ vision_persona_description: e.target.value })}
           />
         </Field>
       </SectionCard>
 
-      <SectionCard title="Vision Data Access" subtitle="Toggle which sources Vision can read in every conversation.">
+      <SectionCard title="Kova Data Access" subtitle="Toggle which sources Kova can read in every conversation.">
         {DATA_SOURCES.map((s) => (
           <ToggleRow key={`${s.key}-${s.sub ?? ""}`} label={s.label} value={isSourceOn(s.key, s.sub)} onChange={(v) => toggleSource(s.key, s.sub, v)} />
         ))}
       </SectionCard>
 
-      <SectionCard title="Train Vision — Your Voice" subtitle="Vision uses these to draft emails and messages in your style.">
+      <SectionCard title="Train Kova — Your Voice" subtitle="Kova uses these to draft emails and messages in your style.">
         <Field label="Writing style">
           <div className="flex gap-2">
             {(["formal", "semi-formal", "casual"] as const).map((s) => (
@@ -208,7 +208,7 @@ export default function VisionAITab() {
           </Field>
           <Field label="Sign-off name"><input className="input-glass" value={signatureName} onChange={(e) => setSignatureName(e.target.value)} /></Field>
         </div>
-        <Field label="Never say" hint="Phrases Vision should never use in drafts.">
+        <Field label="Never say" hint="Phrases Kova should never use in drafts.">
           <textarea className="input-glass" rows={2} value={training.never_say} onChange={(e) => setTraining((t: any) => ({ ...t, never_say: e.target.value }))} />
         </Field>
         <Field label={`Sample emails (${training.sample_emails.length}/5)`}>
@@ -231,7 +231,7 @@ export default function VisionAITab() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Train Vision — Business Context" subtitle="Vision reads these per-org for context-aware reasoning.">
+      <SectionCard title="Train Kova — Business Context" subtitle="Kova reads these per-org for context-aware reasoning.">
         {orgs.map((o) => (
           <Field key={o.id} label={`${o.name} context`}>
             <textarea className="input-glass" rows={3} value={training.org_context[o.id] ?? ""} onChange={(e) => setTraining((t: any) => ({ ...t, org_context: { ...t.org_context, [o.id]: e.target.value } }))} />
@@ -244,7 +244,7 @@ export default function VisionAITab() {
         </div>
       </SectionCard>
 
-      <SectionCard title="Morning Brief" subtitle="What Vision shows on dashboard load each morning.">
+      <SectionCard title="Morning Brief" subtitle="What Kova shows on dashboard load each morning.">
         <ToggleRow label="Auto-generate on dashboard load" value={prefs.brief_auto !== false} onChange={(v) => updPref({ brief_auto: v })} />
         <div className="grid grid-cols-2 gap-3">
           <Field label="Brief time" hint="Auto-generated within a 3-hour window starting at this time.">

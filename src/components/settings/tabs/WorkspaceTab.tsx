@@ -115,7 +115,7 @@ export default function WorkspaceTab() {
             </SelectContent>
           </Select>
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            Affects Vision daily brief delivery time and dashboard "today" boundaries.
+            Affects Kova daily brief delivery time and dashboard "today" boundaries.
           </p>
         </div>
         <div className="flex justify-end pt-2">

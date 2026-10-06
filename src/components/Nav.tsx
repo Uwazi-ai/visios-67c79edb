@@ -35,7 +35,7 @@ export const MARKETING: NavEntry[] = [
 ];
 
 export const SYSTEM: NavEntry[] = [
-  { id: "vision", label: "Vision", icon: Sparkles },
+  { id: "vision", label: "Kova", icon: Sparkles },
   { id: "connect", label: "Connect", icon: Plug },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "settings", label: "Settings", icon: Settings },
@@ -235,7 +235,7 @@ export const Nav = ({
 
       <div className="vo-rail-foot">
         <button type="button" className="vo-vision" onClick={() => onNavigate("vision")}>
-          <div className="vo-vision-title">Ask Vision</div>
+          <div className="vo-vision-title">Ask Kova</div>
           <div className="vo-vision-sub">
             {scope === "all" ? "Across every venture" : `Scoped to ${current.name}`}
           </div>

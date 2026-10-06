@@ -170,7 +170,7 @@ const Knowledge = () => {
                 <span className="vo-meta">last 30 days</span>
               </div>
               {cited.length === 0 ? (
-                <Desc>Vision cited nothing in {scopeName} this month.</Desc>
+                <Desc>Kova cited nothing in {scopeName} this month.</Desc>
               ) : (
                 <div className="vo-stack" style={{ gap: "var(--s-2)" }}>
                   {cited.map((d) => (

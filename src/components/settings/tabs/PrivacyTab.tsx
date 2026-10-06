@@ -51,10 +51,10 @@ export default function PrivacyTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      <SectionCard title="Data Usage" subtitle="All off by default. Vision reads live and never caches when off.">
-        <ToggleRow label="Allow Vision conversations to improve AI" hint="Anonymized conversation logs help train models. Off = your data never leaves your account." value={get("ai_improvement")} onChange={(v) => upd("ai_improvement", v)} />
-        <ToggleRow label="Store email body in database" hint="Off = Vision reads Gmail live each time, never persists message bodies." value={get("store_email")} onChange={(v) => upd("store_email", v)} />
-        <ToggleRow label="Store Slack messages in database" hint="Off = Vision queries Slack live, never persists messages." value={get("store_slack")} onChange={(v) => upd("store_slack", v)} />
+      <SectionCard title="Data Usage" subtitle="All off by default. Kova reads live and never caches when off.">
+        <ToggleRow label="Allow Kova conversations to improve AI" hint="Anonymized conversation logs help train models. Off = your data never leaves your account." value={get("ai_improvement")} onChange={(v) => upd("ai_improvement", v)} />
+        <ToggleRow label="Store email body in database" hint="Off = Kova reads Gmail live each time, never persists message bodies." value={get("store_email")} onChange={(v) => upd("store_email", v)} />
+        <ToggleRow label="Store Slack messages in database" hint="Off = Kova queries Slack live, never persists messages." value={get("store_slack")} onChange={(v) => upd("store_slack", v)} />
       </SectionCard>
       <SectionCard title="Data Portability">
         <button onClick={exportData} className="btn-primary" disabled={exporting} style={{ alignSelf: "start" }}>

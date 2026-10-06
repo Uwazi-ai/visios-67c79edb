@@ -30,7 +30,7 @@ export interface VisionProfile {
   is_founder?: boolean;
   accessible_orgs?: string[];            // org names this user can access
   // New VisionAI settings
-  vision_display_name?: string | null;   // What the AI calls itself (e.g. "Vision", "Athena")
+  vision_display_name?: string | null;   // What the AI calls itself (e.g. "Kova", "Athena")
   vision_persona_description?: string | null; // User-authored persona override
   vision_tone?: string | null;           // direct | formal | friendly | casual | playful
   brief_time?: string | null;            // HH:MM, user's preferred morning brief slot
@@ -58,7 +58,7 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   const formattedDate = now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const currentTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const orgNames = profile.accessible_orgs ?? [];
-  const aiName = (profile.vision_display_name || "Vision").trim();
+  const aiName = (profile.vision_display_name || "Kova").trim();
   const toneKey = (profile.vision_tone || "direct").toLowerCase();
   const toneInstruction: Record<string, string> = {
     direct: "Be terse and outcome-driven. Short sentences. No filler.",
@@ -69,7 +69,7 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   };
 
   const lines: string[] = [];
-  lines.push(`You are ${aiName}, the AI chief of staff for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
+  lines.push(`You are ${aiName}, the AI AI co-founder for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
   lines.push(persona.systemDescription);
   if (profile.vision_persona_description && profile.vision_persona_description.trim()) {
     lines.push(`\n═══ CUSTOM PERSONA (from ${firstName}'s settings) ═══\n${profile.vision_persona_description.trim()}`);
@@ -94,7 +94,7 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
     lines.push(
       `\n═══ ACCESS SCOPE ═══\nYou work within: ${orgList}.\n` +
       `You can ONLY see data the user has access to: contacts, tasks, knowledge base, meetings, and events for the orgs above, plus their own connected Gmail/Calendar.\n` +
-      `You CANNOT see: data from other orgs the user is not a member of, other team members' private Vision conversations, billing/admin settings, or the founder's personal mailbox.\n` +
+      `You CANNOT see: data from other orgs the user is not a member of, other team members' private Kova conversations, billing/admin settings, or the founder's personal mailbox.\n` +
       `If asked about restricted data, politely explain it isn't in scope and suggest asking an org owner.`
     );
   }
@@ -317,7 +317,7 @@ Good morning, ${firstName}. Here's your ${dayOfWeek} brief.
 - [Contacts not touched in 30+ days who are relevant this week]
 - [People in today's meetings — quick context]
 
-🎯 **Vision's Take**
+🎯 **Kova's Take**
 [2–3 sentences: the highest-leverage thing to focus on today, based on everything above. Be opinionated.]
 
 Maximum 4 bullets per section. Lead with what matters most. Never invent data — omit empty sections.`);

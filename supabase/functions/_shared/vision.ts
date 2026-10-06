@@ -73,9 +73,9 @@ export async function loadPersona(key: string, orgId: string | null): Promise<Pe
   if (!row) {
     return {
       key,
-      display_name: "Vision",
+      display_name: "Kova",
       system_prompt:
-        "You are Vision, the AI chief of staff inside Kova. You never refer to yourself as any other product, model, company or assistant name.",
+        "You are Kova, the AI AI co-founder inside Kova. You never refer to yourself as any other product, model, company or assistant name.",
       allowed_tools: [],
     };
   }
@@ -308,7 +308,7 @@ const DRIVE_EXTRACTABLE = new Set([
 export const visionCanRead = (mime: string) =>
   DRIVE_EXTRACTABLE.has(mime) || mime.startsWith("text/");
 
-/** Uses the sharer's token. If it can't read the file, Vision says it can't. */
+/** Uses the sharer's token. If it can't read the file, Kova says it can't. */
 export async function readDriveText(fileId: string, mimeType: string, sharedBy: string) {
   if (!fileId) return null;
   let token: string;

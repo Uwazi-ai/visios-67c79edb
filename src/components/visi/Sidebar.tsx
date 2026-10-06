@@ -15,7 +15,7 @@ import { TIER_CONFIG } from "@/config/tiers";
 
 const NAV_ALL = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
-  { to: "/vision", label: "Vision", icon: Sparkles },
+  { to: "/vision", label: "Kova", icon: Sparkles },
   { to: "/chat", label: "Chat", icon: MessageSquare },
   { to: "/inbox", label: "Inbox", icon: Inbox },
   { to: "/tasks", label: "Tasks", icon: CheckSquare },

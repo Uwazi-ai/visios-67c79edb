@@ -74,7 +74,7 @@ export const MailList = ({
                   {pending ? "Sorting" : categoryLabel(m.category)}
                 </span>
                 {m.category_source === "ai" ? (
-                  <span className="mb-aidot" title="Categorised by Vision" aria-label="Categorised by Vision" />
+                  <span className="mb-aidot" title="Categorised by Kova" aria-label="Categorised by Kova" />
                 ) : null}
               </span>
 

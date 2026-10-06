@@ -77,7 +77,7 @@ Return STRICT JSON only with this shape:
       if (parsed.assigned_to) setAssigned(parsed.assigned_to);
       setStep(2);
     } catch (e: any) {
-      toast.error(e.message || "Vision couldn't parse this. Try rewording.");
+      toast.error(e.message || "Kova couldn't parse this. Try rewording.");
     } finally {
       setThinking(false);
     }
@@ -193,7 +193,7 @@ Return STRICT JSON only with this shape:
               className="btn-primary w-full"
               style={{ background: LIME, color: "#000", justifyContent: "center", fontWeight: 600 }}
             >
-              {thinking ? <><Loader2 size={12} className="animate-spin" /> Vision is thinking...</> : <>Understand my workflow <ArrowRight size={12} /></>}
+              {thinking ? <><Loader2 size={12} className="animate-spin" /> Kova is thinking...</> : <>Understand my workflow <ArrowRight size={12} /></>}
             </button>
             {thinking && (
               <div className="text-center" style={{ fontSize: 11, color: "var(--text-muted)" }}>Parsing trigger, steps, and output...</div>

@@ -38,7 +38,7 @@ const PLANS: Plan[] = [
       "Up to 10 team members",
       "Team Chat with realtime",
       "Agents & workflows",
-      "Vision unlimited briefs",
+      "Kova unlimited briefs",
       "Daily team reports",
     ],
   },

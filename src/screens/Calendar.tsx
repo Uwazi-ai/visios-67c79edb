@@ -255,7 +255,7 @@ const CalendarScreen = ({ navigate }: { navigate: (id: string) => void }) => {
               Kova reads every connected calendar and never becomes the system of record. Times
               stay in UTC underneath and are drawn in {Intl.DateTimeFormat().resolvedOptions().timeZone};
               a meeting invited to two of your accounts is drawn once, carrying both entity
-              markers, so it can never conflict with itself. Anything Vision suggests renders
+              markers, so it can never conflict with itself. Anything Kova suggests renders
               dashed until you commit it — only then does it reach Google.
             </Desc>
           </div>

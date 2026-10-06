@@ -138,14 +138,14 @@ export default function OrganizationsTab() {
       {cur && (
         <SectionCard
           title={cur.name}
-          subtitle="Vision uses this context for org-aware reasoning."
+          subtitle="Kova uses this context for org-aware reasoning."
         >
           <div className="flex items-center gap-2">
             <OrgPill name={cur.name} shortName={cur.short_name} color={cur.color} active />
             <span className="t-mono" style={{ fontSize: 10 }}>/{cur.slug}</span>
           </div>
 
-          <Field label="Description" hint="Vision reads this for every conversation.">
+          <Field label="Description" hint="Kova reads this for every conversation.">
             <textarea className="input-glass" rows={3} value={cur.description ?? ""} onChange={(e) => upd({ description: e.target.value })} placeholder="What this org does, who it serves, current focus." />
           </Field>
 

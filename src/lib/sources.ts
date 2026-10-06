@@ -62,7 +62,7 @@ export const SOURCES: Source[] = [
       "Tasks, throughput and velocity",
       "Timeline, dependencies and WIP limits",
       "Semantic search and index coverage",
-      "Vision conversations and tool disclosure",
+      "Kova conversations and tool disclosure",
       "Agent proposals",
     ],
   },
@@ -657,25 +657,25 @@ export const CAPABILITIES: Record<string, Capability> = {
     derived: "Runs joined to their outcomes.",
   },
 
-  /* ---------------- Vision ---------------- */
+  /* ---------------- Kova ---------------- */
   conversation: {
     title: "Conversation",
-    screen: "Vision",
-    does: "Your thread with Vision, kept.",
+    screen: "Kova",
+    does: "Your thread with Kova, kept.",
     needs: ["supabase"],
     enriches: [],
   },
   "tool-disclosure": {
     title: "Tool call disclosure",
-    screen: "Vision",
-    does: "Every tool Vision called, including the ones that were denied or failed.",
+    screen: "Kova",
+    does: "Every tool Kova called, including the ones that were denied or failed.",
     needs: ["supabase"],
     enriches: [],
   },
   sightlines: {
-    title: "What Vision can see",
-    screen: "Vision",
-    does: "The sources Vision is reading from in this session.",
+    title: "What Kova can see",
+    screen: "Kova",
+    does: "The sources Kova is reading from in this session.",
     needs: [],
     enriches: [],
     derived: "Reads the connection list itself — always available.",

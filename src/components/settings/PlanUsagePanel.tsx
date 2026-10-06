@@ -70,7 +70,7 @@ export const PlanUsagePanel = () => {
         <div className="vo-stack" style={{ gap: "var(--s-3)" }}>
           <Meter label="Organisations" value={billableOrgCount} limit={orgLimit} />
           <Meter label="Live connections" value={usage?.connections ?? 0} />
-          <Meter label="Vision replies this month" value={usage?.vision_messages ?? 0} />
+          <Meter label="Kova replies this month" value={usage?.vision_messages ?? 0} />
           <Meter label="Meeting briefs this month" value={usage?.briefs ?? 0} />
           <Meter
             label="Attachment storage"

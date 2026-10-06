@@ -9,7 +9,7 @@ import { Step3Google } from "@/components/onboarding/Step3Google";
 import { Step4Vision } from "@/components/onboarding/Step4Vision";
 import { toast } from "@/hooks/use-toast";
 
-const STEPS = ["Workspace", "Team", "Google", "Vision"];
+const STEPS = ["Workspace", "Team", "Google", "Kova"];
 
 export default function OnboardingPage() {
   const { session, user, loading: authLoading } = useAuth();
