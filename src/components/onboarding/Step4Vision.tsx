@@ -10,7 +10,7 @@ export const Step4Vision = ({ onStartVision, onExplore }: Props) => {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="t-section mb-1">Meet Kova, your AI AI co-founder</h1>
+        <h1 className="t-section mb-1">Meet Kova, your AI co-founder</h1>
         <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
           Kova is your AI co-founder across every business you run — keeping the threads
           together, taking on the busywork, and bringing you the decisions that need you.
