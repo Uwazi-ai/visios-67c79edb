@@ -73,10 +73,10 @@ export const ProvenanceCard = ({
       {!v.stated ? (
         <div className="vo-row" style={{ gap: "var(--s-2)", flexWrap: "wrap" }}>
           <button type="button" className="vo-btn" data-variant="quiet" onClick={onAsk}>
-            Work it out in Vision
+            Work it out in Kova
           </button>
           <span className="vo-meta">
-            Vision can search your threads and photos for that afternoon. It will still
+            Kova can search your threads and photos for that afternoon. It will still
             ask before it writes anything to the record.
           </span>
         </div>

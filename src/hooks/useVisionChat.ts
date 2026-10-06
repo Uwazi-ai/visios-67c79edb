@@ -1,3 +1,4 @@
+import { kovaIdentityLabel } from "@/lib/kovaVoice";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { PendingProposal } from "@/hooks/useDashboardSummary";
@@ -81,7 +82,7 @@ export function useVisionChat(scopeOrgId: string | null) {
       const byKey = new Map<string, Persona>();
       for (const r of rows) {
         const existing = byKey.get(r.key);
-        if (!existing || r.org_id) byKey.set(r.key, r);
+        if (!existing || r.org_id) byKey.set(r.key, { ...r, display_name: kovaIdentityLabel(r.display_name) });
       }
       setPersonas([...byKey.values()].sort((a, b) => a.sort_order - b.sort_order));
     })();
@@ -226,7 +227,7 @@ export function useVisionChat(scopeOrgId: string | null) {
 
         if (!res.ok || !res.body) {
           const detail = await res.text().catch(() => "");
-          throw new Error(detail || `Vision could not answer (${res.status})`);
+          throw new Error(detail || `Kova could not answer (${res.status})`);
         }
 
         const reader = res.body.getReader();

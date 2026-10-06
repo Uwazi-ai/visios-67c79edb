@@ -5,6 +5,7 @@ import { useOrg } from "@/contexts/OrgContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { ORG_COLORS } from "@/lib/orgs";
 import { toast } from "sonner";
+import { kovaIdentityLabel } from "@/lib/kovaVoice";
 
 export interface ChatChannel {
   id: string;
@@ -386,7 +387,7 @@ function ChannelRow({
             textOverflow: "ellipsis",
           }}
         >
-          {isDm ? peerName : channel.name}
+          {isDm ? peerName : kovaIdentityLabel(channel.name ?? "")}
         </span>
 
         {channel.unread ? (
@@ -453,7 +454,7 @@ function SystemRow({
   const isDailyReports = channel.name === "dailyreports";
   const Icon = isDailyReports ? Bot : channel.name === "deploys" ? Rocket : Zap;
   const iconColor = isDailyReports ? "#2563EB" : "#818cf8";
-  const label = isDailyReports ? "dailyreports" : channel.name;
+  const label = isDailyReports ? "dailyreports" : kovaIdentityLabel(channel.name ?? "");
   return (
     <button
       onClick={onClick}

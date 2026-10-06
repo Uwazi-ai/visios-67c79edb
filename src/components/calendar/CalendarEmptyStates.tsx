@@ -10,11 +10,9 @@ export const NotConnected = ({ orgNames, onConnect }: { orgNames: string[]; onCo
     <div className="vo-empty">
       <Eyebrow>No calendar connected</Eyebrow>
       <Desc>
-        Google Calendar shows one account at a time. {orgNames.length > 1
-          ? `Your ${orgNames.length} entities — ${orgNames.slice(0, 4).join(", ")}${orgNames.length > 4 ? ", and others" : ""} — cannot see each other's free/busy, which is how a double booking survives until the morning of.`
-          : "Connect an account and Kova reads it alongside every other entity you add."}{" "}
-        Connecting turns on one grid across every entity, conflict detection between them, and a
-        meeting brief assembled from your mail and open tasks.
+        I can't see your schedule for {orgNames.join(", ") || "your organisations"} yet.
+        Connect a calendar and I'll help spot conflicts across your businesses and prepare for what's next.
+        Until then, I won't assume your day is clear.
       </Desc>
       <Button variant="primary" onClick={onConnect}>
         <Plug size={14} aria-hidden style={{ marginRight: 6, verticalAlign: "-2px" }} />

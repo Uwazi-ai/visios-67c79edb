@@ -149,7 +149,7 @@ export function StrategyView() {
               {loading90 ? (
                 <div className="flex flex-col items-center gap-3 justify-center py-16" style={{ color: "var(--text-muted)" }}>
                   <Loader2 size={24} className="animate-spin" style={{ color: cfg.color }} />
-                  <div style={{ fontSize: 13 }}>Vision is building your strategy...</div>
+                  <div style={{ fontSize: 13 }}>Kova is building your strategy...</div>
                 </div>
               ) : (
                 <pre style={{ whiteSpace: "pre-wrap", fontFamily: "var(--font-body)", fontSize: 13, lineHeight: 1.65, color: "var(--text-primary)" }}>

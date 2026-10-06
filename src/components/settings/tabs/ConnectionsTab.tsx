@@ -85,7 +85,7 @@ export default function ConnectionsTab() {
 
   const disconnectGoogle = async () => {
     if (!user) return;
-    if (!confirm("Disconnect Google? Vision will lose access to Gmail, Calendar, and Drive.")) return;
+    if (!confirm("Disconnect Google? Kova will lose access to Gmail, Calendar, and Drive.")) return;
     await supabase.from("profiles").update({ google_access_token: null, google_refresh_token: null, google_granted_scopes: null }).eq("id", user.id);
     toast.success("Google disconnected");
     reload();
@@ -101,7 +101,7 @@ export default function ConnectionsTab() {
     <div className="flex flex-col gap-4">
       <div>
         <p className="t-mono" style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-          Manage what Kova and Vision can access. Vision only reads data from sources you've enabled.
+          Manage what Kova and Kova can access. Kova only reads data from sources you've enabled.
         </p>
       </div>
 
@@ -118,7 +118,7 @@ export default function ConnectionsTab() {
           <div className="flex flex-col gap-4 mt-2">
             <div>
               <div className="t-mono mb-2" style={{ fontSize: 10 }}>📧 Gmail</div>
-              <ToggleRow label="Vision reads Gmail" value={googleMeta.gmail_enabled !== false} onChange={(v) => toggleSubMeta("google", "gmail_enabled", v)} />
+              <ToggleRow label="Kova reads Gmail" value={googleMeta.gmail_enabled !== false} onChange={(v) => toggleSubMeta("google", "gmail_enabled", v)} />
               <ToggleRow label="Sync contact interactions" hint="Log Gmail conversations on contact records." value={!!googleMeta.gmail_sync_interactions} onChange={(v) => toggleSubMeta("google", "gmail_sync_interactions", v)} />
               <ToggleRow label="Gmail contact auto-sync" value={!!googleMeta.gmail_contact_sync} onChange={(v) => toggleSubMeta("google", "gmail_contact_sync", v)} />
               <Field label="Sync frequency">
@@ -137,14 +137,14 @@ export default function ConnectionsTab() {
 
             <div className="border-t pt-4" style={{ borderColor: "var(--border-glass)" }}>
               <div className="t-mono mb-2" style={{ fontSize: 10 }}>📅 Calendar</div>
-              <ToggleRow label="Vision reads Calendar" value={googleMeta.calendar_enabled !== false} onChange={(v) => toggleSubMeta("google", "calendar_enabled", v)} />
+              <ToggleRow label="Kova reads Calendar" value={googleMeta.calendar_enabled !== false} onChange={(v) => toggleSubMeta("google", "calendar_enabled", v)} />
               <ToggleRow label="Auto-tag events with org" value={!!googleMeta.calendar_auto_tag} onChange={(v) => toggleSubMeta("google", "calendar_auto_tag", v)} />
               <ToggleRow label="Auto-generate meeting prep" value={!!googleMeta.calendar_auto_prep} onChange={(v) => toggleSubMeta("google", "calendar_auto_prep", v)} />
             </div>
 
             <div className="border-t pt-4" style={{ borderColor: "var(--border-glass)" }}>
               <div className="t-mono mb-2" style={{ fontSize: 10 }}>📁 Drive</div>
-              <ToggleRow label="Vision reads Drive" value={googleMeta.drive_enabled !== false} onChange={(v) => toggleSubMeta("google", "drive_enabled", v)} />
+              <ToggleRow label="Kova reads Drive" value={googleMeta.drive_enabled !== false} onChange={(v) => toggleSubMeta("google", "drive_enabled", v)} />
               {(["uwazi", "bin", "cc"] as const).map((slug) => (
                 <Field key={slug} label={`${slug.toUpperCase()} folder ID`}>
                   <input className="input-glass" placeholder="Drive folder ID" defaultValue={driveFolders[slug] ?? ""} onBlur={(e) => toggleSubMeta("google", "drive_folders", { ...driveFolders, [slug]: e.target.value })} />
@@ -165,7 +165,7 @@ export default function ConnectionsTab() {
         provider="slack"
         title="Slack"
         icon={MessageSquare}
-        description="Connect Slack so Vision can reference team messages."
+        description="Connect Slack so Kova can reference team messages."
         fields={[{ key: "workspace", label: "Workspace name", type: "text" }, { key: "bot_token", label: "Bot token (xoxb-...)", type: "password" }]}
         onSaved={reload}
         existing={getRow("slack")}
@@ -180,7 +180,7 @@ export default function ConnectionsTab() {
         provider="jira"
         title="Jira"
         icon={Ticket}
-        description="Pull open issues into Vision context."
+        description="Pull open issues into Kova context."
         fields={[
           { key: "domain", label: "Jira domain", type: "text", placeholder: "mycompany.atlassian.net" },
           { key: "email", label: "Email", type: "text" },
@@ -369,7 +369,7 @@ function ApiTokenTile({
         })}
 
         {connected && (
-          <ToggleRow label={`Vision reads ${title}`} value={existing?.vision_enabled !== false} onChange={onToggleVision} />
+          <ToggleRow label={`Kova reads ${title}`} value={existing?.vision_enabled !== false} onChange={onToggleVision} />
         )}
 
         <div className="flex gap-2 pt-2">

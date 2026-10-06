@@ -45,7 +45,7 @@ export const BottomNav = () => {
 
   const tabs: Tab[] = [
     { to: "/", icon: Home, label: "Home" },
-    { to: "/vision", icon: Sparkles, label: "Vision", matchPrefix: true },
+    { to: "/vision", icon: Sparkles, label: "Kova", matchPrefix: true },
     { to: "/inbox", icon: Inbox, label: "Inbox", matchPrefix: true },
     { to: "/contacts", icon: Users, label: "Contacts", matchPrefix: true, badge: reviewCount },
   ];

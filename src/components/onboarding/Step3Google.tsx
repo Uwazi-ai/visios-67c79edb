@@ -42,7 +42,7 @@ export const Step3Google = ({ onNext, onSkip }: Props) => {
       <div>
         <h1 className="t-section mb-1">Connect your email and calendar</h1>
         <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
-          So Vision can read your inbox and book time on your behalf.
+          So Kova can read your inbox and book time on your behalf.
         </p>
       </div>
       <div className="space-y-2">

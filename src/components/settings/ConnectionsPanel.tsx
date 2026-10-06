@@ -97,7 +97,7 @@ export default function ConnectionsPanel() {
     <div className="space-y-6">
       <div>
         <div className="t-section text-white">Connections</div>
-        <p className="text-sm text-gray-400 mt-1">Control which data sources Vision can see in every conversation.</p>
+        <p className="text-sm text-gray-400 mt-1">Control which data sources Kova can see in every conversation.</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -154,7 +154,7 @@ export default function ConnectionsPanel() {
                 >
                   <span className="flex items-center gap-1.5">
                     {visionOn ? <Eye size={12} /> : <EyeOff size={12} />}
-                    Vision {visionOn ? "ON" : "OFF"}
+                    Kova {visionOn ? "ON" : "OFF"}
                   </span>
                 </button>
               )}
@@ -166,7 +166,7 @@ export default function ConnectionsPanel() {
       {hasGoogle && (
         <div className="rounded-xl p-4" style={{ background: "var(--bg-glass-1)", border: "1px solid var(--border-glass)" }}>
           <div className="text-sm font-medium text-white mb-1">Drive folder IDs</div>
-          <p className="text-xs text-gray-400 mb-3">Comma- or space-separated Google Drive folder IDs Vision is allowed to search. Get the ID from the folder URL.</p>
+          <p className="text-xs text-gray-400 mb-3">Comma- or space-separated Google Drive folder IDs Kova is allowed to search. Get the ID from the folder URL.</p>
           <DriveFoldersInput
             initial={(googleMeta.drive_folder_ids ?? []).join(", ")}
             onSave={updateDriveFolders}

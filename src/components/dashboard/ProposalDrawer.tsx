@@ -3,7 +3,7 @@ import { Button, GatedButton } from "@/components/primitives";
 import type { PendingProposal } from "@/hooks/useDashboardSummary";
 
 const AGENT_LABEL: Record<string, string> = {
-  chief_of_staff: "Chief of Staff",
+  chief_of_staff: "AI co-founder",
   writer: "Writer",
   researcher: "Researcher",
   analyst: "Analyst",

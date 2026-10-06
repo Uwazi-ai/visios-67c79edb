@@ -164,7 +164,7 @@ export default function BillingTab() {
         <div className="glass p-6 rounded-2xl" style={{ border: "1px solid #1a1a2e" }}>
           <h3 className="t-section mb-1">Upgrade your workspace</h3>
           <p className="text-sm mb-4" style={{ color: "var(--text-secondary)" }}>
-            Unlock {tier === "solo" ? "team chat, agents, and unlimited Vision briefs" : "social, admin dashboard, and unlimited seats"}.
+            Unlock {tier === "solo" ? "team chat, agents, and unlimited Kova briefs" : "social, admin dashboard, and unlimited seats"}.
           </p>
           <Button
             onClick={() => setUpgradeOpen(true)}

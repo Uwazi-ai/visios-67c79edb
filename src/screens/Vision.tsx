@@ -35,7 +35,7 @@ const Vision = () => {
   return (
     <div>
       <SectionHead
-        title="Vision"
+        title="Kova"
         action={
           thread.length ? (
             <button type="button" className="vo-btn" onClick={resetThread}>
@@ -53,9 +53,9 @@ const Vision = () => {
                 <div className="vo-empty">
                   <Eyebrow>Nothing asked yet</Eyebrow>
                   <Desc>
-                    Ask across every venture at once. Each answer opens with the calls it
-                    made — including the ones that were denied — so you can check the
-                    reading rather than trust the sentence.
+                    I'm Kova, your AI co-founder. What's on your plate across
+                    {me.name ? "the ventures in this workspace" : "your ventures"}? I'll give you my take,
+                    show what I read, and tell you where I'm missing context.
                   </Desc>
                 </div>
               ) : null}
@@ -71,7 +71,7 @@ const Vision = () => {
                 ) : (
                   <div key={t.id} className="vo-msg" data-role="vision">
                     <div className="vo-msg-who" data-vision="true">
-                      V
+                      K
                     </div>
                     <div className="vo-msg-body">
                       {t.calls ? <CallTrace calls={t.calls} /> : null}
@@ -106,7 +106,7 @@ const Vision = () => {
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
                   placeholder="Ask across UWAZI, Culture Club, BIN, Raia, 1Flock…"
-                  aria-label="Ask Vision"
+                  aria-label="Ask Kova"
                 />
                 <button type="submit" className="vo-btn" data-variant="primary" disabled={!draft.trim()}>
                   Ask
@@ -119,7 +119,7 @@ const Vision = () => {
         <Col span={4}>
           <Card>
             <Eyebrow>This session</Eyebrow>
-            <Title>What Vision can see</Title>
+            <Title>What Kova can see</Title>
             <Desc>
               {blocked > 0
                 ? `${blocked} of ${rows.length} sources are unreadable right now. They stay listed and marked — a missing row would read as a source that doesn't exist, and you would never learn the answer was narrower than it looked.`
@@ -142,7 +142,7 @@ const Vision = () => {
 
           <Card>
             <Eyebrow>The rule</Eyebrow>
-            <Title>Vision reads. You act.</Title>
+            <Title>Kova reads. You act.</Title>
             <Desc>
               Send, post, spend and delete return an intent, never a write. The write
               happens on your approval and nowhere else — there is no confidence

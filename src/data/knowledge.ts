@@ -54,9 +54,9 @@ export interface Doc {
   org: string;
   pages: number;
   updated: string;
-  /** Null until the embedding job finishes. Null = invisible to Vision. */
+  /** Null until the embedding job finishes. Null = invisible to Kova. */
   indexed: boolean;
-  /** Times Vision cited this document in the last 30 days. */
+  /** Times Kova cited this document in the last 30 days. */
   citations: number;
   concepts: string[];
   passages: Passage[];
@@ -238,7 +238,7 @@ export const DOCS: Doc[] = [
 
   {
     id: "d10",
-    title: "Vision retrieval spec",
+    title: "Kova retrieval spec",
     category: "product",
     org: "uwazi",
     pages: 17,
@@ -248,7 +248,7 @@ export const DOCS: Doc[] = [
     concepts: ["retrieval", "embedding", "citation", "search", "ranking", "chunking", "relevance"],
     passages: [
       {
-        text: "Vision may only cite chunks that scored above threshold in the retrieval pass. It is never permitted to cite a document it did not read in this turn.",
+        text: "Kova may only cite chunks that scored above threshold in the retrieval pass. It is never permitted to cite a document it did not read in this turn.",
         concepts: ["citation", "retrieval", "relevance"],
       },
       {

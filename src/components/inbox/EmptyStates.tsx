@@ -16,8 +16,8 @@ export const NotConnected = ({
         : "No mail accounts connected yet"}
     </Title>
     <Desc>
-      Connect an account and this becomes one inbox across every organisation you
-      run: sorted by kind, with replies already drafted on the ones that need them.
+      I can't read mail for {orgNames.join(", ") || "your organisations"} yet.
+      Connect a dedicated account and I'll help you sort what matters and draft replies.
       Each organisation connects its own account — everything in it becomes visible
       to that organisation's members, so connect a dedicated address, not a personal one.
     </Desc>

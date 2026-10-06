@@ -106,7 +106,7 @@ export const EventDetail = ({
             <div className="ai-draft">
               <div className="ai-draft-head">
                 <span className="ai-dot" aria-hidden />
-                <span className="ai-draft-note">written by Vision, not sent anywhere</span>
+                <span className="ai-draft-note">written by Kova, not sent anywhere</span>
               </div>
               <p className="vo-desc" style={{ whiteSpace: "pre-wrap" }}>{brief.content}</p>
             </div>

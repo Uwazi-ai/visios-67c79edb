@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Sparkles, Trash2 } from "lucide-react";
 import "@/design/chat.css";
 import { Button, Desc, Eyebrow, SectionHead } from "@/components/primitives";
 import { ProposalDrawer, agentLabel } from "@/components/dashboard/ProposalDrawer";
@@ -10,6 +10,7 @@ import { DriveCard } from "@/components/chat/DriveCard";
 import { DriveAttachMenu } from "@/components/chat/DriveAttachMenu";
 import { firstDriveUrl } from "@/data/driveMarks";
 import { supabase } from "@/integrations/supabase/client";
+import { kovaIdentityLabel } from "@/lib/kovaVoice";
 import type { PendingProposal } from "@/hooks/useDashboardSummary";
 
 
@@ -144,7 +145,7 @@ const Chat = () => {
   const active = vc.conversations.find((c) => c.id === vc.activeId) ?? null;
   const personaKey = active?.persona_key ?? "chief_of_staff";
   const personaName =
-    vc.personas.find((p) => p.key === personaKey)?.display_name ?? "Chief of Staff";
+    kovaIdentityLabel(vc.personas.find((p) => p.key === personaKey)?.display_name ?? "AI co-founder");
 
   useEffect(() => {
     feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
@@ -246,7 +247,7 @@ const Chat = () => {
                   <button type="button" className="vc-rail-btn" onClick={() => vc.setActiveId(c.id)}>
                     <span className="vc-rail-title">{c.title ?? "New conversation"}</span>
                     <span className="vc-rail-meta">
-                      {vc.personas.find((p) => p.key === c.persona_key)?.display_name ?? c.persona_key}
+                      {kovaIdentityLabel(vc.personas.find((p) => p.key === c.persona_key)?.display_name ?? (c.persona_key === "chief_of_staff" ? "AI co-founder" : c.persona_key))}
                     </span>
                   </button>
                   <button
@@ -268,14 +269,14 @@ const Chat = () => {
             <div>
               <div className="vc-head-title">
                 <span className="ai-mark">
-                  <span className="ai-dot" aria-hidden />
-                  Vision
+                  <Sparkles size={12} aria-hidden />
+                  Kova
                 </span>
                 <span className="vc-head-persona">{personaName}</span>
               </div>
               <div className="vc-head-meta">
-                Reading {scopeName ?? "every organization you belong to"}. Vision proposes; you
-                commit.
+                Your AI co-founder across {scopeName ?? "every organization you belong to"}. I propose; you
+                decide.
               </div>
             </div>
             <label className="vc-persona-pick">
@@ -289,7 +290,7 @@ const Chat = () => {
               >
                 {vc.personas.map((p) => (
                   <option key={p.key} value={p.key}>
-                    {p.display_name}
+                    {kovaIdentityLabel(p.display_name)}
                   </option>
                 ))}
               </select>
@@ -301,9 +302,8 @@ const Chat = () => {
               <div className="vc-empty">
                 <Eyebrow>Nothing asked yet</Eyebrow>
                 <Desc>
-                  Ask across {scopeName ?? "every organization you run"}. Vision answers from your
-                  mail, calendar, tasks and contacts — and names the records it read, so you can
-                  check the reading rather than trust the sentence.
+                  I'm Kova, your AI co-founder. What's on your plate across {scopeName ?? "every organization you run"}?
+                  I'll give you my take from the records I can read, and tell you where I'm missing context.
                 </Desc>
                 <div className="vc-starters">
                   {STARTERS.map((s) => (
@@ -318,7 +318,7 @@ const Chat = () => {
             {vc.messages.map((m) => (
               <article key={m.id} className="vc-msg" data-role={m.role}>
                 <div className="vc-avatar" data-role={m.role} aria-hidden>
-                  {m.role === "user" ? "You" : "V"}
+                  {m.role === "user" ? "You" : "K"}
                 </div>
                 <div className="vc-body">
                   {m.role === "assistant" ? <ContextChips refs={m.context_refs} /> : null}
@@ -341,7 +341,7 @@ const Chat = () => {
             {vc.streaming ? (
               <article className="vc-msg" data-role="assistant">
                 <div className="vc-avatar" data-role="assistant" aria-hidden>
-                  V
+                  K
                 </div>
                 <div className="vc-body">
                   {vc.pendingRefs.length ? <ContextChips refs={vc.pendingRefs} /> : null}
@@ -391,8 +391,8 @@ const Chat = () => {
                   ask(draft);
                 }
               }}
-              placeholder={`Ask ${personaName} about ${scopeName ?? "any of your organizations"}…`}
-              aria-label="Ask Vision"
+              placeholder={`Ask Kova about ${scopeName ?? "any of your organizations"}…`}
+              aria-label="Ask Kova"
             />
             <div className="vc-composer-foot">
               <DriveAttachMenu

@@ -107,7 +107,7 @@ export const WaitingNotice = ({ docs }: { docs: Doc[] }) => {
   if (docs.length === 0) {
     return (
       <div className="vo-meta">
-        Everything in scope is embedded. Vision can cite all of it.
+        Everything in scope is embedded. Kova can cite all of it.
       </div>
     );
   }
@@ -119,7 +119,7 @@ export const WaitingNotice = ({ docs }: { docs: Doc[] }) => {
           {docs.length} document{docs.length === 1 ? " is" : "s are"} uploaded but not embedded.
         </strong>
         <span>
-          Vision cannot cite them, and a search that should have found{" "}
+          Kova cannot cite them, and a search that should have found{" "}
           <em>{docs[0].title}</em> will come back empty instead of wrong — which is easy
           to miss.
         </span>
@@ -161,7 +161,7 @@ export const NeverCited = ({ docs }: { docs: Doc[] }) => {
         <Tag>{docs.length}</Tag>
       </div>
       <Desc>
-        These are embedded and retrievable, and Vision still never reached for them in
+        These are embedded and retrievable, and Kova still never reached for them in
         30 days. A never-cited document is one of three things: wrong, so nothing
         should cite it; buried, so its concepts don't match how anyone actually asks;
         or unnecessary. All three are worth knowing, and only the second is fixable by

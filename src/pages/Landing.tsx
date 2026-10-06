@@ -217,7 +217,7 @@ const CSS = `
 
 const CHAIN = [
   { n: "01", t: "It happened", d: "Meetings, mail, messages and docs land in one timeline instead of eight tabs." },
-  { n: "02", t: "It became a task", d: "Vision reads the record and proposes the work — owner, venture, due date attached." },
+  { n: "02", t: "It became a task", d: "Kova reads the record and proposes the work — owner, venture, due date attached." },
   { n: "03", t: "It got time", d: "Tasks are placed against your real calendar, so a full day says so before you promise it." },
   { n: "04", t: "It got reported", d: "Every venture rolls into one morning brief: what moved, what slipped, what needs you." },
 ];
@@ -353,13 +353,13 @@ export default function Landing() {
       <section className="klp-hero">
         <div className="wrap inner">
           <div className="klp-hero-copy">
-            <div className="eyebrow">The operating layer for entrepreneurs</div>
+            <div className="eyebrow">Your AI co-founder</div>
             <h1 style={{ marginTop: 18 }}>
-              Every hat,<span className="hb"> </span>one place.
+              Your AI co-founder for every business you run.
             </h1>
             <p className="sub">
-              Kova turns what happened into what&apos;s next — meetings into tasks, tasks into time,
-              and every venture into one morning brief.
+              Kova works across all your companies, clients, and brands — remembers every thread,
+              handles the busywork, and tells you what actually needs you.
             </p>
             <div className="cta">
               <Link className="btn btn-pri" to="/login?tab=signup">Start free</Link>
@@ -526,7 +526,7 @@ export default function Landing() {
           <div>
             <img src={wordmark} alt="Kova" style={{ height: 22, width: "auto", display: "block" }} />
             <div className="dim" style={{ fontSize: 13, marginTop: 12 }}>
-              The operating layer for entrepreneurs.
+              Your AI co-founder.
             </div>
           </div>
           <div>

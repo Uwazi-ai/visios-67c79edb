@@ -1,3 +1,4 @@
+import { KOVA_VOICE } from "@/lib/kovaVoice";
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,7 +22,8 @@ export const VisionSuggestion = ({ taskTitle, taskDescription }: Props) => {
           model: "claude-sonnet-4-20250514",
           max_tokens: 400,
           system:
-            "You are Vision, a concise productivity assistant. Given a task, give a 2-4 sentence next-step suggestion. No preamble, no headings.",
+            `${KOVA_VOICE}
+Given a task, give a 2-4 sentence next-step recommendation in first person. No preamble, no headings.`,
           messages: [
             {
               role: "user",
@@ -34,7 +36,7 @@ export const VisionSuggestion = ({ taskTitle, taskDescription }: Props) => {
       const content = data?.content?.[0]?.text ?? data?.content ?? "";
       setText(typeof content === "string" ? content : JSON.stringify(content));
     } catch (e) {
-      setText(`Couldn't reach Vision: ${e instanceof Error ? e.message : String(e)}`);
+      setText(`Couldn't reach Kova: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setLoading(false);
     }
@@ -47,9 +49,9 @@ export const VisionSuggestion = ({ taskTitle, taskDescription }: Props) => {
     >
       <div className="flex items-center gap-2 mb-2">
         <Sparkles size={12} style={{ color: "var(--text-accent)" }} />
-        <span className="t-mono text-[10px]" style={{ color: "var(--text-secondary)" }}>VISION SUGGESTION</span>
+        <span className="t-mono text-[10px]" style={{ color: "var(--text-secondary)" }}>KOVA SUGGESTION</span>
         <Button size="sm" variant="ghost" onClick={ask} disabled={loading} className="ml-auto h-6 text-[11px]">
-          {loading ? "Thinking…" : text ? "Refresh" : "Ask Vision"}
+          {loading ? "Thinking…" : text ? "Refresh" : "Ask Kova"}
         </Button>
       </div>
       {text && (

@@ -191,7 +191,7 @@ export const ProblemSection = () => (
                   ))}
                 </div>
                 <div className="kpb-ask">
-                  <strong style={{ display: "block", fontSize: 12 }}>Ask Vision</strong>
+                  <strong style={{ display: "block", fontSize: 12 }}>Ask Kova</strong>
                   What needs me first?
                 </div>
               </div>

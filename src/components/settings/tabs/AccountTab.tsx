@@ -91,8 +91,8 @@ export default function AccountTab({ dangerOnly }: { dangerOnly?: boolean }) {
 
       <SectionCard title="Usage (this month)">
         <div className="grid grid-cols-3 gap-3 t-mono" style={{ fontSize: 11 }}>
-          <div><div style={{ color: "var(--text-muted)" }}>Vision conversations</div><div style={{ fontSize: 18, color: "var(--text-primary)" }}>{stats.convos}</div></div>
-          <div><div style={{ color: "var(--text-muted)" }}>Vision messages</div><div style={{ fontSize: 18, color: "var(--text-primary)" }}>{stats.msgs}</div></div>
+          <div><div style={{ color: "var(--text-muted)" }}>Kova conversations</div><div style={{ fontSize: 18, color: "var(--text-primary)" }}>{stats.convos}</div></div>
+          <div><div style={{ color: "var(--text-muted)" }}>Kova messages</div><div style={{ fontSize: 18, color: "var(--text-primary)" }}>{stats.msgs}</div></div>
           <div><div style={{ color: "var(--text-muted)" }}>KB documents</div><div style={{ fontSize: 18, color: "var(--text-primary)" }}>{stats.kb}</div></div>
         </div>
       </SectionCard>

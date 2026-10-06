@@ -113,7 +113,7 @@ export const GateCard = ({
       <Desc>
         {decision === "approved"
           ? "Executed on your approval. This decision is final for the session — the write is not something a second click can undo."
-          : "Nothing was written. Ask again and Vision will re-draft rather than resurrect this one."}
+          : "Nothing was written. Ask again and Kova will re-draft rather than resurrect this one."}
       </Desc>
     ) : (
       <div className="vo-vgate-actions">

@@ -129,7 +129,7 @@ export default function SharedDrivesPanel() {
         <HardDrive size={16} className="text-[#a78bfa]" />
         <div className="text-sm font-medium text-white">Org Shared Drives</div>
       </div>
-      <p className="text-xs text-gray-400 mb-4">Connect each org to its Google Shared Drive so Vision can reference files.</p>
+      <p className="text-xs text-gray-400 mb-4">Connect each org to its Google Shared Drive so Kova can reference files.</p>
 
       <div className="space-y-3">
         {rows.map((row) => {
