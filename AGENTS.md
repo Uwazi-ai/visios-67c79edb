@@ -1,0 +1,2 @@
+# Architecture rules
+- Keep legacy Vision route, component, table, persona keys, and API identifiers stable during identity changes; only presentation labels and prompt wording change to avoid breaking stored data and integrations.
