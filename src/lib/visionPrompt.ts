@@ -1,4 +1,5 @@
 // Build the Vision system prompt with all live context sources rendered.
+import { KOVA_VOICE, kovaIdentityLabel } from "./kovaVoice";
 import { PERSONA_MAP, type PersonaKey } from "./aiPersonas";
 
 export interface VisionContext {
@@ -58,7 +59,7 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   const formattedDate = now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   const currentTime = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const orgNames = profile.accessible_orgs ?? [];
-  const aiName = (profile.vision_display_name || "Kova").trim();
+  const aiName = kovaIdentityLabel((profile.vision_display_name || "Kova").trim()) || "Kova";
   const toneKey = (profile.vision_tone || "direct").toLowerCase();
   const toneInstruction: Record<string, string> = {
     direct: "Be terse and outcome-driven. Short sentences. No filler.",
@@ -69,7 +70,7 @@ export function buildVisionSystemPrompt(personaKey: PersonaKey, ctx: VisionConte
   };
 
   const lines: string[] = [];
-  lines.push(`You are ${aiName}, the AI AI co-founder for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
+  lines.push(`You are ${aiName}, the AI co-founder for ${userName}. You are currently in the ${persona.name} ${persona.emoji} role.`);
   lines.push(persona.systemDescription);
   if (profile.vision_persona_description && profile.vision_persona_description.trim()) {
     lines.push(`\n═══ CUSTOM PERSONA (from ${firstName}'s settings) ═══\n${profile.vision_persona_description.trim()}`);
@@ -289,38 +290,16 @@ Patterns:
   if (isBrief) {
     lines.push(`
 ═══ DAILY BRIEF MODE ═══
-Respond in this EXACT structure (skip any section with zero relevant data):
+Good morning, ${firstName}. Here's my ${dayOfWeek} brief.
 
-Good morning, ${firstName}. Here's your ${dayOfWeek} brief.
+**Handled**
+Only work I have verifiably completed in the supplied records. Drafts and pending proposals are not executed work. If none is confirmed, say so plainly.
 
-📅 **Today's Schedule**
-- [Time-ordered list of today's events with attendees]
-- [Note any team members with relevant events]
+**Needs you**
+Decisions and blockers only ${firstName} can resolve. Include urgent mail, tasks, calendar conflicts and relevant threads, with org labels and source citations. If none are visible, say so; name missing sources.
 
-📧 **Email Highlights**
-- [Top 3–5 emails that need attention, one-line summaries, cite [gmail:ID]]
-- [Flag anything urgent or from key contacts]
-
-✅ **Priority Tasks**
-- [Overdue items first — be direct about what's late, cite [task:ID]]
-- [Due today]
-- [Top 3 high-priority items]
-
-💬 **Slack / Chat Catchup**
-- [Unread @mentions and important threads]
-
-📁 **Drive Activity**
-- [Files modified by team members in last 24h, cite [drive:ID]]
-- [Any docs that seem relevant to today's meetings]
-
-👥 **Relationship Nudges**
-- [Contacts not touched in 30+ days who are relevant this week]
-- [People in today's meetings — quick context]
-
-🎯 **Kova's Take**
-[2–3 sentences: the highest-leverage thing to focus on today, based on everything above. Be opinionated.]
-
-Maximum 4 bullets per section. Lead with what matters most. Never invent data — omit empty sections.`);
+**My take**
+My highest-leverage recommendation, with grounded reasoning across the organizations in scope. No invented statistics. Maximum four bullets per section; keep all three headings.`);
   }
 
   // RULES
@@ -335,6 +314,7 @@ Maximum 4 bullets per section. Lead with what matters most. Never invent data �
 - Use org color context: UWAZI (blue), BIN (red), Culture Club (green).
 - You are ${aiName}. Never refer to yourself as Claude, Anthropic, GPT, OpenAI, Gemini, Google, or any underlying model.`);
 
+  lines.push(KOVA_VOICE);
   return lines.join("\n");
 }
 

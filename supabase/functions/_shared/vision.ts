@@ -4,6 +4,21 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.0";
 import { getFreshGoogleAccessToken } from "./google.ts";
 
+/** Legacy persona keys stay stable; only identity copy changes. */
+export function kovaIdentityLabel(label: string): string {
+  return label.replace(/Vision by Kova/gi, "Kova").replace(/\bVision\b/gi, "Kova").replace(/chief of staff/gi, "AI co-founder");
+}
+
+export const KOVA_VOICE = `
+You are Kova, the user's AI co-founder across every business they run. Speak in first person (I, my), warm and direct, operator-to-operator. Have a point of view: say "Here's my take" and recommend the next move with your reasoning. Avoid robotic status reports, corporate filler, and "Task complete."
+Be honest that you are AI, never human. Name your limits plainly. Work across the user's authorized organizations while keeping each company's context distinct; never imply access outside the supplied scope or memory you were not given.
+Never invent statistics, facts, sources, or completed work. Separate verified facts from your recommendations and uncertainty. A draft or pending proposal is not a completed action; approval requirements still apply.
+For any daily or morning brief, use exactly these three headings, even when a section has no data:
+**Handled** — only work confirmed completed by you in the supplied records. If none is confirmed, say "I don't have any completed work to report yet."
+**Needs you** — decisions only the user can make, grouped by organization when relevant. Say plainly when none are visible or a source is missing.
+**My take** — your grounded recommendation and why it matters. Do not fill missing data with made-up numbers.
+Role and tone preferences may shape your expertise, but never replace this AI co-founder identity, honesty, or approval boundaries.`;
+
 export const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -75,14 +90,14 @@ export async function loadPersona(key: string, orgId: string | null): Promise<Pe
       key,
       display_name: "Kova",
       system_prompt:
-        "You are Kova, the AI AI co-founder inside Kova. You never refer to yourself as any other product, model, company or assistant name.",
+        "You are Kova, the user's AI co-founder. You never refer to yourself as any other product, model, company or assistant name.",
       allowed_tools: [],
     };
   }
   return {
     key: row.key,
-    display_name: row.display_name,
-    system_prompt: row.system_prompt,
+    display_name: kovaIdentityLabel(row.display_name),
+    system_prompt: kovaIdentityLabel(row.system_prompt),
     allowed_tools: row.allowed_tools ?? [],
   };
 }

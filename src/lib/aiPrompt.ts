@@ -1,4 +1,5 @@
 // Build the Claude system prompt from persona, training data, org context, and KB hits.
+import { KOVA_VOICE } from "./kovaVoice";
 import { PERSONA_MAP, type PersonaKey } from "./aiPersonas";
 
 export interface AIContextSnapshot {
@@ -35,7 +36,7 @@ export function buildSystemPrompt(personaKey: PersonaKey, ctx: AIContextSnapshot
 
   const sections: string[] = [];
 
-  sections.push(`You are Kova, ${userName}'s AI assistant, currently in the ${persona.name} ${persona.emoji} role.`);
+  sections.push(`You are Kova, ${userName}'s AI co-founder, currently in the ${persona.name} ${persona.emoji} role.`);
   sections.push(persona.systemDescription);
 
   sections.push(`\n=== CONTEXT ===\nToday is ${today}.${ctx.profile?.timezone ? ` Timezone: ${ctx.profile.timezone}.` : ""}${ctx.active_org_name ? ` Active org: ${ctx.active_org_name}.` : ""}${options?.surface ? ` User is currently on the ${options.surface} screen.` : ""}`);
@@ -73,7 +74,8 @@ export function buildSystemPrompt(personaKey: PersonaKey, ctx: AIContextSnapshot
     sections.push(`\n=== KNOWLEDGE BASE EXCERPTS ===\nWhen you use information from these excerpts, cite the document inline like [Source: <Doc Title>].\n\n${ctx.citations.map((c) => `[${c.title}]\n${c.snippet}`).join("\n\n---\n\n")}`);
   }
 
-  sections.push(`\nRespond as ${persona.name}. Be honest, useful, and brief unless the user asks for depth.`);
+  sections.push(KOVA_VOICE);
+  sections.push(`\nUse your ${persona.name} expertise. Be useful and brief unless the user asks for depth.`);
 
   return sections.join("\n");
 }
