@@ -20,10 +20,30 @@ function isPublicPath(pathname: string) {
   );
 }
 
+/** Records that this tab has a deliberate sign-in, so a later reload keeps it. */
+export function markSessionActive() {
+  try {
+    sessionStorage.setItem(MARKER_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+/** True when this page load is the return leg of an OAuth sign-in (tokens in the URL hash). */
+function isOAuthReturn() {
+  return /(^#|&)(access_token|error)=/.test(window.location.hash);
+}
+
 export function enforceFreshSignIn() {
   try {
     const path = window.location.pathname;
     if (isPublicPath(path)) return;
+
+    // Coming back from Google: this IS a fresh sign-in, so keep it.
+    if (isOAuthReturn()) {
+      markSessionActive();
+      return;
+    }
 
     const alreadyActive = sessionStorage.getItem(MARKER_KEY);
     if (alreadyActive) return;
