@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { startGoogleOAuth, isFramed } from "@/lib/googleOAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Check, Mail, Calendar } from "lucide-react";
@@ -25,16 +26,13 @@ export const Step3Google = ({ onNext, onSkip }: Props) => {
 
   const connect = async () => {
     setBusy(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/onboarding`,
-        scopes:
-          "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly",
-        queryParams: { access_type: "offline", prompt: "consent" },
-      },
+    const { error } = await startGoogleOAuth({
+      redirectTo: `${window.location.origin}/onboarding`,
+      scopes:
+        "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly",
+      queryParams: { access_type: "offline", prompt: "consent" },
     });
-    if (error) setBusy(false);
+    if (error || isFramed()) setBusy(false);
   };
 
   return (

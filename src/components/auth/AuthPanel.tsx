@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { startGoogleOAuth, isFramed } from "@/lib/googleOAuth";
 
 // Tokens (mirrors Landing.tsx)
 const BG = "#0a0a0a";
@@ -49,15 +50,13 @@ export function AuthPanel({ tab, setTab, next }: { tab: "signup" | "signin"; set
 
   const onGoogle = async () => {
     setLoading(true); setError(null);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: returnTo,
-        scopes: GOOGLE_SCOPES,
-        queryParams: { access_type: "offline", prompt: "consent", include_granted_scopes: "true" },
-      },
+    const { error } = await startGoogleOAuth({
+      redirectTo: returnTo,
+      scopes: GOOGLE_SCOPES,
+      queryParams: { access_type: "offline", prompt: "consent", include_granted_scopes: "true" },
     });
     if (error) { setError(error.message); setLoading(false); }
+    else if (isFramed()) { setLoading(false); setInfo("Google opened in a new tab — finish signing in there."); }
   };
 
   const onSignUp = async (e: React.FormEvent) => {

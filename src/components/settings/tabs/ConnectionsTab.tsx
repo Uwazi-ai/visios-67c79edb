@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Loader2, RefreshCw, Mail, Calendar, FolderOpen, MessageSquare, Ticket, FileText, BookOpen, Phone, Mic, Eye, EyeOff, ExternalLink, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { startGoogleOAuth } from "@/lib/googleOAuth";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import SectionCard, { Field, ToggleRow } from "../SectionCard";
@@ -72,13 +73,10 @@ export default function ConnectionsTab() {
   };
 
   const connectGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/settings`,
-        scopes: GOOGLE_SCOPES,
-        queryParams: { access_type: "offline", prompt: "consent" },
-      },
+    const { error } = await startGoogleOAuth({
+      redirectTo: `${window.location.origin}/settings`,
+      scopes: GOOGLE_SCOPES,
+      queryParams: { access_type: "offline", prompt: "consent" },
     });
     if (error) toast.error(error.message);
   };
