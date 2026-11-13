@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "zod/v4": "npm:zod@3.25.76/v4",
+    "postgres": "npm:postgres@3.4.7"
+  }
+}

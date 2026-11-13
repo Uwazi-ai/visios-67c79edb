@@ -1,0 +1,12 @@
+{
+  "name": "brain-mcp",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "node scripts/seed.mjs",
+    "test": "node tests/schema.test.mjs && node tests/guardrails.test.mjs && node tests/seed.test.mjs && node tests/smoke.test.mjs && node tests/tools.test.mjs && node tests/rules.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.2.17"
+  }
+}

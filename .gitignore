@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# brain-mcp private seed inputs and outputs (this repo is public)
+myke-shaw-ontology.md
+brain-mcp/seed/
